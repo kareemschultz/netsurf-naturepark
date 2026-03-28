@@ -41,6 +41,19 @@ const galleryVariants: NatureArtworkVariant[] = [
   "camp",
 ]
 
+const socialGalleryPhotoByIndex: Partial<
+  Record<number, { src: string; alt: string }>
+> = {
+  0: {
+    src: "/images/social/facebook-creek-deck.jpg",
+    alt: "Official Facebook photo of the blackwater creek deck at Netsurf Nature Park",
+  },
+  7: {
+    src: "/images/social/facebook-park-sign.jpg",
+    alt: "Official Facebook photo of the Netsurf Nature Park entrance sign",
+  },
+}
+
 function HomePage() {
   return (
     <>
@@ -170,11 +183,11 @@ function HeroSection() {
           transition={{ duration: 0.68, ease: [0.22, 1, 0.36, 1], delay: 0.24 }}
           className="mx-auto w-full max-w-md rounded-[2rem] border border-white/12 bg-white/10 p-4 backdrop-blur-md lg:mx-0"
         >
-          <NatureArtwork
-            alt="Illustrated view of a cabin, rainforest canopy, and creek at Netsurf Nature Park"
-            variant="signature"
+          <SocialPhoto
+            src="/images/social/facebook-creek-deck.jpg"
+            alt="Official Facebook photo of the blackwater creek deck at Netsurf Nature Park"
             priority
-            className="aspect-[5/4] rounded-[1.5rem] border-white/14 bg-white/6"
+            className="aspect-[5/4] rounded-[1.5rem] border border-white/14 object-cover shadow-[0_24px_60px_rgba(0,0,0,0.25)]"
           />
           <div className="mt-4 grid grid-cols-3 gap-3 text-center text-xs text-white/72">
             <FactTile
@@ -391,39 +404,77 @@ function GallerySection() {
       <div className="mx-auto max-w-7xl">
         <SectionHeader
           label="A Feel for the Park"
-          title="The Experience, Illustrated"
-          subtitle="Until the full photography library is ready, these scene studies capture the pace, mood, and landscape of a stay at Netsurf."
+          title="A First Look at the Park"
+          subtitle="We are starting to replace placeholder art with official social photography, while the rest of the photo library is still being gathered."
         />
 
         <StaggerList className="mt-12 grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
-          {galleryImages.map((image, index) => (
-            <StaggerItem
-              key={image.alt}
-              className={index === 0 ? "col-span-2 row-span-2" : undefined}
-            >
-              <motion.figure
-                className="group overflow-hidden rounded-[1.5rem] border border-border bg-white"
-                whileHover={{ y: -4 }}
-                transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
+          {galleryImages.map((image, index) => {
+            const socialPhoto = socialGalleryPhotoByIndex[index]
+
+            return (
+              <StaggerItem
+                key={image.alt}
+                className={index === 0 ? "col-span-2 row-span-2" : undefined}
               >
-                <NatureArtwork
-                  alt={image.alt}
-                  variant={galleryVariants[index % galleryVariants.length]}
-                  className={
-                    index === 0
-                      ? "aspect-[16/11] rounded-none border-0"
-                      : "aspect-[4/3] rounded-none border-0"
-                  }
-                />
-                <figcaption className="border-t border-border px-4 py-3 text-xs leading-relaxed text-muted-foreground">
-                  {image.alt}
-                </figcaption>
-              </motion.figure>
-            </StaggerItem>
-          ))}
+                <motion.figure
+                  className="group overflow-hidden rounded-[1.5rem] border border-border bg-white"
+                  whileHover={{ y: -4 }}
+                  transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
+                >
+                  {socialPhoto ? (
+                    <SocialPhoto
+                      src={socialPhoto.src}
+                      alt={socialPhoto.alt}
+                      className={
+                        index === 0
+                          ? "aspect-[16/11] rounded-none border-0 object-cover"
+                          : "aspect-[4/3] rounded-none border-0 object-cover"
+                      }
+                    />
+                  ) : (
+                    <NatureArtwork
+                      alt={image.alt}
+                      variant={galleryVariants[index % galleryVariants.length]}
+                      className={
+                        index === 0
+                          ? "aspect-[16/11] rounded-none border-0"
+                          : "aspect-[4/3] rounded-none border-0"
+                      }
+                    />
+                  )}
+                  <figcaption className="border-t border-border px-4 py-3 text-xs leading-relaxed text-muted-foreground">
+                    {socialPhoto?.alt ?? image.alt}
+                  </figcaption>
+                </motion.figure>
+              </StaggerItem>
+            )
+          })}
         </StaggerList>
       </div>
     </section>
+  )
+}
+
+function SocialPhoto({
+  alt,
+  className,
+  priority = false,
+  src,
+}: {
+  alt: string
+  className?: string
+  priority?: boolean
+  src: string
+}) {
+  return (
+    <img
+      src={src}
+      alt={alt}
+      loading={priority ? "eager" : "lazy"}
+      decoding="async"
+      className={className}
+    />
   )
 }
 
