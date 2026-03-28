@@ -1,0 +1,10 @@
+node_modules
+**/node_modules
+**/.turbo
+**/dist
+**/.git
+*.md
+*.png
+*.jpeg
+*.jpg
+.env*

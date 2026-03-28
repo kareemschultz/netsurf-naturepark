@@ -1,8 +1,7 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
-@import "@fontsource-variable/manrope";
-@import "@fontsource-variable/dm-sans";
+@import "@fontsource-variable/nunito";
 
 @custom-variant dark (&:is(.dark *));
 @source "../../../apps/**/*.{ts,tsx}";
@@ -10,72 +9,62 @@
 @source "../**/*.{ts,tsx}";
 
 :root {
-    --background: oklch(1 0 0);
-    --foreground: oklch(0.145 0.008 326);
+    /* Netsurf Nature Park brand palette */
+    --park-green: #2D5016;
+    --park-green-dark: #1E3A0E;
+    --park-green-light: #3A6B1E;
+    --park-amber: #C4941A;
+    --park-cream: #FAF6F0;
+    --park-charcoal: #2C2C2C;
+
+    /* shadcn tokens mapped to park brand */
+    --background: oklch(0.978 0.008 80);        /* park-cream */
+    --foreground: oklch(0.200 0 0);              /* park-charcoal */
     --card: oklch(1 0 0);
-    --card-foreground: oklch(0.145 0.008 326);
+    --card-foreground: oklch(0.200 0 0);
     --popover: oklch(1 0 0);
-    --popover-foreground: oklch(0.145 0.008 326);
-    --primary: oklch(0.488 0.243 264.376);
-    --primary-foreground: oklch(0.97 0.014 254.604);
-    --secondary: oklch(0.967 0.001 286.375);
-    --secondary-foreground: oklch(0.21 0.006 285.885);
-    --muted: oklch(0.96 0.003 325.6);
-    --muted-foreground: oklch(0.542 0.034 322.5);
-    --accent: oklch(0.96 0.003 325.6);
-    --accent-foreground: oklch(0.212 0.019 322.12);
+    --popover-foreground: oklch(0.200 0 0);
+    --primary: oklch(0.295 0.108 136);           /* park-green */
+    --primary-foreground: oklch(0.978 0.008 80); /* cream on green */
+    --secondary: oklch(0.940 0.015 136);         /* very light green tint */
+    --secondary-foreground: oklch(0.295 0.108 136);
+    --muted: oklch(0.950 0.008 80);
+    --muted-foreground: oklch(0.480 0.020 136);
+    --accent: oklch(0.640 0.120 75);             /* park-amber */
+    --accent-foreground: oklch(0.200 0 0);
     --destructive: oklch(0.577 0.245 27.325);
-    --border: oklch(0.922 0.005 325.62);
-    --input: oklch(0.922 0.005 325.62);
-    --ring: oklch(0.711 0.019 323.02);
-    --chart-1: oklch(0.809 0.105 251.813);
-    --chart-2: oklch(0.623 0.214 259.815);
-    --chart-3: oklch(0.546 0.245 262.881);
-    --chart-4: oklch(0.488 0.243 264.376);
-    --chart-5: oklch(0.424 0.199 265.638);
-    --radius: 0.625rem;
-    --sidebar: oklch(0.985 0 0);
-    --sidebar-foreground: oklch(0.145 0.008 326);
-    --sidebar-primary: oklch(0.546 0.245 262.881);
-    --sidebar-primary-foreground: oklch(0.97 0.014 254.604);
-    --sidebar-accent: oklch(0.96 0.003 325.6);
-    --sidebar-accent-foreground: oklch(0.212 0.019 322.12);
-    --sidebar-border: oklch(0.922 0.005 325.62);
-    --sidebar-ring: oklch(0.711 0.019 323.02);
+    --border: oklch(0.880 0.015 80);
+    --input: oklch(0.880 0.015 80);
+    --ring: oklch(0.295 0.108 136);
+    --radius: 0.5rem;
+
+    /* Chart colours (nature tones) */
+    --chart-1: oklch(0.295 0.108 136);
+    --chart-2: oklch(0.640 0.120 75);
+    --chart-3: oklch(0.420 0.095 136);
+    --chart-4: oklch(0.750 0.090 75);
+    --chart-5: oklch(0.550 0.060 136);
 }
 
 .dark {
-    --background: oklch(0.145 0.008 326);
-    --foreground: oklch(0.985 0 0);
-    --card: oklch(0.212 0.019 322.12);
-    --card-foreground: oklch(0.985 0 0);
-    --popover: oklch(0.212 0.019 322.12);
-    --popover-foreground: oklch(0.985 0 0);
-    --primary: oklch(0.424 0.199 265.638);
-    --primary-foreground: oklch(0.97 0.014 254.604);
-    --secondary: oklch(0.274 0.006 286.033);
-    --secondary-foreground: oklch(0.985 0 0);
-    --muted: oklch(0.263 0.024 320.12);
-    --muted-foreground: oklch(0.711 0.019 323.02);
-    --accent: oklch(0.263 0.024 320.12);
-    --accent-foreground: oklch(0.985 0 0);
+    --background: oklch(0.145 0.020 136);
+    --foreground: oklch(0.978 0.008 80);
+    --card: oklch(0.185 0.025 136);
+    --card-foreground: oklch(0.978 0.008 80);
+    --popover: oklch(0.185 0.025 136);
+    --popover-foreground: oklch(0.978 0.008 80);
+    --primary: oklch(0.420 0.120 136);
+    --primary-foreground: oklch(0.978 0.008 80);
+    --secondary: oklch(0.240 0.040 136);
+    --secondary-foreground: oklch(0.978 0.008 80);
+    --muted: oklch(0.240 0.040 136);
+    --muted-foreground: oklch(0.680 0.040 136);
+    --accent: oklch(0.700 0.130 75);
+    --accent-foreground: oklch(0.145 0.020 136);
     --destructive: oklch(0.704 0.191 22.216);
     --border: oklch(1 0 0 / 10%);
     --input: oklch(1 0 0 / 15%);
-    --ring: oklch(0.542 0.034 322.5);
-    --chart-1: oklch(0.809 0.105 251.813);
-    --chart-2: oklch(0.623 0.214 259.815);
-    --chart-3: oklch(0.546 0.245 262.881);
-    --chart-4: oklch(0.488 0.243 264.376);
-    --chart-5: oklch(0.424 0.199 265.638);
-    --sidebar: oklch(0.212 0.019 322.12);
-    --sidebar-foreground: oklch(0.985 0 0);
-    --sidebar-primary: oklch(0.623 0.214 259.815);
-    --sidebar-primary-foreground: oklch(0.97 0.014 254.604);
-    --sidebar-accent: oklch(0.263 0.024 320.12);
-    --sidebar-accent-foreground: oklch(0.985 0 0);
-    --sidebar-border: oklch(1 0 0 / 10%);
-    --sidebar-ring: oklch(0.542 0.034 322.5);
+    --ring: oklch(0.420 0.120 136);
 }
 
 @theme inline {
@@ -107,25 +96,73 @@
     --radius-lg: var(--radius);
     --radius-xl: calc(var(--radius) * 1.4);
     --radius-2xl: calc(var(--radius) * 1.8);
-    --radius-3xl: calc(var(--radius) * 2.2);
-    --radius-4xl: calc(var(--radius) * 2.6);
-    --color-sidebar: var(--sidebar);
-    --color-sidebar-foreground: var(--sidebar-foreground);
-    --color-sidebar-primary: var(--sidebar-primary);
-    --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-    --color-sidebar-accent: var(--sidebar-accent);
-    --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-    --color-sidebar-border: var(--sidebar-border);
-    --color-sidebar-ring: var(--sidebar-ring);
-    --font-sans: 'Manrope Variable', sans-serif;
-    --font-heading: 'DM Sans Variable', sans-serif;
+    --font-sans: 'Nunito Variable', sans-serif;
+    --font-heading: 'Nunito Variable', sans-serif;
+}
+
+/* ─── react-day-picker brand overrides ──────────────────────────────────── */
+.rdp-brand {
+  --rdp-accent-color: #2D5016;
+  --rdp-accent-background-color: #2D5016;
+  --rdp-range-start-color: #fff;
+  --rdp-range-end-color: #fff;
+  --rdp-range-start-background: #2D5016;
+  --rdp-range-end-background: #2D5016;
+  --rdp-range-middle-background-color: #2D5016/15;
+  --rdp-selected-font: 700;
+  --rdp-day-font: 500;
+  --rdp-day-height: 2.4rem;
+  --rdp-day-width: 2.4rem;
+  --rdp-font-family: 'Nunito Variable', sans-serif;
+}
+.rdp-brand .rdp-day_button:hover:not([disabled]) {
+  background-color: #2D501615;
+  border-radius: 0.5rem;
+}
+.rdp-brand .rdp-selected .rdp-day_button {
+  background-color: #2D5016;
+  color: white;
+  border-radius: 0.5rem;
+}
+.rdp-brand .rdp-range_middle .rdp-day_button {
+  background-color: #2D501618;
+  border-radius: 0;
+}
+.rdp-brand .rdp-range_start .rdp-day_button,
+.rdp-brand .rdp-range_end .rdp-day_button {
+  background-color: #2D5016 !important;
+  color: white !important;
+  border-radius: 0.5rem !important;
+}
+.rdp-brand .rdp-chevron {
+  fill: #2D5016;
+}
+.rdp-brand .rdp-month_caption {
+  font-weight: 800;
+  color: #2D5016;
+}
+.rdp-brand .rdp-weekday {
+  font-weight: 700;
+  color: #2D5016;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.rdp-brand .rdp-today:not(.rdp-selected) .rdp-day_button {
+  border: 2px solid #2D5016;
+  border-radius: 0.5rem;
+  color: #2D5016;
+  font-weight: 800;
 }
 
 @layer base {
-  * {
-    @apply border-border outline-ring/50;
+    * {
+        @apply border-border outline-ring/50;
     }
-  body {
-    @apply bg-background text-foreground;
+    body {
+        @apply bg-background text-foreground font-sans;
+    }
+    h1, h2, h3, h4, h5, h6 {
+        @apply font-heading font-bold;
     }
 }
