@@ -1,62 +1,74 @@
-import { useState } from "react";
-import { createFileRoute, useNavigate, redirect } from "@tanstack/react-router";
-import { login, isAuthenticated } from "@/lib/api";
+import { useState } from "react"
+import { createFileRoute, useNavigate, redirect } from "@tanstack/react-router"
+import { login, isAuthenticated } from "@/lib/api"
 
 export const Route = createFileRoute("/login")({
   beforeLoad: () => {
-    if (isAuthenticated()) throw redirect({ to: "/" });
+    if (isAuthenticated()) throw redirect({ to: "/" })
   },
   component: LoginPage,
-});
+})
 
 function LoginPage() {
-  const navigate = useNavigate();
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate()
+  const [password, setPassword] = useState("")
+  const [error, setError] = useState("")
+  const [loading, setLoading] = useState(false)
 
   async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setError("");
-    setLoading(true);
+    e.preventDefault()
+    setError("")
+    setLoading(true)
     try {
-      await login(password);
-      navigate({ to: "/" });
+      await login(password)
+      navigate({ to: "/" })
     } catch {
-      setError("Incorrect password. Try again.");
+      setError("Incorrect password. Try again.")
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
   }
 
   return (
     <div
-      className="min-h-screen flex items-center justify-center px-4"
+      className="flex min-h-screen items-center justify-center px-4"
       style={{ backgroundColor: "#1E3A0E" }}
     >
-      <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-sm">
-        <div className="text-center mb-7">
-          <p className="font-black text-xl" style={{ color: "#2D5016" }}>
+      <div className="w-full max-w-sm rounded-2xl bg-white p-8 shadow-xl">
+        <div className="mb-7 text-center">
+          <p className="text-xl font-black" style={{ color: "#2D5016" }}>
             Netsurf Admin
           </p>
-          <p className="text-sm text-muted-foreground mt-1">Sign in to manage bookings</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Sign in to manage bookings
+          </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="text-sm font-semibold block mb-1.5">Password</label>
+            <label
+              htmlFor="admin-password"
+              className="mb-1.5 block text-sm font-semibold"
+            >
+              Password
+            </label>
             <input
+              id="admin-password"
+              name="password"
               type="password"
+              autoComplete="current-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Enter admin password"
               required
-              className="w-full rounded-xl border-2 border-border px-4 py-2.5 text-sm outline-none focus:border-[#2D5016] transition-colors"
+              className="w-full rounded-xl border-2 border-border px-4 py-2.5 text-sm transition-colors outline-none focus:border-[#2D5016]"
             />
           </div>
 
           {error && (
-            <p className="text-xs text-red-600 font-medium">{error}</p>
+            <p className="text-xs font-medium text-red-600" aria-live="polite">
+              {error}
+            </p>
           )}
 
           <button
@@ -70,5 +82,5 @@ function LoginPage() {
         </form>
       </div>
     </div>
-  );
+  )
 }

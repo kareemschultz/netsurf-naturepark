@@ -1,27 +1,27 @@
-export type CabinCategory = "cabin" | "camping";
+export type CabinCategory = "cabin" | "camping"
 
 export interface Cabin {
-  slug: string;
-  name: string;
-  priceGYD: number;
-  maxGuests: number;
-  category: CabinCategory;
-  tagline: string;
-  description: string;
-  features: string[];
-  images: string[];
-  whatsappText: string;
+  slug: string
+  name: string
+  priceGYD: number
+  maxGuests: number
+  category: CabinCategory
+  tagline: string
+  description: string
+  features: string[]
+  images: string[]
+  whatsappText: string
 }
 
-export type AddOnCategory = "access" | "meal" | "activity" | "transport";
+export type AddOnCategory = "access" | "meal" | "activity" | "transport"
 
 export interface AddOn {
-  slug: string;
-  name: string;
-  priceGYD: number;
-  category: AddOnCategory;
-  description: string;
-  icon: string;
+  slug: string
+  name: string
+  priceGYD: number
+  category: AddOnCategory
+  description: string
+  icon: string
 }
 
 export const cabins: Cabin[] = [
@@ -110,7 +110,7 @@ export const cabins: Cabin[] = [
     whatsappText:
       "Hi! I'd like to book the Hansel & Gretel Cabin at Netsurf Nature Park. Could you help me with availability?",
   },
-];
+]
 
 export const addOns: AddOn[] = [
   {
@@ -118,7 +118,8 @@ export const addOns: AddOn[] = [
     name: "Day Pass",
     priceGYD: 5000,
     category: "access",
-    description: "Spend the day exploring the park, swimming in the creek, and enjoying the rainforest.",
+    description:
+      "Spend the day exploring the park, swimming in the creek, and enjoying the rainforest.",
     icon: "sun",
   },
   {
@@ -126,7 +127,8 @@ export const addOns: AddOn[] = [
     name: "Breakfast",
     priceGYD: 2000,
     category: "meal",
-    description: "A fresh local breakfast prepared for you each morning. Per person.",
+    description:
+      "A fresh local breakfast prepared for you each morning. Per person.",
     icon: "egg",
   },
   {
@@ -134,7 +136,8 @@ export const addOns: AddOn[] = [
     name: "Dinner",
     priceGYD: 3500,
     category: "meal",
-    description: "A hearty Guyanese dinner made with locally sourced ingredients. Per person.",
+    description:
+      "A hearty Guyanese dinner made with locally sourced ingredients. Per person.",
     icon: "utensils",
   },
   {
@@ -142,7 +145,8 @@ export const addOns: AddOn[] = [
     name: "BBQ Package",
     priceGYD: 8000,
     category: "meal",
-    description: "A full BBQ spread for your group — perfect for evenings by the fire.",
+    description:
+      "A full BBQ spread for your group — perfect for evenings by the fire.",
     icon: "flame",
   },
   {
@@ -150,7 +154,8 @@ export const addOns: AddOn[] = [
     name: "Guided Nature Walk",
     priceGYD: 3000,
     category: "activity",
-    description: "Explore the rainforest with a knowledgeable local guide. Spot wildlife, medicinal plants, and hidden trails.",
+    description:
+      "Explore the rainforest with a knowledgeable local guide. Spot wildlife, medicinal plants, and hidden trails.",
     icon: "footprints",
   },
   {
@@ -158,7 +163,8 @@ export const addOns: AddOn[] = [
     name: "Kayak Rental (Half Day)",
     priceGYD: 4000,
     category: "activity",
-    description: "Paddle the blackwater creek at your own pace. Equipment and safety gear included.",
+    description:
+      "Paddle the blackwater creek at your own pace. Equipment and safety gear included.",
     icon: "waves",
   },
   {
@@ -166,10 +172,11 @@ export const addOns: AddOn[] = [
     name: "Transport from Georgetown",
     priceGYD: 5000,
     category: "transport",
-    description: "Door-to-door pickup and drop-off from Georgetown along the Soesdyke-Linden Highway.",
+    description:
+      "Door-to-door pickup and drop-off from Georgetown along the Soesdyke-Linden Highway.",
     icon: "car",
   },
-];
+]
 
 export const testimonials = [
   {
@@ -193,55 +200,79 @@ export const testimonials = [
     text: "The guided nature walk was a highlight. Our guide knew every plant and bird by name. The kayaking on the blackwater creek at sunset is something I'll never forget.",
     rating: 5,
   },
-];
+]
 
 export const galleryImages = [
-  { src: "/images/gallery-1.jpg", alt: "Blackwater creek at Netsurf Nature Park" },
-  { src: "/images/gallery-2.jpg", alt: "Rainforest canopy view from the cabins" },
-  { src: "/images/gallery-3.jpg", alt: "Nature cabin surrounded by tropical foliage" },
-  { src: "/images/gallery-4.jpg", alt: "Sunset over the Soesdyke-Linden Highway wetlands" },
+  {
+    src: "/images/gallery-1.jpg",
+    alt: "Blackwater creek at Netsurf Nature Park",
+  },
+  {
+    src: "/images/gallery-2.jpg",
+    alt: "Rainforest canopy view from the cabins",
+  },
+  {
+    src: "/images/gallery-3.jpg",
+    alt: "Nature cabin surrounded by tropical foliage",
+  },
+  {
+    src: "/images/gallery-4.jpg",
+    alt: "Sunset over the Soesdyke-Linden Highway wetlands",
+  },
   { src: "/images/gallery-5.jpg", alt: "Kayaking on the blackwater creek" },
   { src: "/images/gallery-6.jpg", alt: "Campfire under the rainforest canopy" },
-  { src: "/images/gallery-7.jpg", alt: "Tropical birds spotted on a guided nature walk" },
+  {
+    src: "/images/gallery-7.jpg",
+    alt: "Tropical birds spotted on a guided nature walk",
+  },
   { src: "/images/gallery-8.jpg", alt: "Morning mist rising from the creek" },
   { src: "/images/gallery-9.jpg", alt: "Hansel and Gretel cabin outdoor deck" },
-  { src: "/images/gallery-10.jpg", alt: "Solar panels powering the eco-retreat" },
+  {
+    src: "/images/gallery-10.jpg",
+    alt: "Solar panels powering the eco-retreat",
+  },
   { src: "/images/gallery-11.jpg", alt: "BBQ evening at the campfire area" },
   { src: "/images/gallery-12.jpg", alt: "Hammocking by the creek at Netsurf" },
-];
+]
 
 export const features = [
   {
     title: "100% Solar Powered",
-    description: "Every light, fan, and outlet on the property runs on clean solar energy. No generators. No noise.",
+    description:
+      "Every light, fan, and outlet on the property runs on clean solar energy. No generators. No noise.",
     icon: "solar",
   },
   {
     title: "Blackwater Creek",
-    description: "Swim, kayak, or simply sit by Guyana's unique dark-water creek — tannin-stained, crystal clear, and peaceful.",
+    description:
+      "Swim, kayak, or simply sit by Guyana's unique dark-water creek — tannin-stained, crystal clear, and peaceful.",
     icon: "water",
   },
   {
     title: "DIY Cooking",
-    description: "Bring your own ingredients and use our outdoor kitchen — or let us cook for you with our meal packages.",
+    description:
+      "Bring your own ingredients and use our outdoor kitchen — or let us cook for you with our meal packages.",
     icon: "fire",
   },
   {
     title: "True Wilderness",
-    description: "No roads cutting through the property. Just rainforest, wildlife, and the sounds of nature.",
+    description:
+      "No roads cutting through the property. Just rainforest, wildlife, and the sounds of nature.",
     icon: "tree",
   },
   {
     title: "Guided Experiences",
-    description: "Knowledgeable local guides lead nature walks, birdwatching tours, and creek adventures.",
+    description:
+      "Knowledgeable local guides lead nature walks, birdwatching tours, and creek adventures.",
     icon: "compass",
   },
   {
     title: "Close to Georgetown",
-    description: "Just off the Soesdyke-Linden Highway — easily reachable from the capital, yet worlds away.",
+    description:
+      "Just off the Soesdyke-Linden Highway — easily reachable from the capital, yet worlds away.",
     icon: "map",
   },
-];
+]
 
 export const contacts = {
   phone1: "+592 611-9443",
@@ -253,37 +284,46 @@ export const contacts = {
   locationName: "Soesdyke-Linden Highway, Guyana",
   gps: { lat: 6.0870307, lng: -58.2677041 },
   mapsLink: "https://maps.google.com/?q=6.0870307,-58.2677041",
-};
+}
+
+const guyanaNumberFormatter = new Intl.NumberFormat("en-GY", {
+  maximumFractionDigits: 0,
+})
+
+const bookingDateFormatter = new Intl.DateTimeFormat("en-GB", {
+  day: "numeric",
+  month: "short",
+  year: "numeric",
+})
 
 export function formatGYD(amount: number): string {
-  return `GYD $${amount.toLocaleString()}`;
+  return `GYD $${guyanaNumberFormatter.format(amount)}`
 }
 
 export function whatsappBookingLink(cabin: Cabin): string {
-  return `https://wa.me/${contacts.whatsappNumber}?text=${encodeURIComponent(cabin.whatsappText)}`;
+  return `https://wa.me/${contacts.whatsappNumber}?text=${encodeURIComponent(cabin.whatsappText)}`
 }
 
 export interface BookingRequest {
-  cabin: Cabin;
-  checkIn: Date;
-  checkOut: Date;
-  guests: number;
-  addOnSlugs: string[];
-  name: string;
-  contact: string;
-  notes: string;
+  cabin: Cabin
+  checkIn: Date
+  checkOut: Date
+  guests: number
+  addOnSlugs: string[]
+  name: string
+  contact: string
+  notes: string
 }
 
 export function buildWhatsAppBookingMessage(req: BookingRequest): string {
   const nights = Math.round(
     (req.checkOut.getTime() - req.checkIn.getTime()) / (1000 * 60 * 60 * 24)
-  );
-  const fmt = (d: Date) =>
-    d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+  )
+  const fmt = (d: Date) => bookingDateFormatter.format(d)
 
-  const selectedAddOns = addOns.filter((a) => req.addOnSlugs.includes(a.slug));
-  const addOnTotal = selectedAddOns.reduce((s, a) => s + a.priceGYD, 0);
-  const total = req.cabin.priceGYD * nights + addOnTotal;
+  const selectedAddOns = addOns.filter((a) => req.addOnSlugs.includes(a.slug))
+  const addOnTotal = selectedAddOns.reduce((s, a) => s + a.priceGYD, 0)
+  const total = req.cabin.priceGYD * nights + addOnTotal
 
   const lines = [
     `Hi! I'd like to book at Netsurf Nature Park.`,
@@ -292,26 +332,26 @@ export function buildWhatsAppBookingMessage(req: BookingRequest): string {
     `*Check-in:* ${fmt(req.checkIn)}`,
     `*Check-out:* ${fmt(req.checkOut)} (${nights} night${nights !== 1 ? "s" : ""})`,
     `*Guests:* ${req.guests}`,
-  ];
+  ]
 
   if (selectedAddOns.length > 0) {
-    lines.push(`*Add-ons:* ${selectedAddOns.map((a) => a.name).join(", ")}`);
+    lines.push(`*Add-ons:* ${selectedAddOns.map((a) => a.name).join(", ")}`)
   }
 
-  lines.push(``, `*Name:* ${req.name}`, `*Contact:* ${req.contact}`);
+  lines.push(``, `*Name:* ${req.name}`, `*Contact:* ${req.contact}`)
 
   if (req.notes.trim()) {
-    lines.push(`*Notes:* ${req.notes}`);
+    lines.push(`*Notes:* ${req.notes}`)
   }
 
-  lines.push(``, `*Estimated Total:* GYD $${total.toLocaleString()}`);
-  lines.push(``, `Please confirm availability. Thank you!`);
+  lines.push(``, `*Estimated Total:* ${formatGYD(total)}`)
+  lines.push(``, `Please confirm availability. Thank you!`)
 
-  return lines.join("\n");
+  return lines.join("\n")
 }
 
 export function buildWhatsAppBookingLink(req: BookingRequest): string {
   return `https://wa.me/${contacts.whatsappNumber}?text=${encodeURIComponent(
     buildWhatsAppBookingMessage(req)
-  )}`;
+  )}`
 }

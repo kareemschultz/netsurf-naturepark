@@ -5,7 +5,8 @@
   "private": true,
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "router:generate": "tsr generate",
+    "build": "bun run router:generate && tsc -b && vite build",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit"
   },
@@ -21,6 +22,7 @@
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.1.18",
+    "@tanstack/router-cli": "^1.166.22",
     "@tanstack/router-vite-plugin": "^1.166.23",
     "@types/node": "^25.1.0",
     "@types/react": "^19.2.10",

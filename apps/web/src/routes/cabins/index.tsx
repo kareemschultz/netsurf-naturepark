@@ -1,11 +1,15 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { cabins, formatGYD, contacts } from "@workspace/shared";
-import { Badge } from "@workspace/ui/components/badge";
-import { AnimatedPageHero } from "../../components/AnimatedHeroBg";
+import { createFileRoute, Link } from "@tanstack/react-router"
+
+import { cabins, contacts, formatGYD } from "@workspace/shared"
+import { Badge } from "@workspace/ui/components/badge"
+
+import { AnimatedPageHero } from "../../components/AnimatedHeroBg"
+import { NatureArtwork } from "../../components/NatureArtwork"
+import { getCabinArtworkVariant } from "../../components/natureArtworkData"
 
 export const Route = createFileRoute("/cabins/")({
   component: CabinsPage,
-});
+})
 
 function CabinsPage() {
   return (
@@ -13,103 +17,115 @@ function CabinsPage() {
       <AnimatedPageHero
         eyebrow="Accommodations"
         title="Cabins & Camping"
-        subtitle="From open-sky camping to our signature Hansel & Gretel cabin — every option puts you right inside the rainforest."
+        subtitle="From open-sky camping to our signature family cabin, every stay keeps the rainforest front and center."
       />
-    <div className="py-12 px-4 min-h-screen">
-      <div className="mx-auto max-w-6xl">
 
-        <div className="space-y-8">
-          {cabins.map((cabin, i) => (
-            <div
-              key={cabin.slug}
-              className="bg-white rounded-2xl overflow-hidden shadow-sm border border-border flex flex-col md:flex-row"
-            >
-              {/* Image */}
-              <div
-                className={`h-56 md:h-auto md:w-80 shrink-0 bg-cover bg-center ${
-                  i % 2 === 1 ? "md:order-2" : ""
-                }`}
-                style={{
-                  backgroundImage: `url('${cabin.images[0]}'), linear-gradient(160deg, #2D5016 0%, #3A6B1E 100%)`,
-                }}
-              />
+      <div className="min-h-screen px-4 py-12">
+        <div className="mx-auto max-w-6xl">
+          <div className="space-y-8">
+            {cabins.map((cabin, index) => (
+              <article
+                key={cabin.slug}
+                className="overflow-hidden rounded-[1.75rem] border border-border bg-white shadow-sm"
+              >
+                <div className="grid md:grid-cols-[minmax(0,22rem)_1fr]">
+                  <NatureArtwork
+                    alt={`${cabin.name} illustrated accommodation at Netsurf Nature Park`}
+                    variant={getCabinArtworkVariant(cabin)}
+                    className={`aspect-[5/4] rounded-none border-0 md:aspect-auto ${
+                      index % 2 === 1 ? "md:order-2" : ""
+                    }`}
+                  />
 
-              {/* Content */}
-              <div className="p-7 flex flex-col justify-between flex-1">
-                <div>
-                  <div className="flex flex-wrap items-start gap-3 mb-3">
-                    <h2 className="text-2xl font-black">{cabin.name}</h2>
-                    <Badge
-                      className="font-bold text-sm"
-                      style={{ backgroundColor: "#FAF6F0", color: "#2D5016" }}
-                    >
-                      {formatGYD(cabin.priceGYD)} / stay
-                    </Badge>
-                    <Badge variant="outline" className="text-xs">
-                      Up to {cabin.maxGuests} guests
-                    </Badge>
+                  <div className="flex flex-col justify-between p-7">
+                    <div>
+                      <div className="mb-4 flex flex-wrap items-start gap-3">
+                        <div>
+                          <h2 className="text-2xl font-black">{cabin.name}</h2>
+                          <p className="mt-1 text-sm text-muted-foreground">
+                            {cabin.tagline}
+                          </p>
+                        </div>
+                        <Badge
+                          className="text-sm font-bold"
+                          style={{
+                            backgroundColor: "#FAF6F0",
+                            color: "#2D5016",
+                          }}
+                        >
+                          {formatGYD(cabin.priceGYD)} / night
+                        </Badge>
+                        <Badge variant="outline" className="text-xs">
+                          Up to {cabin.maxGuests} guest
+                          {cabin.maxGuests !== 1 ? "s" : ""}
+                        </Badge>
+                      </div>
+
+                      <p className="mb-5 text-sm leading-relaxed text-muted-foreground">
+                        {cabin.description}
+                      </p>
+
+                      <ul className="grid grid-cols-1 gap-2 text-sm text-foreground/80 sm:grid-cols-2">
+                        {cabin.features.map((feature) => (
+                          <li key={feature} className="flex items-center gap-2">
+                            <span className="font-bold text-[#2D5016]">+</span>
+                            {feature}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    <div className="mt-6 flex flex-wrap gap-3">
+                      <Link
+                        to="/cabins/$slug"
+                        params={{ slug: cabin.slug }}
+                        className="rounded-full border-2 border-primary/20 px-6 py-2.5 text-sm font-semibold text-primary transition-colors hover:bg-primary/6"
+                      >
+                        View Details
+                      </Link>
+                      <Link
+                        to="/book"
+                        search={{ cabin: cabin.slug }}
+                        className="inline-flex items-center gap-2 rounded-full px-6 py-2.5 text-sm font-bold text-white transition-opacity hover:opacity-90"
+                        style={{ backgroundColor: "#2D5016" }}
+                      >
+                        Reserve
+                      </Link>
+                    </div>
                   </div>
-                  <p className="text-muted-foreground text-sm leading-relaxed mb-5">
-                    {cabin.description}
-                  </p>
-                  <ul className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 mb-6">
-                    {cabin.features.map((f) => (
-                      <li key={f} className="flex items-center gap-2 text-sm text-foreground/80">
-                        <span className="text-[#2D5016] font-bold">✓</span>
-                        {f}
-                      </li>
-                    ))}
-                  </ul>
                 </div>
-                <div className="flex flex-wrap gap-3">
-                  <Link
-                    to="/cabins/$slug"
-                    params={{ slug: cabin.slug }}
-                    className="rounded-full px-6 py-2.5 text-sm font-semibold border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground transition-colors"
-                  >
-                    View Details
-                  </Link>
-                  <Link
-                    to="/book"
-                    search={{ cabin: cabin.slug }}
-                    className="rounded-full px-6 py-2.5 text-sm font-bold text-white transition-opacity hover:opacity-90 inline-flex items-center gap-2"
-                    style={{ backgroundColor: "#2D5016" }}
-                  >
-                    Reserve
-                  </Link>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Day pass note */}
-        <div
-          className="mt-10 rounded-2xl p-6 flex flex-col sm:flex-row items-center gap-4 justify-between"
-          style={{ backgroundColor: "#FAF6F0", border: "1px solid #C4941A33" }}
-        >
-          <div>
-            <h3 className="font-bold text-lg">Just visiting for the day?</h3>
-            <p className="text-sm text-muted-foreground mt-1">
-              Day passes let you explore the park, swim in the creek, and enjoy all the facilities.{" "}
-              <strong style={{ color: "#2D5016" }}>GYD $5,000 per person.</strong>
-            </p>
+              </article>
+            ))}
           </div>
-          <a
-            href={`${contacts.whatsappLink}?text=${encodeURIComponent(
-              "Hi! I'm interested in a Day Pass at Netsurf Nature Park. Can you help me book?"
-            )}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="shrink-0 rounded-full px-6 py-2.5 text-sm font-bold text-white"
-            style={{ backgroundColor: "#2D5016" }}
+
+          <div
+            className="mt-10 flex flex-col items-start justify-between gap-4 rounded-[1.75rem] border p-6 sm:flex-row sm:items-center"
+            style={{ backgroundColor: "#FAF6F0", borderColor: "#C4941A33" }}
           >
-            Book Day Pass
-          </a>
+            <div>
+              <h3 className="text-lg font-bold">Just visiting for the day?</h3>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Day passes include access to the creek, trails, and the rest of
+                the park.{" "}
+                <strong style={{ color: "#2D5016" }}>
+                  {formatGYD(5000)} per person.
+                </strong>
+              </p>
+            </div>
+            <a
+              href={`${contacts.whatsappLink}?text=${encodeURIComponent(
+                "Hi! I'm interested in a Day Pass at Netsurf Nature Park. Can you help me book?"
+              )}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="shrink-0 rounded-full px-6 py-2.5 text-sm font-bold text-white"
+              style={{ backgroundColor: "#2D5016" }}
+            >
+              Book Day Pass
+            </a>
+          </div>
         </div>
       </div>
-    </div>
     </>
-  );
+  )
 }
-
