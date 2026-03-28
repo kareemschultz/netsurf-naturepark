@@ -406,8 +406,8 @@ function GallerySection() {
       <div className="mx-auto max-w-7xl">
         <SectionHeader
           label="A Feel for the Park"
-          title="A First Look at the Park"
-          subtitle="We are starting to replace placeholder art with official social photography, while the rest of the photo library is still being gathered."
+          title="Life at Netsurf"
+          subtitle="From the blackwater creek to the forest canopy — a glimpse of what's waiting for you."
         />
 
         <StaggerList className="mt-12 grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
