@@ -1,6 +1,8 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
+@import "@fontsource-variable/dm-sans";
+@import "@fontsource-variable/manrope";
 @import "@fontsource-variable/nunito";
 
 @custom-variant dark (&:is(.dark *));
@@ -9,160 +11,177 @@
 @source "../**/*.{ts,tsx}";
 
 :root {
-    /* Netsurf Nature Park brand palette */
-    --park-green: #2D5016;
-    --park-green-dark: #1E3A0E;
-    --park-green-light: #3A6B1E;
-    --park-amber: #C4941A;
-    --park-cream: #FAF6F0;
-    --park-charcoal: #2C2C2C;
+  /* Netsurf Nature Park brand palette */
+  --park-green: #2d5016;
+  --park-green-dark: #1e3a0e;
+  --park-green-light: #3a6b1e;
+  --park-amber: #c4941a;
+  --park-cream: #faf6f0;
+  --park-charcoal: #2c2c2c;
 
-    /* shadcn tokens mapped to park brand */
-    --background: oklch(0.978 0.008 80);        /* park-cream */
-    --foreground: oklch(0.200 0 0);              /* park-charcoal */
-    --card: oklch(1 0 0);
-    --card-foreground: oklch(0.200 0 0);
-    --popover: oklch(1 0 0);
-    --popover-foreground: oklch(0.200 0 0);
-    --primary: oklch(0.295 0.108 136);           /* park-green */
-    --primary-foreground: oklch(0.978 0.008 80); /* cream on green */
-    --secondary: oklch(0.940 0.015 136);         /* very light green tint */
-    --secondary-foreground: oklch(0.295 0.108 136);
-    --muted: oklch(0.950 0.008 80);
-    --muted-foreground: oklch(0.480 0.020 136);
-    --accent: oklch(0.640 0.120 75);             /* park-amber */
-    --accent-foreground: oklch(0.200 0 0);
-    --destructive: oklch(0.577 0.245 27.325);
-    --border: oklch(0.880 0.015 80);
-    --input: oklch(0.880 0.015 80);
-    --ring: oklch(0.295 0.108 136);
-    --radius: 0.5rem;
+  /* shadcn tokens mapped to park brand */
+  --background: oklch(0.978 0.008 80); /* park-cream */
+  --foreground: oklch(0.2 0 0); /* park-charcoal */
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.2 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.2 0 0);
+  --primary: oklch(0.295 0.108 136); /* park-green */
+  --primary-foreground: oklch(0.978 0.008 80); /* cream on green */
+  --secondary: oklch(0.94 0.015 136); /* very light green tint */
+  --secondary-foreground: oklch(0.295 0.108 136);
+  --muted: oklch(0.95 0.008 80);
+  --muted-foreground: oklch(0.48 0.02 136);
+  --accent: oklch(0.64 0.12 75); /* park-amber */
+  --accent-foreground: oklch(0.2 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.88 0.015 80);
+  --input: oklch(0.88 0.015 80);
+  --ring: oklch(0.295 0.108 136);
+  --radius: 0.5rem;
 
-    /* Chart colours (nature tones) */
-    --chart-1: oklch(0.295 0.108 136);
-    --chart-2: oklch(0.640 0.120 75);
-    --chart-3: oklch(0.420 0.095 136);
-    --chart-4: oklch(0.750 0.090 75);
-    --chart-5: oklch(0.550 0.060 136);
+  /* Chart colours (nature tones) */
+  --chart-1: oklch(0.295 0.108 136);
+  --chart-2: oklch(0.64 0.12 75);
+  --chart-3: oklch(0.42 0.095 136);
+  --chart-4: oklch(0.75 0.09 75);
+  --chart-5: oklch(0.55 0.06 136);
 }
 
 .dark {
-    --background: oklch(0.145 0.020 136);
-    --foreground: oklch(0.978 0.008 80);
-    --card: oklch(0.185 0.025 136);
-    --card-foreground: oklch(0.978 0.008 80);
-    --popover: oklch(0.185 0.025 136);
-    --popover-foreground: oklch(0.978 0.008 80);
-    --primary: oklch(0.420 0.120 136);
-    --primary-foreground: oklch(0.978 0.008 80);
-    --secondary: oklch(0.240 0.040 136);
-    --secondary-foreground: oklch(0.978 0.008 80);
-    --muted: oklch(0.240 0.040 136);
-    --muted-foreground: oklch(0.680 0.040 136);
-    --accent: oklch(0.700 0.130 75);
-    --accent-foreground: oklch(0.145 0.020 136);
-    --destructive: oklch(0.704 0.191 22.216);
-    --border: oklch(1 0 0 / 10%);
-    --input: oklch(1 0 0 / 15%);
-    --ring: oklch(0.420 0.120 136);
+  --background: oklch(0.145 0.02 136);
+  --foreground: oklch(0.978 0.008 80);
+  --card: oklch(0.185 0.025 136);
+  --card-foreground: oklch(0.978 0.008 80);
+  --popover: oklch(0.185 0.025 136);
+  --popover-foreground: oklch(0.978 0.008 80);
+  --primary: oklch(0.42 0.12 136);
+  --primary-foreground: oklch(0.978 0.008 80);
+  --secondary: oklch(0.24 0.04 136);
+  --secondary-foreground: oklch(0.978 0.008 80);
+  --muted: oklch(0.24 0.04 136);
+  --muted-foreground: oklch(0.68 0.04 136);
+  --accent: oklch(0.7 0.13 75);
+  --accent-foreground: oklch(0.145 0.02 136);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.42 0.12 136);
 }
 
 @theme inline {
-    --color-background: var(--background);
-    --color-foreground: var(--foreground);
-    --color-card: var(--card);
-    --color-card-foreground: var(--card-foreground);
-    --color-popover: var(--popover);
-    --color-popover-foreground: var(--popover-foreground);
-    --color-primary: var(--primary);
-    --color-primary-foreground: var(--primary-foreground);
-    --color-secondary: var(--secondary);
-    --color-secondary-foreground: var(--secondary-foreground);
-    --color-muted: var(--muted);
-    --color-muted-foreground: var(--muted-foreground);
-    --color-accent: var(--accent);
-    --color-accent-foreground: var(--accent-foreground);
-    --color-destructive: var(--destructive);
-    --color-border: var(--border);
-    --color-input: var(--input);
-    --color-ring: var(--ring);
-    --color-chart-1: var(--chart-1);
-    --color-chart-2: var(--chart-2);
-    --color-chart-3: var(--chart-3);
-    --color-chart-4: var(--chart-4);
-    --color-chart-5: var(--chart-5);
-    --radius-sm: calc(var(--radius) * 0.6);
-    --radius-md: calc(var(--radius) * 0.8);
-    --radius-lg: var(--radius);
-    --radius-xl: calc(var(--radius) * 1.4);
-    --radius-2xl: calc(var(--radius) * 1.8);
-    --font-sans: 'Nunito Variable', sans-serif;
-    --font-heading: 'Nunito Variable', sans-serif;
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --font-sans: "DM Sans Variable", "Nunito Variable", sans-serif;
+  --font-heading: "Manrope Variable", "Nunito Variable", sans-serif;
 }
 
 /* ─── react-day-picker brand overrides ──────────────────────────────────── */
 .rdp-brand {
-  --rdp-accent-color: #2D5016;
-  --rdp-accent-background-color: #2D5016;
+  --rdp-accent-color: #2d5016;
+  --rdp-accent-background-color: #2d5016;
   --rdp-range-start-color: #fff;
   --rdp-range-end-color: #fff;
-  --rdp-range-start-background: #2D5016;
-  --rdp-range-end-background: #2D5016;
+  --rdp-range-start-background: #2d5016;
+  --rdp-range-end-background: #2d5016;
   --rdp-range-middle-background-color: #2D5016/15;
   --rdp-selected-font: 700;
   --rdp-day-font: 500;
   --rdp-day-height: 2.4rem;
   --rdp-day-width: 2.4rem;
-  --rdp-font-family: 'Nunito Variable', sans-serif;
+  --rdp-font-family: "Nunito Variable", sans-serif;
 }
 .rdp-brand .rdp-day_button:hover:not([disabled]) {
-  background-color: #2D501615;
+  background-color: #2d501615;
   border-radius: 0.5rem;
 }
 .rdp-brand .rdp-selected .rdp-day_button {
-  background-color: #2D5016;
+  background-color: #2d5016;
   color: white;
   border-radius: 0.5rem;
 }
 .rdp-brand .rdp-range_middle .rdp-day_button {
-  background-color: #2D501618;
+  background-color: #2d501618;
   border-radius: 0;
 }
 .rdp-brand .rdp-range_start .rdp-day_button,
 .rdp-brand .rdp-range_end .rdp-day_button {
-  background-color: #2D5016 !important;
+  background-color: #2d5016 !important;
   color: white !important;
   border-radius: 0.5rem !important;
 }
 .rdp-brand .rdp-chevron {
-  fill: #2D5016;
+  fill: #2d5016;
 }
 .rdp-brand .rdp-month_caption {
   font-weight: 800;
-  color: #2D5016;
+  color: #2d5016;
 }
 .rdp-brand .rdp-weekday {
   font-weight: 700;
-  color: #2D5016;
+  color: #2d5016;
   font-size: 0.7rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
 .rdp-brand .rdp-today:not(.rdp-selected) .rdp-day_button {
-  border: 2px solid #2D5016;
+  border: 2px solid #2d5016;
   border-radius: 0.5rem;
-  color: #2D5016;
+  color: #2d5016;
   font-weight: 800;
 }
 
 @layer base {
-    * {
-        @apply border-border outline-ring/50;
-    }
-    body {
-        @apply bg-background text-foreground font-sans;
-    }
-    h1, h2, h3, h4, h5, h6 {
-        @apply font-heading font-bold;
-    }
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    background: var(--background);
+    color-scheme: light;
+    scroll-behavior: smooth;
+    -webkit-tap-highlight-color: transparent;
+  }
+  body {
+    @apply bg-background font-sans text-foreground;
+    text-rendering: optimizeLegibility;
+  }
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-heading font-bold;
+    text-wrap: balance;
+  }
+  button,
+  a {
+    touch-action: manipulation;
+  }
 }

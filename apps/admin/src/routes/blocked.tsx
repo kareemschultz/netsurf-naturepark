@@ -1,125 +1,165 @@
-import { useState, useEffect } from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { useState, useEffect } from "react"
+import { createFileRoute } from "@tanstack/react-router"
 import {
   getBlockedDates,
   createBlockedDate,
   deleteBlockedDate,
   type BlockedDate,
-} from "@/lib/api";
-import { cabins } from "@workspace/shared";
-import { format } from "date-fns";
+} from "@/lib/api"
+import { cabins } from "@workspace/shared"
+import { format } from "date-fns"
 
 export const Route = createFileRoute("/blocked")({
   component: BlockedDatesPage,
-});
+})
 
 function BlockedDatesPage() {
-  const [rows, setRows] = useState<BlockedDate[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
+  const [rows, setRows] = useState<BlockedDate[]>([])
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
   const [form, setForm] = useState({
     cabinSlug: "" as string | null,
     startDate: "",
     endDate: "",
     reason: "",
-  });
+  })
 
   useEffect(() => {
-    load();
-  }, []);
+    load()
+  }, [])
 
   function load() {
-    setLoading(true);
+    setLoading(true)
     getBlockedDates()
       .then(setRows)
       .catch(console.error)
-      .finally(() => setLoading(false));
+      .finally(() => setLoading(false))
   }
 
   async function handleAdd(e: React.FormEvent) {
-    e.preventDefault();
-    setSaving(true);
+    e.preventDefault()
+    setSaving(true)
     try {
       await createBlockedDate({
         cabinSlug: form.cabinSlug || null,
         startDate: form.startDate,
         endDate: form.endDate,
         reason: form.reason,
-      });
-      setForm({ cabinSlug: "", startDate: "", endDate: "", reason: "" });
-      load();
+      })
+      setForm({ cabinSlug: "", startDate: "", endDate: "", reason: "" })
+      load()
     } catch (err) {
-      alert((err as Error).message);
+      alert((err as Error).message)
     } finally {
-      setSaving(false);
+      setSaving(false)
     }
   }
 
   async function handleDelete(id: number) {
-    if (!confirm("Remove this blocked date range?")) return;
-    await deleteBlockedDate(id);
-    setRows((prev) => prev.filter((r) => r.id !== id));
+    if (!confirm("Remove this blocked date range?")) return
+    await deleteBlockedDate(id)
+    setRows((prev) => prev.filter((r) => r.id !== id))
   }
 
   const cabinName = (slug: string | null) =>
-    slug ? (cabins.find((c) => c.slug === slug)?.name ?? slug) : "All Cabins";
+    slug ? (cabins.find((c) => c.slug === slug)?.name ?? slug) : "All Cabins"
 
   return (
-    <div className="p-8 max-w-3xl">
-      <h1 className="text-2xl font-black mb-1">Blocked Dates</h1>
-      <p className="text-sm text-muted-foreground mb-7">
-        Block specific date ranges to prevent bookings — e.g. maintenance, private events.
+    <div className="max-w-3xl p-8">
+      <h1 className="mb-1 text-2xl font-black">Blocked Dates</h1>
+      <p className="mb-7 text-sm text-muted-foreground">
+        Block specific date ranges to prevent bookings — e.g. maintenance,
+        private events.
       </p>
 
       {/* Add form */}
-      <div className="bg-white rounded-2xl border border-border p-6 mb-6">
-        <h2 className="font-bold text-sm uppercase tracking-widest text-muted-foreground mb-4">
+      <div className="mb-6 rounded-2xl border border-border bg-white p-6">
+        <h2 className="mb-4 text-sm font-bold tracking-widest text-muted-foreground uppercase">
           Block a Date Range
         </h2>
-        <form onSubmit={handleAdd} className="grid sm:grid-cols-2 gap-4">
+        <form onSubmit={handleAdd} className="grid gap-4 sm:grid-cols-2">
           <div>
-            <label className="text-xs font-semibold block mb-1">Cabin</label>
+            <label
+              htmlFor="blocked-cabin"
+              className="mb-1 block text-xs font-semibold"
+            >
+              Cabin
+            </label>
             <select
+              id="blocked-cabin"
+              name="cabinSlug"
               value={form.cabinSlug ?? ""}
-              onChange={(e) => setForm((f) => ({ ...f, cabinSlug: e.target.value || null }))}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, cabinSlug: e.target.value || null }))
+              }
               className="w-full rounded-xl border-2 border-border px-3 py-2 text-sm outline-none focus:border-[#2D5016]"
             >
               <option value="">All Cabins</option>
               {cabins.map((c) => (
-                <option key={c.slug} value={c.slug}>{c.name}</option>
+                <option key={c.slug} value={c.slug}>
+                  {c.name}
+                </option>
               ))}
             </select>
           </div>
 
           <div>
-            <label className="text-xs font-semibold block mb-1">Reason (optional)</label>
+            <label
+              htmlFor="blocked-reason"
+              className="mb-1 block text-xs font-semibold"
+            >
+              Reason (optional)
+            </label>
             <input
+              id="blocked-reason"
+              name="reason"
               type="text"
+              autoComplete="off"
               value={form.reason}
-              onChange={(e) => setForm((f) => ({ ...f, reason: e.target.value }))}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, reason: e.target.value }))
+              }
               placeholder="e.g. Maintenance"
               className="w-full rounded-xl border-2 border-border px-3 py-2 text-sm outline-none focus:border-[#2D5016]"
             />
           </div>
 
           <div>
-            <label className="text-xs font-semibold block mb-1">Start Date *</label>
+            <label
+              htmlFor="blocked-start-date"
+              className="mb-1 block text-xs font-semibold"
+            >
+              Start Date *
+            </label>
             <input
+              id="blocked-start-date"
+              name="startDate"
               type="date"
               required
               value={form.startDate}
-              onChange={(e) => setForm((f) => ({ ...f, startDate: e.target.value }))}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, startDate: e.target.value }))
+              }
               className="w-full rounded-xl border-2 border-border px-3 py-2 text-sm outline-none focus:border-[#2D5016]"
             />
           </div>
 
           <div>
-            <label className="text-xs font-semibold block mb-1">End Date *</label>
+            <label
+              htmlFor="blocked-end-date"
+              className="mb-1 block text-xs font-semibold"
+            >
+              End Date *
+            </label>
             <input
+              id="blocked-end-date"
+              name="endDate"
               type="date"
               required
               value={form.endDate}
-              onChange={(e) => setForm((f) => ({ ...f, endDate: e.target.value }))}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, endDate: e.target.value }))
+              }
               className="w-full rounded-xl border-2 border-border px-3 py-2 text-sm outline-none focus:border-[#2D5016]"
             />
           </div>
@@ -138,29 +178,35 @@ function BlockedDatesPage() {
       </div>
 
       {/* List */}
-      <div className="bg-white rounded-2xl border border-border overflow-hidden">
-        <div className="px-6 py-4 border-b border-border">
-          <h2 className="font-bold text-sm">Existing Blocks</h2>
+      <div className="overflow-hidden rounded-2xl border border-border bg-white">
+        <div className="border-b border-border px-6 py-4">
+          <h2 className="text-sm font-bold">Existing Blocks</h2>
         </div>
 
         {loading ? (
-          <div className="p-8 text-center text-muted-foreground text-sm">Loading…</div>
+          <div className="p-8 text-center text-sm text-muted-foreground">
+            Loading…
+          </div>
         ) : rows.length === 0 ? (
-          <div className="p-8 text-center text-muted-foreground text-sm">No blocked dates.</div>
+          <div className="p-8 text-center text-sm text-muted-foreground">
+            No blocked dates.
+          </div>
         ) : (
           <div className="divide-y divide-border">
             {rows.map((row) => (
               <div key={row.id} className="flex items-center gap-4 px-6 py-3.5">
                 <div className="flex-1">
-                  <p className="text-sm font-semibold">{cabinName(row.cabinSlug)}</p>
-                  <p className="text-xs text-muted-foreground font-mono">
+                  <p className="text-sm font-semibold">
+                    {cabinName(row.cabinSlug)}
+                  </p>
+                  <p className="font-mono text-xs text-muted-foreground">
                     {row.startDate} → {row.endDate}
                     {row.reason && ` · ${row.reason}`}
                   </p>
                 </div>
                 <button
                   onClick={() => handleDelete(row.id)}
-                  className="text-xs text-red-500 hover:text-red-700 font-semibold transition-colors"
+                  className="text-xs font-semibold text-red-500 transition-colors hover:text-red-700"
                 >
                   Remove
                 </button>
@@ -170,5 +216,5 @@ function BlockedDatesPage() {
         )}
       </div>
     </div>
-  );
+  )
 }
