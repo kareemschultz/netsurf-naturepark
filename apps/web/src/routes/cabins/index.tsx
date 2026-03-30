@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router"
 
-import { cabins, contacts, formatGYD } from "@workspace/shared"
+import { buildWhatsAppTextLink, cabins, formatGYD } from "@workspace/shared"
 import { Badge } from "@workspace/ui/components/badge"
 
 import { AnimatedPageHero } from "../../components/AnimatedHeroBg"
@@ -113,9 +113,9 @@ function CabinsPage() {
               </p>
             </div>
             <a
-              href={`${contacts.whatsappLink}?text=${encodeURIComponent(
+              href={buildWhatsAppTextLink(
                 "Hi! I'm interested in a Day Pass at Netsurf Nature Park. Can you help me book?"
-              )}`}
+              )}
               target="_blank"
               rel="noopener noreferrer"
               className="shrink-0 rounded-full px-6 py-2.5 text-sm font-bold text-white"

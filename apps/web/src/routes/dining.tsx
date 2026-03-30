@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router"
-import { addOns, contacts, formatGYD } from "@workspace/shared"
+import { addOns, buildWhatsAppTextLink, formatGYD } from "@workspace/shared"
 import { Badge } from "@workspace/ui/components/badge"
 import { AnimatedPageHero } from "../components/AnimatedHeroBg"
 
@@ -48,11 +48,12 @@ function DiningPage() {
                   {meal.description}
                 </p>
                 <a
-                  href={`${contacts.whatsappLink}?text=${encodeURIComponent(
+                  href={buildWhatsAppTextLink(
                     `Hi! I'd like to add ${meal.name} to my booking at Netsurf Nature Park.`
-                  )}`}
+                  )}
                   target="_blank"
                   rel="noopener noreferrer"
+                  aria-label={`Add ${meal.name} to booking on WhatsApp`}
                   className="mt-4 rounded-full px-4 py-2 text-center text-xs font-bold text-white transition-opacity hover:opacity-90"
                   style={{ backgroundColor: "#25D366" }}
                 >

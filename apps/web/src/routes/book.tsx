@@ -21,6 +21,7 @@ import {
 
 import { NatureArtwork } from "../components/NatureArtwork"
 import { getCabinArtworkVariant } from "../components/natureArtworkData"
+import { WhatsAppIcon } from "../components/WhatsAppIcon"
 
 const API_URL = import.meta.env.VITE_API_URL ?? ""
 
@@ -139,6 +140,15 @@ function BookPage() {
 
   async function submitBooking() {
     if (!selectedCabin || !dateRange?.from || !dateRange?.to) {
+      return
+    }
+
+    if (!API_URL) {
+      setSubmitState({
+        status: "error",
+        message:
+          "Booking API is not configured yet. Please use WhatsApp to submit this booking",
+      })
       return
     }
 
@@ -293,11 +303,12 @@ function BookPage() {
 
 function StepProgress({ currentStep }: { currentStep: Step }) {
   return (
-    <div className="flex items-center gap-0">
+    <ol className="flex items-center gap-0" aria-label="Booking steps">
       {STEPS.map((step, index) => (
-        <div key={step.n} className="flex flex-1 items-center">
+        <li key={step.n} className="flex flex-1 items-center">
           <div className="flex flex-1 flex-col items-center">
             <div
+              aria-current={currentStep === step.n ? "step" : undefined}
               className={`flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold transition-colors ${
                 currentStep >= step.n
                   ? "text-white"
@@ -323,15 +334,16 @@ function StepProgress({ currentStep }: { currentStep: Step }) {
           </div>
           {index < STEPS.length - 1 && (
             <div
+              aria-hidden="true"
               className="mx-1 mb-4 h-0.5 flex-1"
               style={{
                 backgroundColor: currentStep > step.n ? "#2D5016" : "#e5e7eb",
               }}
             />
           )}
-        </div>
+        </li>
       ))}
-    </div>
+    </ol>
   )
 }
 
@@ -354,6 +366,7 @@ function StepCabin({
             key={cabin.slug}
             type="button"
             onClick={() => onSelect(cabin)}
+            aria-pressed={selected?.slug === cabin.slug}
             className={`flex w-full gap-4 rounded-[1.25rem] border-2 p-4 text-left transition-colors ${
               selected?.slug === cabin.slug
                 ? "border-[#2D5016] bg-[#2D5016]/5"
@@ -540,6 +553,7 @@ function StepExtras({
                       key={addon.slug}
                       type="button"
                       onClick={() => toggleAddOn(addon.slug)}
+                      aria-pressed={checked}
                       className={`flex w-full items-center gap-3 rounded-xl border-2 p-3 text-left transition-colors ${
                         checked
                           ? "border-[#2D5016] bg-[#2D5016]/5"
@@ -657,6 +671,8 @@ function StepDetails({
             type="tel"
             autoComplete="tel"
             inputMode="tel"
+            required
+            aria-required="true"
             value={whatsapp}
             onChange={(event) => setWhatsapp(event.target.value)}
             placeholder="Include your country code…"
@@ -778,10 +794,11 @@ function StepConfirm({
           href={whatsappLink}
           target="_blank"
           rel="noopener noreferrer"
+          aria-label="Follow up on WhatsApp"
           className="inline-flex items-center gap-2 rounded-full px-6 py-2.5 text-sm font-bold text-white transition-opacity hover:opacity-90"
           style={{ backgroundColor: "#25D366" }}
         >
-          <WhatsAppSVG />
+          <WhatsAppIcon className="h-4 w-4" />
           Follow Up on WhatsApp
         </a>
         <div className="mt-5">
@@ -1087,20 +1104,5 @@ function SummaryRow({
         Edit
       </button>
     </div>
-  )
-}
-
-function WhatsAppSVG() {
-  return (
-    <svg
-      width="16"
-      height="16"
-      viewBox="0 0 24 24"
-      fill="currentColor"
-      aria-hidden="true"
-    >
-      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z" />
-      <path d="M12 0C5.373 0 0 5.373 0 12c0 2.132.558 4.13 1.532 5.864L0 24l6.29-1.51A11.94 11.94 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 01-5.007-1.369l-.36-.214-3.733.897.939-3.63-.234-.373A9.818 9.818 0 1112 21.818z" />
-    </svg>
   )
 }

@@ -43,6 +43,7 @@ export function Navbar() {
           <div className="flex items-center gap-4">
             <a
               href={`tel:${contacts.phone1}`}
+              aria-label={`Call primary phone ${contacts.phone1}`}
               className="transition-colors hover:text-white"
             >
               {contacts.phone1}
@@ -50,6 +51,7 @@ export function Navbar() {
             <span>·</span>
             <a
               href={`tel:${contacts.phone2}`}
+              aria-label={`Call secondary phone ${contacts.phone2}`}
               className="transition-colors hover:text-white"
             >
               {contacts.phone2}
@@ -65,7 +67,11 @@ export function Navbar() {
         }`}
       >
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3">
-          <Link to="/" className="group flex items-center gap-3">
+          <Link
+            to="/"
+            aria-label="Netsurf Nature Park home"
+            className="group flex items-center gap-3 rounded-md focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:ring-offset-2 focus-visible:ring-offset-[#1E3A0E]"
+          >
             <div
               className="hidden h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-white/8 text-[11px] font-black tracking-[0.24em] text-white/90 sm:flex"
               aria-hidden="true"
@@ -108,7 +114,7 @@ export function Navbar() {
 
           <Sheet open={open} onOpenChange={setOpen}>
             <SheetTrigger
-              className="rounded-md p-2 text-white transition-colors hover:bg-white/10 md:hidden"
+              className="rounded-md p-2 text-white transition-colors hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-white/80 md:hidden"
               aria-label={open ? "Close menu" : "Open menu"}
             >
               <HamburgerIcon />
@@ -133,7 +139,7 @@ export function Navbar() {
                       key={link.href}
                       to={link.href}
                       onClick={() => setOpen(false)}
-                      className="rounded-md px-3 py-2.5 font-medium text-white/80 transition-colors hover:bg-white/10 hover:text-white [&.active]:bg-white/10 [&.active]:text-white"
+                      className="rounded-md px-3 py-2.5 font-medium text-white/80 transition-colors hover:bg-white/10 hover:text-white focus-visible:ring-2 focus-visible:ring-white/80 [&.active]:bg-white/10 [&.active]:text-white"
                     >
                       {link.label}
                     </Link>

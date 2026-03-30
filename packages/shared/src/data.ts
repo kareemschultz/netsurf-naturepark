@@ -9,7 +9,6 @@ export interface Cabin {
   tagline: string
   description: string
   features: string[]
-  images: string[]
   whatsappText: string
 }
 
@@ -41,7 +40,6 @@ export const cabins: Cabin[] = [
       "Creek access",
       "100% solar-powered site lighting",
     ],
-    images: ["/images/camping-1.jpg", "/images/camping-2.jpg"],
     whatsappText:
       "Hi! I'd like to book the Camping Site at Netsurf Nature Park. Could you help me with availability?",
   },
@@ -61,7 +59,6 @@ export const cabins: Cabin[] = [
       "Creek access",
       "Ideal for couples",
     ],
-    images: ["/images/nature-cabin-1.jpg", "/images/nature-cabin-2.jpg"],
     whatsappText:
       "Hi! I'd like to book the Nature Cabin at Netsurf Nature Park. Could you help me with availability?",
   },
@@ -81,7 +78,6 @@ export const cabins: Cabin[] = [
       "Sleeping for up to 4 guests",
       "Creek access",
     ],
-    images: ["/images/medium-cabin-1.jpg", "/images/medium-cabin-2.jpg"],
     whatsappText:
       "Hi! I'd like to book the Medium Cabin at Netsurf Nature Park. Could you help me with availability?",
   },
@@ -101,11 +97,6 @@ export const cabins: Cabin[] = [
       "Outdoor deck with rainforest views",
       "Creek access",
       "Sleeps up to 6 guests",
-    ],
-    images: [
-      "/images/hansel-gretel-1.jpg",
-      "/images/hansel-gretel-2.jpg",
-      "/images/hansel-gretel-3.jpg",
     ],
     whatsappText:
       "Hi! I'd like to book the Hansel & Gretel Cabin at Netsurf Nature Park. Could you help me with availability?",
@@ -301,7 +292,7 @@ export function formatGYD(amount: number): string {
 }
 
 export function whatsappBookingLink(cabin: Cabin): string {
-  return `https://wa.me/${contacts.whatsappNumber}?text=${encodeURIComponent(cabin.whatsappText)}`
+  return buildWhatsAppTextLink(cabin.whatsappText)
 }
 
 export interface BookingRequest {
@@ -316,9 +307,10 @@ export interface BookingRequest {
 }
 
 export function buildWhatsAppBookingMessage(req: BookingRequest): string {
-  const nights = Math.round(
+  const computedNights = Math.round(
     (req.checkOut.getTime() - req.checkIn.getTime()) / (1000 * 60 * 60 * 24)
   )
+  const nights = Math.max(1, computedNights)
   const fmt = (d: Date) => bookingDateFormatter.format(d)
 
   const selectedAddOns = addOns.filter((a) => req.addOnSlugs.includes(a.slug))
@@ -351,7 +343,9 @@ export function buildWhatsAppBookingMessage(req: BookingRequest): string {
 }
 
 export function buildWhatsAppBookingLink(req: BookingRequest): string {
-  return `https://wa.me/${contacts.whatsappNumber}?text=${encodeURIComponent(
-    buildWhatsAppBookingMessage(req)
-  )}`
+  return buildWhatsAppTextLink(buildWhatsAppBookingMessage(req))
+}
+
+export function buildWhatsAppTextLink(message: string): string {
+  return `https://wa.me/${contacts.whatsappNumber}?text=${encodeURIComponent(message)}`
 }
