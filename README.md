@@ -13,7 +13,7 @@
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6?logo=typescript&logoColor=white)
 ![License](https://img.shields.io/badge/License-Proprietary-red)
 
-[Live Site](https://www.netsurfnaturepark.com) · [Admin Portal](https://admin.netsurfnaturepark.com) · [API](https://api.netsurfnaturepark.com/health)
+[Live Site](https://www.netsurfnaturepark.com) · [Admin Portal](https://www.netsurfnaturepark.com/admin/) · [API](https://www.netsurfnaturepark.com/api/health)
 
 </div>
 
@@ -41,7 +41,7 @@ Replaced QloApps (512MB PHP/MySQL monolith) with a lean, modern multi-service ap
 | **Validation** | Zod 3 |
 | **Auth** | JWT (HS256) + HMAC-SHA256 one-click action tokens |
 | **Notifications** | ntfy.sh push to mobile |
-| **Container** | Docker — nginx 1.27-alpine (SPA), Bun (API) |
+| **Container** | Docker — single unified image (`kt-netsurf`): nginx + Bun API, path-routed |
 
 ---
 
@@ -50,16 +50,17 @@ Replaced QloApps (512MB PHP/MySQL monolith) with a lean, modern multi-service ap
 ```
 netsurf-naturepark/
 ├── apps/
-│   ├── web/           Public booking website (React SPA)
-│   ├── api/           REST API (Hono on Bun)
-│   └── admin/         Admin dashboard (React SPA, JWT-protected)
+│   ├── web/                Public booking website (React SPA, served at /)
+│   ├── api/                REST API (Hono on Bun, served at /api/)
+│   └── admin/              Admin dashboard (React SPA, served at /admin/)
 ├── packages/
-│   ├── db/            Drizzle schema, migrations, types
-│   ├── shared/        Cabin catalog, pricing, add-ons, helpers
-│   └── ui/            Component library, brand theme, globals.css
-├── Dockerfile         Multi-stage build (web SPA → nginx)
-├── nginx.conf         Production SPA routing + compression config
-└── turbo.json         Turborepo pipeline config
+│   ├── db/                 Drizzle schema, migrations, types
+│   ├── shared/             Cabin catalog, pricing, add-ons, helpers
+│   └── ui/                 Component library, brand theme, globals.css
+├── Dockerfile.combined     Unified 4-stage build → single kt-netsurf image
+├── nginx.combined.conf     Path-based routing: /admin/ alias, /api/ proxy, / web SPA
+├── entrypoint.sh           Starts Bun API in background, exec nginx as PID 1
+└── turbo.json              Turborepo pipeline config
 ```
 
 ---
@@ -75,7 +76,7 @@ netsurf-naturepark/
 - 12-layer animated hero (birds, butterflies, fireflies, mist, ripples…)
 - Fully responsive, skip-link accessible, `prefers-reduced-motion` aware
 
-### Admin Dashboard (`admin.netsurfnaturepark.com`)
+### Admin Dashboard (`www.netsurfnaturepark.com/admin/`)
 - JWT-protected portal (password in `.env` as `ADMIN_PASSWORD`)
 - Dashboard: today's check-ins/check-outs, pending count, revenue stats
 - Booking management: view, confirm, decline, add notes
@@ -169,18 +170,18 @@ bun run dev
 
 ## Docker Deployment
 
-Three separate images — each stage-built, optimised for size:
+Single unified image (`kt-netsurf`) — 4-stage build combining web SPA, admin SPA, and Bun API.
+nginx handles path-based routing; Bun API runs as a background process inside the same container.
 
-| Image | Build command | Size |
-|-------|--------------|------|
-| `kt-netsurf-web` | `docker build -t kt-netsurf-web:latest .` | ~1.5MB |
-| `kt-netsurf-api` | `docker build -f apps/api/Dockerfile -t kt-netsurf-api:latest .` | ~16MB |
-| `kt-netsurf-admin` | `docker build -f apps/admin/Dockerfile --build-arg VITE_API_URL=https://api.netsurfnaturepark.com -t kt-netsurf-admin:latest .` | ~1.1MB |
+> **Note**: The runtime base is `oven/bun:1.3-alpine` (not `nginx:alpine`). Bun and nginx must share
+> the same Alpine version to avoid symbol relocation errors with the bun binary.
 
-Or use the build script:
+Build:
 
 ```bash
 bash /opt/infrastructure/docker/netsurf-naturepark/build.sh
+# or manually:
+docker build -f Dockerfile.combined -t kt-netsurf:latest .
 ```
 
 Deploy:
@@ -188,6 +189,12 @@ Deploy:
 ```bash
 cd /opt/infrastructure/docker/netsurf-naturepark && docker compose up -d
 ```
+
+| Route | Serves |
+|-------|--------|
+| `/` | Web SPA (React, public booking site) |
+| `/admin/` | Admin SPA (React, JWT-protected) |
+| `/api/` | Hono REST API (Bun) |
 
 ---
 
@@ -219,7 +226,7 @@ cd /opt/infrastructure/docker/netsurf-naturepark && docker compose up -d
 ### Example: Create Booking
 
 ```bash
-curl -X POST https://api.netsurfnaturepark.com/bookings \
+curl -X POST https://www.netsurfnaturepark.com/api/bookings \
   -H "Content-Type: application/json" \
   -d '{
     "cabinSlug": "nature-cabin",
