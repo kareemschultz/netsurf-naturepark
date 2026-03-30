@@ -1,3 +1,4 @@
+import { useState } from "react"
 import { createFileRoute, Link } from "@tanstack/react-router"
 import { motion } from "framer-motion"
 
@@ -8,6 +9,7 @@ import {
   features,
   formatGYD,
   galleryImages,
+  locationDetails,
   testimonials,
 } from "@workspace/shared"
 import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar"
@@ -433,7 +435,8 @@ function GallerySection() {
                       }
                     />
                   ) : (
-                    <NatureArtwork
+                    <GalleryImage
+                      src={image.src}
                       alt={image.alt}
                       variant={galleryVariants[index % galleryVariants.length]}
                       className={
@@ -453,6 +456,35 @@ function GallerySection() {
         </StaggerList>
       </div>
     </section>
+  )
+}
+
+function GalleryImage({
+  src,
+  alt,
+  variant,
+  className,
+}: {
+  src: string
+  alt: string
+  variant: NatureArtworkVariant
+  className?: string
+}) {
+  const [showFallback, setShowFallback] = useState(false)
+
+  if (showFallback) {
+    return <NatureArtwork alt={alt} variant={variant} className={className} />
+  }
+
+  return (
+    <img
+      src={src}
+      alt={alt}
+      loading="lazy"
+      decoding="async"
+      onError={() => setShowFallback(true)}
+      className={className}
+    />
   )
 }
 
@@ -545,7 +577,7 @@ function GetThereSection() {
           <div className="aspect-video overflow-hidden rounded-[1.75rem] border border-border shadow-sm">
             <iframe
               title="Netsurf Nature Park Location"
-              src="https://maps.google.com/maps?q=6.0870307,-58.2677041&z=14&output=embed"
+              src={locationDetails.mapEmbedUrl}
               width="100%"
               height="100%"
               style={{ border: 0 }}
@@ -572,7 +604,7 @@ function GetThereSection() {
             <InfoCard
               icon="GPS"
               title="GPS Coordinates"
-              description="6.0870307, -58.2677041"
+              description={locationDetails.gpsText}
               linkLabel="Open in Google Maps"
               linkHref={contacts.mapsLink}
             />

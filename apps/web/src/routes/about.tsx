@@ -42,19 +42,19 @@ function AboutPage() {
               the creek is clean, and the night sky is genuinely dark.
             </p>
 
-            <div
+            <figure
               className="my-8 rounded-2xl border-l-4 p-6"
               style={{ backgroundColor: "#FAF6F0", borderColor: "#2D5016" }}
             >
-              <p className="text-base leading-relaxed font-semibold text-foreground italic">
+              <blockquote className="text-base leading-relaxed font-semibold text-foreground italic">
                 "We wanted a place where people could switch off completely — not
                 metaphorically, but literally. No generators, no diesel hum in
                 the background. Just solar energy and silence."
-              </p>
-              <p className="mt-2 text-sm text-muted-foreground">
+              </blockquote>
+              <figcaption className="mt-2 text-sm text-muted-foreground">
                 — Stephen Thompson, Founder
-              </p>
-            </div>
+              </figcaption>
+            </figure>
 
             <p>
               Every unit on the property — the cabins, the camping areas, the
@@ -65,7 +65,7 @@ function AboutPage() {
                 href="https://netsurfpower.com"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="font-semibold underline underline-offset-2"
+                className="rounded-sm font-semibold underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2D5016]/60"
                 style={{ color: "#2D5016" }}
               >
                 Netsurf Power

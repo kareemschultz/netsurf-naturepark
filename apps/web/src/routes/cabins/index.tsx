@@ -1,6 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router"
 
-import { buildWhatsAppTextLink, cabins, formatGYD } from "@workspace/shared"
+import {
+  buildWhatsAppTextLink,
+  cabins,
+  dayPassPriceGYD,
+  formatGYD,
+} from "@workspace/shared"
 import { Badge } from "@workspace/ui/components/badge"
 
 import { AnimatedPageHero } from "../../components/AnimatedHeroBg"
@@ -108,7 +113,7 @@ function CabinsPage() {
                 Day passes include access to the creek, trails, and the rest of
                 the park.{" "}
                 <strong style={{ color: "#2D5016" }}>
-                  {formatGYD(5000)} per person.
+                  {formatGYD(dayPassPriceGYD)} per person.
                 </strong>
               </p>
             </div>

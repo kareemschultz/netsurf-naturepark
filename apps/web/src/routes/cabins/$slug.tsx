@@ -37,14 +37,14 @@ function CabinDetailPage() {
           <Link to="/" className="transition-colors hover:text-foreground">
             Home
           </Link>
-          <span>/</span>
+          <span aria-hidden="true">/</span>
           <Link
             to="/cabins"
             className="transition-colors hover:text-foreground"
           >
             Cabins
           </Link>
-          <span>/</span>
+          <span aria-hidden="true">/</span>
           <span className="font-medium text-foreground">{cabin.name}</span>
         </nav>
 

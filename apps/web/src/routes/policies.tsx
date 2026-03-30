@@ -1,6 +1,7 @@
 import type { ReactNode } from "react"
 
 import { createFileRoute } from "@tanstack/react-router"
+import { contacts } from "@workspace/shared"
 import {
   Tabs,
   TabsContent,
@@ -24,7 +25,7 @@ function PoliciesPage() {
       />
       <div className="min-h-screen px-4 py-12">
         <div className="mx-auto max-w-3xl">
-          <Tabs defaultValue="policies">
+          <Tabs defaultValue="policies" aria-label="Policies and terms tabs">
             <TabsList className="mb-6 grid h-auto w-full grid-cols-1 gap-2 bg-transparent p-0 sm:grid-cols-3">
               <TabsTrigger value="policies" className="w-full">
                 Booking Policies
@@ -172,7 +173,7 @@ function PoliciesPage() {
               <PolicySection title="Contact">
                 <p>
                   For any questions about our policies, please contact us via
-                  WhatsApp at +592 611-9443 or +592 621-8271.
+                  WhatsApp at {contacts.phone1} or {contacts.phone2}.
                 </p>
               </PolicySection>
             </TabsContent>

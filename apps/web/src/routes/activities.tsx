@@ -1,5 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router"
-import { addOns, buildWhatsAppTextLink, formatGYD } from "@workspace/shared"
+import {
+  addOns,
+  buildWhatsAppTextLink,
+  dayPassPriceGYD,
+  formatGYD,
+} from "@workspace/shared"
 import { Badge } from "@workspace/ui/components/badge"
 
 import { AnimatedPageHero } from "../components/AnimatedHeroBg"
@@ -29,11 +34,13 @@ function ActivitiesPage() {
           {/* Activities */}
           <div className="mb-12 grid grid-cols-1 gap-6 md:grid-cols-2">
             {activities.map((act) => (
-              <div
+              <article
                 key={act.slug}
                 className="flex flex-col gap-4 rounded-2xl border border-border bg-white p-7"
               >
-                <div className="text-4xl">{iconMap[act.icon] ?? "🌿"}</div>
+                <div className="text-4xl" aria-hidden="true">
+                  {iconMap[act.icon] ?? "🌿"}
+                </div>
                 <div>
                   <div className="mb-2 flex items-center gap-3">
                     <h2 className="text-xl font-bold">{act.name}</h2>
@@ -60,7 +67,7 @@ function ActivitiesPage() {
                   <WhatsAppIcon className="h-[15px] w-[15px]" />
                   Book Activity
                 </a>
-              </div>
+              </article>
             ))}
           </div>
 
@@ -76,7 +83,9 @@ function ActivitiesPage() {
               A Day Pass gives you full access to the park — creek swimming,
               walking trails, and all the wildlife you can find.
               <br />
-              <strong className="text-white">GYD $5,000 per person.</strong>
+              <strong className="text-white">
+                {formatGYD(dayPassPriceGYD)} per person.
+              </strong>
             </p>
             <a
               href={buildWhatsAppTextLink(
