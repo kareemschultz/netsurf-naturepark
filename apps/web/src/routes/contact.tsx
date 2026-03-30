@@ -4,6 +4,7 @@ import {
   buildWhatsAppTextLink,
   contacts,
   formatGYD,
+  locationDetails,
 } from "@workspace/shared"
 
 import { AnimatedPageHero } from "../components/AnimatedHeroBg"
@@ -34,11 +35,12 @@ function ContactPage() {
                 <div className="space-y-3">
                   <a
                     href={`tel:${contacts.phone1}`}
-                    className="group flex items-center gap-3"
+                    className="group flex items-center gap-3 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2D5016]/60"
                   >
                     <div
                       className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-sm text-white"
                       style={{ backgroundColor: "#2D5016" }}
+                      aria-hidden="true"
                     >
                       📞
                     </div>
@@ -53,11 +55,12 @@ function ContactPage() {
                   </a>
                   <a
                     href={`tel:${contacts.phone2}`}
-                    className="group flex items-center gap-3"
+                    className="group flex items-center gap-3 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2D5016]/60"
                   >
                     <div
                       className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-sm text-white"
                       style={{ backgroundColor: "#2D5016" }}
+                      aria-hidden="true"
                     >
                       📞
                     </div>
@@ -75,7 +78,7 @@ function ContactPage() {
                   href={contacts.whatsappLink}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl py-3 font-bold text-white transition-opacity hover:opacity-90"
+                  className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl py-3 font-bold text-white transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#25D366]/70"
                   style={{ backgroundColor: "#25D366" }}
                 >
                   <WhatsAppIcon className="h-[15px] w-[15px]" />
@@ -87,16 +90,16 @@ function ContactPage() {
               <div className="rounded-2xl border border-border bg-white p-6">
                 <h2 className="mb-4 text-lg font-bold">Location</h2>
                 <p className="mb-1 text-sm leading-relaxed text-muted-foreground">
-                  Soesdyke-Linden Highway, Guyana
+                  {locationDetails.label}
                 </p>
                 <p className="mb-4 font-mono text-xs text-muted-foreground">
-                  GPS: 6.0870307, -58.2677041
+                  GPS: {locationDetails.gpsText}
                 </p>
                 <a
                   href={contacts.mapsLink}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 text-sm font-semibold underline underline-offset-2"
+                  className="inline-flex items-center gap-2 rounded-sm text-sm font-semibold underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2D5016]/60"
                   style={{ color: "#2D5016" }}
                 >
                   Open in Google Maps →
@@ -126,7 +129,7 @@ function ContactPage() {
                     )}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-bold text-white transition-opacity hover:opacity-90"
+                    className="inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-bold text-white transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#25D366]/70"
                     style={{ backgroundColor: "#25D366" }}
                   >
                     <WhatsAppIcon className="h-[15px] w-[15px]" />
@@ -143,7 +146,7 @@ function ContactPage() {
                     href={contacts.facebook}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold text-white"
+                    className="flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1877F2]/70"
                     style={{ backgroundColor: "#1877F2" }}
                   >
                     Facebook
@@ -152,7 +155,7 @@ function ContactPage() {
                     href={contacts.instagram}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold text-white"
+                    className="flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#833ab4]/60"
                     style={{
                       background:
                         "linear-gradient(135deg, #405de6, #5851db, #833ab4, #c13584, #e1306c, #fd1d1d)",
@@ -170,7 +173,7 @@ function ContactPage() {
             >
               <iframe
                 title="Netsurf Nature Park on Google Maps"
-                src="https://maps.google.com/maps?q=6.0870307,-58.2677041&z=14&output=embed"
+                src={locationDetails.mapEmbedUrl}
                 width="100%"
                 height="100%"
                 style={{ border: 0 }}

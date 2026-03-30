@@ -28,11 +28,11 @@ function DiningPage() {
           {/* Meal options */}
           <div className="mb-10 grid grid-cols-1 gap-5 md:grid-cols-3">
             {meals.map((meal) => (
-              <div
+              <article
                 key={meal.slug}
                 className="flex flex-col rounded-2xl border border-border bg-white p-6"
               >
-                <div className="mb-3 text-4xl">
+                <div className="mb-3 text-4xl" aria-hidden="true">
                   {iconMap[meal.icon] ?? "🍴"}
                 </div>
                 <div className="mb-2 flex items-start justify-between gap-2">
@@ -59,7 +59,7 @@ function DiningPage() {
                 >
                   Add to Booking
                 </a>
-              </div>
+              </article>
             ))}
           </div>
 

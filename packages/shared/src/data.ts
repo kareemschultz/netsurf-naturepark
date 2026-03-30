@@ -265,6 +265,19 @@ export const features = [
   },
 ]
 
+
+export const dayPassPriceGYD =
+  addOns.find((item) => item.slug === "day-pass")?.priceGYD ?? 5000
+
+export const locationDetails = {
+  lat: 6.0870307,
+  lng: -58.2677041,
+  label: "Soesdyke-Linden Highway, Guyana",
+  gpsText: "6.0870307, -58.2677041",
+  mapEmbedUrl:
+    "https://maps.google.com/maps?q=6.0870307,-58.2677041&z=14&output=embed",
+} as const
+
 export const contacts = {
   phone1: "+592 611-9443",
   phone2: "+592 621-8271",
@@ -272,9 +285,9 @@ export const contacts = {
   whatsappLink: "https://wa.me/5926119443",
   facebook: "https://www.facebook.com/netsurfnaturepark",
   instagram: "https://www.instagram.com/netsurfnaturepark",
-  locationName: "Soesdyke-Linden Highway, Guyana",
-  gps: { lat: 6.0870307, lng: -58.2677041 },
-  mapsLink: "https://maps.google.com/?q=6.0870307,-58.2677041",
+  locationName: locationDetails.label,
+  gps: { lat: locationDetails.lat, lng: locationDetails.lng },
+  mapsLink: `https://maps.google.com/?q=${locationDetails.lat},${locationDetails.lng}`,
 }
 
 const guyanaNumberFormatter = new Intl.NumberFormat("en-GY", {

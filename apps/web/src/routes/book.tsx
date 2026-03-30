@@ -1,4 +1,11 @@
-import { useCallback, useEffect, useMemo, useState } from "react"
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type RefObject,
+} from "react"
 
 import { createFileRoute, Link } from "@tanstack/react-router"
 import { AnimatePresence, motion } from "framer-motion"
@@ -49,14 +56,22 @@ const STEPS: { n: Step; label: string }[] = [
   { n: 4, label: "Details" },
   { n: 5, label: "Confirm" },
 ]
+const EXTRA_CATEGORIES = [
+  { key: "meal", label: "Meals" },
+  { key: "activity", label: "Activities" },
+  { key: "transport", label: "Transport" },
+] as const
 
 function BookPage() {
   const { cabin: cabinParam } = Route.useSearch()
-
-  const [step, setStep] = useState<Step>(cabinParam ? 2 : 1)
-  const [selectedCabin, setSelectedCabin] = useState<Cabin | null>(
-    cabins.find((cabin) => cabin.slug === cabinParam) ?? null
+  const initialCabin = useMemo(
+    () => cabins.find((cabin) => cabin.slug === cabinParam) ?? null,
+    [cabinParam]
   )
+  const stepHeadingRef = useRef<HTMLHeadingElement | null>(null)
+
+  const [step, setStep] = useState<Step>(initialCabin ? 2 : 1)
+  const [selectedCabin, setSelectedCabin] = useState<Cabin | null>(initialCabin)
   const [dateRange, setDateRange] = useState<DateRange | undefined>()
   const [guests, setGuests] = useState(1)
   const [selectedAddOns, setSelectedAddOns] = useState<string[]>([])
@@ -91,16 +106,19 @@ function BookPage() {
 
   const whatsappLink =
     selectedCabin && dateRange?.from && dateRange?.to
-      ? buildWhatsAppBookingLink({
-          cabin: selectedCabin,
-          checkIn: dateRange.from,
-          checkOut: dateRange.to,
-          guests,
-          addOnSlugs: selectedAddOns,
-          name,
-          contact: contactDetails,
-          notes,
-        } as BookingRequest)
+      ? (() => {
+          const bookingRequest: BookingRequest = {
+            cabin: selectedCabin,
+            checkIn: dateRange.from,
+            checkOut: dateRange.to,
+            guests,
+            addOnSlugs: selectedAddOns,
+            name,
+            contact: contactDetails,
+            notes,
+          }
+          return buildWhatsAppBookingLink(bookingRequest)
+        })()
       : "#"
 
   const hasUnsavedProgress =
@@ -115,6 +133,21 @@ function BookPage() {
       email.trim() ||
       notes.trim()
     )
+
+  useEffect(() => {
+    if (!cabinParam) {
+      return
+    }
+
+    if (initialCabin) {
+      setSelectedCabin(initialCabin)
+      setStep((current) => (current === 1 ? 2 : current))
+    }
+  }, [cabinParam, initialCabin])
+
+  useEffect(() => {
+    stepHeadingRef.current?.focus()
+  }, [step])
 
   useEffect(() => {
     if (!hasUnsavedProgress) {
@@ -222,6 +255,7 @@ function BookPage() {
                 >
                   {step === 1 && (
                     <StepCabin
+                      headingRef={stepHeadingRef}
                       selected={selectedCabin}
                       onSelect={(cabin) => {
                         setSelectedCabin(cabin)
@@ -231,6 +265,7 @@ function BookPage() {
                   )}
                   {step === 2 && (
                     <StepDates
+                      headingRef={stepHeadingRef}
                       cabin={selectedCabin}
                       range={dateRange}
                       onChange={setDateRange}
@@ -241,6 +276,7 @@ function BookPage() {
                   )}
                   {step === 3 && (
                     <StepExtras
+                      headingRef={stepHeadingRef}
                       cabin={selectedCabin}
                       guests={guests}
                       setGuests={setGuests}
@@ -252,6 +288,7 @@ function BookPage() {
                   )}
                   {step === 4 && (
                     <StepDetails
+                      headingRef={stepHeadingRef}
                       name={name}
                       setName={setName}
                       whatsapp={whatsapp}
@@ -266,6 +303,7 @@ function BookPage() {
                   )}
                   {step === 5 && (
                     <StepConfirm
+                      headingRef={stepHeadingRef}
                       cabin={selectedCabin}
                       range={dateRange}
                       nights={nights}
@@ -303,9 +341,12 @@ function BookPage() {
 
 function StepProgress({ currentStep }: { currentStep: Step }) {
   return (
-    <ol className="flex items-center gap-0" aria-label="Booking steps">
+    <ol
+      className="flex items-center gap-0 overflow-x-auto pb-1"
+      aria-label="Booking steps"
+    >
       {STEPS.map((step, index) => (
-        <li key={step.n} className="flex flex-1 items-center">
+        <li key={step.n} className="flex min-w-[4.25rem] flex-1 items-center">
           <div className="flex flex-1 flex-col items-center">
             <div
               aria-current={currentStep === step.n ? "step" : undefined}
@@ -348,15 +389,18 @@ function StepProgress({ currentStep }: { currentStep: Step }) {
 }
 
 function StepCabin({
+  headingRef,
   selected,
   onSelect,
 }: {
+  headingRef: RefObject<HTMLHeadingElement | null>
   selected: Cabin | null
   onSelect: (cabin: Cabin) => void
 }) {
   return (
     <div className="p-6 md:p-8">
       <StepHeader
+        headingRef={headingRef}
         title="Choose Your Cabin"
         subtitle="Pick the stay that fits your group, then we'll move into dates and extras."
       />
@@ -414,6 +458,7 @@ function StepCabin({
 }
 
 function StepDates({
+  headingRef,
   cabin,
   range,
   onChange,
@@ -421,6 +466,7 @@ function StepDates({
   onNext,
   nights,
 }: {
+  headingRef: RefObject<HTMLHeadingElement | null>
   cabin: Cabin | null
   range: DateRange | undefined
   onChange: (range: DateRange | undefined) => void
@@ -434,6 +480,7 @@ function StepDates({
   return (
     <div className="p-6 md:p-8">
       <StepHeader
+        headingRef={headingRef}
         title="Choose Your Dates"
         subtitle={
           cabin ? `${cabin.name} — ${formatGYD(cabin.priceGYD)} per night` : ""
@@ -471,6 +518,7 @@ function StepDates({
 }
 
 function StepExtras({
+  headingRef,
   cabin,
   guests,
   setGuests,
@@ -479,6 +527,7 @@ function StepExtras({
   onBack,
   onNext,
 }: {
+  headingRef: RefObject<HTMLHeadingElement | null>
   cabin: Cabin | null
   guests: number
   setGuests: (count: number) => void
@@ -488,15 +537,20 @@ function StepExtras({
   onNext: () => void
 }) {
   const maxGuests = cabin?.maxGuests ?? 6
-  const categories = [
-    { key: "meal", label: "Meals" },
-    { key: "activity", label: "Activities" },
-    { key: "transport", label: "Transport" },
-  ] as const
+  const addOnsByCategory = useMemo(
+    () =>
+      EXTRA_CATEGORIES.map(({ key, label }) => ({
+        key,
+        label,
+        items: addOns.filter((item) => item.category === key),
+      })),
+    []
+  )
 
   return (
     <div className="p-6 md:p-8">
       <StepHeader
+        headingRef={headingRef}
         title="Guests & Add-ons"
         subtitle="Lock in your group size and add anything extra before checkout."
       />
@@ -532,9 +586,7 @@ function StepExtras({
       </div>
 
       <div className="mt-6 space-y-5">
-        {categories.map(({ key, label }) => {
-          const items = addOns.filter((item) => item.category === key)
-
+        {addOnsByCategory.map(({ key, label, items }) => {
           if (items.length === 0) {
             return null
           }
@@ -608,6 +660,7 @@ function StepExtras({
 }
 
 function StepDetails({
+  headingRef,
   name,
   setName,
   whatsapp,
@@ -619,6 +672,7 @@ function StepDetails({
   onBack,
   onNext,
 }: {
+  headingRef: RefObject<HTMLHeadingElement | null>
   name: string
   setName: (value: string) => void
   whatsapp: string
@@ -635,6 +689,7 @@ function StepDetails({
   return (
     <div className="p-6 md:p-8">
       <StepHeader
+        headingRef={headingRef}
         title="Your Details"
         subtitle="Share the best number for WhatsApp replies and anything we should know before arrival."
       />
@@ -740,6 +795,7 @@ function StepDetails({
 }
 
 function StepConfirm({
+  headingRef,
   cabin,
   range,
   nights,
@@ -756,6 +812,7 @@ function StepConfirm({
   onBack,
   onEditStep,
 }: {
+  headingRef: RefObject<HTMLHeadingElement | null>
   cabin: Cabin | null
   range: DateRange | undefined
   nights: number
@@ -816,6 +873,7 @@ function StepConfirm({
   return (
     <div className="p-6 md:p-8">
       <StepHeader
+        headingRef={headingRef}
         title="Review & Confirm"
         subtitle="Everything look right? We'll send this straight to Stephen for confirmation."
       />
@@ -1036,10 +1094,20 @@ function SidebarDetail({
   )
 }
 
-function StepHeader({ title, subtitle }: { title: string; subtitle: string }) {
+function StepHeader({
+  headingRef,
+  title,
+  subtitle,
+}: {
+  headingRef: RefObject<HTMLHeadingElement | null>
+  title: string
+  subtitle?: string
+}) {
   return (
     <div>
-      <h2 className="text-xl font-black">{title}</h2>
+      <h2 ref={headingRef} tabIndex={-1} className="text-xl font-black">
+        {title}
+      </h2>
       {subtitle && (
         <p className="mt-0.5 text-sm text-muted-foreground">{subtitle}</p>
       )}

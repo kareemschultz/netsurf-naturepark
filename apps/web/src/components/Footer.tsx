@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router"
-import { contacts } from "@workspace/shared"
+import { contacts, locationDetails } from "@workspace/shared"
 import { WhatsAppIcon } from "./WhatsAppIcon"
 
 export function Footer() {
@@ -78,6 +78,7 @@ export function Footer() {
                 { href: "/dining", label: "Dining" },
                 { href: "/about", label: "About Us" },
                 { href: "/contact", label: "Getting There" },
+                { href: "/policies", label: "Policies" },
               ].map((link) => (
                 <li key={link.href}>
                   <Link
@@ -115,9 +116,7 @@ export function Footer() {
                 </a>
               </li>
               <li className="pt-1 leading-relaxed text-white/50">
-                Soesdyke-Linden Highway
-                <br />
-                Guyana
+                {locationDetails.label}
               </li>
               <li>
                 <a

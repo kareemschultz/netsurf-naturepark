@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react"
+import type { ComponentPropsWithoutRef } from "react"
 import { Link } from "@tanstack/react-router"
 import {
   Sheet,
@@ -14,6 +15,7 @@ const navLinks = [
   { href: "/dining", label: "Dining" },
   { href: "/about", label: "About" },
   { href: "/contact", label: "Contact" },
+  { href: "/policies", label: "Policies" },
 ]
 
 export function Navbar() {
@@ -21,9 +23,26 @@ export function Navbar() {
   const [open, setOpen] = useState(false)
 
   useEffect(() => {
-    const handler = () => setScrolled(window.scrollY > 20)
+    let rafId = 0
+    const handler = () => {
+      if (rafId !== 0) {
+        return
+      }
+
+      rafId = window.requestAnimationFrame(() => {
+        const next = window.scrollY > 20
+        setScrolled((current) => (current === next ? current : next))
+        rafId = 0
+      })
+    }
+
     window.addEventListener("scroll", handler, { passive: true })
-    return () => window.removeEventListener("scroll", handler)
+    return () => {
+      window.removeEventListener("scroll", handler)
+      if (rafId !== 0) {
+        window.cancelAnimationFrame(rafId)
+      }
+    }
   }, [])
 
   return (
@@ -44,7 +63,7 @@ export function Navbar() {
             <a
               href={`tel:${contacts.phone1}`}
               aria-label={`Call primary phone ${contacts.phone1}`}
-              className="transition-colors hover:text-white"
+              className="rounded-sm transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
             >
               {contacts.phone1}
             </a>
@@ -52,7 +71,7 @@ export function Navbar() {
             <a
               href={`tel:${contacts.phone2}`}
               aria-label={`Call secondary phone ${contacts.phone2}`}
-              className="transition-colors hover:text-white"
+              className="rounded-sm transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
             >
               {contacts.phone2}
             </a>
@@ -117,7 +136,7 @@ export function Navbar() {
               className="rounded-md p-2 text-white transition-colors hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-white/80 md:hidden"
               aria-label={open ? "Close menu" : "Open menu"}
             >
-              <HamburgerIcon />
+              <HamburgerIcon aria-hidden="true" />
             </SheetTrigger>
             <SheetContent
               side="right"
@@ -151,13 +170,13 @@ export function Navbar() {
                   </p>
                   <a
                     href={`tel:${contacts.phone1}`}
-                    className="block hover:text-white/80"
+                    className="block rounded-sm hover:text-white/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
                   >
                     {contacts.phone1}
                   </a>
                   <a
                     href={`tel:${contacts.phone2}`}
-                    className="block hover:text-white/80"
+                    className="block rounded-sm hover:text-white/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
                   >
                     {contacts.phone2}
                   </a>
@@ -180,9 +199,10 @@ export function Navbar() {
   )
 }
 
-function HamburgerIcon() {
+function HamburgerIcon(props: ComponentPropsWithoutRef<"svg">) {
   return (
     <svg
+      {...props}
       width="20"
       height="20"
       viewBox="0 0 24 24"
