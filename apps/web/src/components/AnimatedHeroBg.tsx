@@ -1,4 +1,6 @@
-import { motion, useReducedMotion } from "framer-motion";
+import type { ReactNode } from "react"
+
+import { motion, useReducedMotion } from "framer-motion"
 
 /* ─────────────────────────────────────────────────────────────────────────
    AnimatedHeroBg — 12-layer rainforest animation system
@@ -6,7 +8,7 @@ import { motion, useReducedMotion } from "framer-motion";
    All static properties (blur, background, width, height, border) set once.
    ───────────────────────────────────────────────────────────────────────── */
 
-const EASE = [0.45, 0, 0.55, 1] as [number, number, number, number];
+const EASE = [0.45, 0, 0.55, 1] as [number, number, number, number]
 
 /* ── Layer 1: Large ambient blobs ─────────────────────────────────────── */
 const BLOB_COLORS = [
@@ -437,13 +439,13 @@ export function AnimatedHeroBg() {
    AnimatedPageHero — reusable banner for all inner pages
    ───────────────────────────────────────────────────────────────────────── */
 
-const SLIDE = [0.22, 1, 0.36, 1] as [number, number, number, number];
+const SLIDE = [0.22, 1, 0.36, 1] as [number, number, number, number]
 
 interface AnimatedPageHeroProps {
-  eyebrow?: string;
-  title: string;
-  subtitle?: string;
-  children?: React.ReactNode;
+  eyebrow?: string
+  title: string
+  subtitle?: string
+  children?: ReactNode
 }
 
 export function AnimatedPageHero({ eyebrow, title, subtitle, children }: AnimatedPageHeroProps) {

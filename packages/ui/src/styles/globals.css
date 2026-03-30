@@ -110,7 +110,7 @@
   --rdp-range-end-color: #fff;
   --rdp-range-start-background: #2d5016;
   --rdp-range-end-background: #2d5016;
-  --rdp-range-middle-background-color: #2D5016/15;
+  --rdp-range-middle-background-color: rgb(45 80 22 / 15%);
   --rdp-selected-font: 700;
   --rdp-day-font: 500;
   --rdp-day-height: 2.4rem;
