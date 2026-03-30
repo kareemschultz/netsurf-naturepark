@@ -6,6 +6,7 @@ import "@workspace/ui/globals.css";
 
 const router = createRouter({
   routeTree,
+  basepath: '/admin',
   defaultPreload: "intent",
   context: {},
 });

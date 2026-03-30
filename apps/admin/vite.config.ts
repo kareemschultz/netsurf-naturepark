@@ -5,6 +5,7 @@ import { TanStackRouterVite } from "@tanstack/router-vite-plugin";
 import { defineConfig } from "vite";
 
 export default defineConfig({
+  base: '/admin/',
   plugins: [
     TanStackRouterVite({ autoCodeSplitting: true }),
     react(),
