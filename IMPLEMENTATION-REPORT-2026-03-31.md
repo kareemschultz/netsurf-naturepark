@@ -13,8 +13,12 @@ This report summarizes the POS, admin redesign, Better Auth, RBAC, and live depl
 - `bc3f501` `Fix admin sidebar surface contrast`
 - `9eb27e6` `feat: add better auth staff access and admin rbac`
 - `aaaf0df` `fix: normalize better auth server base url`
+- `78ae3c3` `fix: restore admin login and redesign auth screen`
+- `0beaf8a` `fix: resolve auth client base url in browser`
+- `adce00c` `feat: refine pos terminal workspace styling`
+- `b3b823b` `fix: enforce dark terminal pos surfaces`
 
-`aaaf0df` is the live head deployed to `origin/main` as of this report.
+`b3b823b` is the live head deployed to `origin/main` as of this report.
 
 ## Delivered Scope
 
@@ -45,6 +49,7 @@ This report summarizes the POS, admin redesign, Better Auth, RBAC, and live depl
 ### 3. Admin UI redesign
 
 - Redesigned the admin shell, sidebar, surfaces, spacing, and route layouts.
+- Added a premium Better Auth login surface with animated ambient shapes and clearer boot/error fallback states.
 - Improved visual hierarchy for:
   - dashboard
   - bookings
@@ -57,6 +62,11 @@ This report summarizes the POS, admin redesign, Better Auth, RBAC, and live depl
 - Added Framer Motion powered transitions and staged surface reveals.
 - Improved scrollbar styling and mobile menu behavior.
 - Fixed sidebar contrast/readability regression after the redesign.
+- Reworked the POS page to support:
+  - standard mode for a lighter operations layout
+  - terminal mode for a darker console shell with animated ambience
+  - stronger catalog/card contrast
+  - receipt-style checkout separation
 
 ### 4. Reports and exports
 
@@ -165,6 +175,8 @@ The following checks passed against the live service:
 - `GET /api/admin/stats` returned `200` using the live session
 - `GET /api/auth/admin/list-users` returned the bootstrapped owner user
 - `GET /admin/users` returned `200`
+- `GET /admin/login` rendered the live Better Auth login screen after hydration
+- live browser rendering of `/admin/pos` verified in both standard and terminal modes
 
 Observed bootstrap result:
 
@@ -203,4 +215,4 @@ These items are not blockers for the current live system, but they remain reason
 
 ## Summary
 
-The project now runs a live Better Auth-backed admin with named staff sessions, role-based access control, POS and inventory operations, reporting, redesigned admin UX, and updated booking support for day-use stays. The code is pushed, the container is rebuilt and running, the database migration is applied, and the live auth flow has been verified end to end.
+The project now runs a live Better Auth-backed admin with named staff sessions, role-based access control, POS and inventory operations, reporting, redesigned admin UX, updated booking support for day-use stays, a production login redesign, and a verified dual-mode POS workspace. The code is pushed, the container is rebuilt and running, the database migration is applied, and the live auth and admin rendering flows have been verified end to end.

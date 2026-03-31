@@ -78,11 +78,31 @@ netsurf-naturepark/
 
 ### Admin Dashboard (`www.netsurfnaturepark.com/admin/`)
 - Better Auth staff portal with named accounts, cookie-backed sessions, and route-level RBAC
+- Premium animated login page with username/password sign-in and visible boot/error fallback states
 - Dashboard: today's check-ins/check-outs, pending count, revenue stats
 - Booking management: view, confirm, decline, add notes
 - Calendar and blocked date management
 - POS, products, inventory, stock transfers, cabins, sales history, and reporting
+- POS supports standard and terminal layouts, stock-aware catalog cards, and receipt-style checkout
 - Staff Users & Access screens for account management and role visibility
+
+### Key Admin Routes
+
+| Route | Purpose |
+|-------|---------|
+| `/admin/` | Dashboard and booking/revenue overview |
+| `/admin/login` | Better Auth staff sign-in |
+| `/admin/bookings` | Booking queue and booking detail drill-in |
+| `/admin/calendar` | Cabin occupancy calendar |
+| `/admin/blocked` | Blocked dates and closures |
+| `/admin/pos` | POS workspace with standard + terminal modes |
+| `/admin/products` | Product and category management |
+| `/admin/inventory` | Inventory controls and stock posture |
+| `/admin/stock-transfers` | Transfer workflow |
+| `/admin/sales` | Sales ledger and detail |
+| `/admin/reports` | Reporting charts and exports |
+| `/admin/users` | Staff account management |
+| `/admin/access` | Role matrix and permission visibility |
 
 ### Notification System
 - Instant push notifications via ntfy.sh on new booking

@@ -1,5 +1,7 @@
 # Netsurf Nature Park -- POS + Inventory System
 
+Status: implemented and live as of 2026-03-31. This file is retained as the original rollout plan; some implementation details below are historical plan assumptions rather than the final shipped auth/session model.
+
 ## Context
 
 Netsurf Nature Park is an eco-lodge on the Soesdyke-Linden Highway, Guyana. The booking platform is live at `www.netsurfnaturepark.com` (unified container `kt-netsurf`). The owner wants a POS system so staff can ring up sales at the park (food, drinks, merchandise, activities) and track inventory. This builds on the existing admin panel at `/admin/`.
@@ -16,7 +18,7 @@ Netsurf Nature Park is an eco-lodge on the Soesdyke-Linden Highway, Guyana. The 
 | Apps | `apps/web` (public), `apps/admin` (admin SPA), `apps/api` (Hono on Bun) |
 | Packages | `@workspace/db` (Drizzle + PostgreSQL), `@workspace/shared` (static data, formatGYD), `@workspace/ui` (shadcn/Base UI) |
 | Routing | TanStack Router (file-based), base path `/admin` |
-| Auth | JWT in localStorage, admin middleware on `/admin/*` API routes |
+| Auth | Better Auth staff sessions, route-aware RBAC, and admin middleware on protected API routes |
 | UI | Hand-built Tailwind (park-green #2D5016, park-amber #C4941A, park-cream #FAF6F0) |
 | Docker | Single container (nginx + Bun), API at `/api/`, admin SPA at `/admin/` |
 | DB | PostgreSQL (`kt-central-db`), 2 existing tables: `netsurf_bookings`, `netsurf_blocked_dates` |
