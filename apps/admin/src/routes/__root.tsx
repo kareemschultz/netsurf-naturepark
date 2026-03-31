@@ -1,11 +1,27 @@
 import { createRootRoute, Outlet, redirect, useRouterState } from "@tanstack/react-router";
 import { Sidebar } from "@/components/Sidebar";
-import { isAuthenticated } from "@/lib/api";
+import {
+  canSessionAccess,
+  fetchAdminSession,
+  getSessionLandingPath,
+} from "@/lib/auth";
 
 export const Route = createRootRoute({
-  beforeLoad: ({ location }) => {
-    if (!isAuthenticated() && location.pathname !== "/login") {
+  beforeLoad: async ({ location }) => {
+    const session = await fetchAdminSession();
+
+    if (!session && location.pathname !== "/login") {
       throw redirect({ to: "/login" });
+    }
+
+    if (!session) return;
+
+    if (location.pathname === "/login") {
+      throw redirect({ to: getSessionLandingPath(session) });
+    }
+
+    if (!canSessionAccess(location.pathname, session)) {
+      throw redirect({ to: getSessionLandingPath(session) });
     }
   },
   component: RootLayout,

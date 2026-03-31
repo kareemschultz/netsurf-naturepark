@@ -4,6 +4,7 @@ import { logger } from "hono/logger";
 import { bookingsRoute } from "./routes/bookings.js";
 import { actionRoute } from "./routes/action.js";
 import { adminRoute } from "./routes/admin.js";
+import { auth, ensureAuthBootstrap } from "./auth.js";
 
 const app = new Hono();
 
@@ -28,6 +29,9 @@ app.use(
 
 app.get("/health", (c) => c.json({ ok: true, ts: new Date().toISOString() }));
 
+app.on(["GET", "POST"], "/auth/*", (c) => auth.handler(c.req.raw));
+app.on(["GET", "POST"], "/auth", (c) => auth.handler(c.req.raw));
+
 app.route("/bookings", bookingsRoute);
 app.route("/bookings", actionRoute);   // /bookings/:id/action
 app.route("/admin", adminRoute);
@@ -40,5 +44,9 @@ app.onError((err, c) => {
 
 const port = parseInt(process.env.PORT || "3001", 10);
 console.log(`[api] Listening on :${port}`);
+
+ensureAuthBootstrap().catch((error) => {
+  console.error("[auth] Failed to bootstrap owner account", error);
+});
 
 export default { port, fetch: app.fetch };

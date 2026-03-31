@@ -3,10 +3,28 @@ import { useMemo, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { logout } from "@/lib/api";
+import {
+  canSessionAccess,
+  getSessionRoleLabel,
+  useAdminSession,
+} from "@/lib/auth";
 import { cn } from "@workspace/ui/lib/utils";
 
 type NavItem = {
-  to: "/" | "/bookings" | "/calendar" | "/blocked" | "/pos" | "/products" | "/inventory" | "/stock-transfers" | "/sales" | "/reports" | "/cabins";
+  to:
+    | "/"
+    | "/bookings"
+    | "/calendar"
+    | "/blocked"
+    | "/pos"
+    | "/products"
+    | "/inventory"
+    | "/stock-transfers"
+    | "/sales"
+    | "/reports"
+    | "/cabins"
+    | "/users"
+    | "/access";
   label: string;
   description: string;
   icon: ReactNode;
@@ -155,6 +173,33 @@ const operationsItems: NavItem[] = [
 
 const mobilePrimaryItems = [reservationItems[0], reservationItems[1], operationsItems[0], operationsItems[2], operationsItems[4]];
 
+const systemItems: NavItem[] = [
+  {
+    to: "/users",
+    label: "Users",
+    description: "Staff accounts, sessions, and role assignment",
+    icon: (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+        <circle cx="9" cy="7" r="4" />
+        <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+        <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+      </svg>
+    ),
+  },
+  {
+    to: "/access",
+    label: "Access",
+    description: "Role matrix and route-level access control",
+    icon: (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="3" y="11" width="18" height="10" rx="2" />
+        <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+      </svg>
+    ),
+  },
+];
+
 const navSections = [
   {
     title: "Reservations",
@@ -166,9 +211,14 @@ const navSections = [
     blurb: "POS, catalog, stock, and revenue",
     items: operationsItems,
   },
+  {
+    title: "System",
+    blurb: "Staff accounts, sessions, and permissions",
+    items: systemItems,
+  },
 ] as const;
 
-const routeTitles = [...reservationItems, ...operationsItems].reduce<Record<string, string>>(
+const routeTitles = [...reservationItems, ...operationsItems, ...systemItems].reduce<Record<string, string>>(
   (acc, item) => {
     acc[item.to] = item.label;
     return acc;
@@ -184,10 +234,16 @@ function SidebarBody({
   pathname,
   onNavigate,
   onLogout,
+  accessiblePaths,
+  profileLabel,
+  roleLabel,
 }: {
   pathname: string;
   onNavigate?: () => void;
   onLogout: () => void;
+  accessiblePaths: Set<string>;
+  profileLabel: string;
+  roleLabel: string;
 }) {
   const reduceMotion = useReducedMotion();
   const nowLabel = useMemo(
@@ -199,6 +255,14 @@ function SidebarBody({
       }).format(new Date()),
     []
   );
+  const visibleSections = navSections
+    .map((section) => ({
+      ...section,
+      items: section.items.filter((item) => accessiblePaths.has(item.to)),
+    }))
+    .filter((section) => section.items.length > 0);
+  const canOpenPos = accessiblePaths.has("/pos");
+  const canManageCatalog = accessiblePaths.has("/products");
 
   return (
     <div className="admin-surface admin-surface-dark flex h-full flex-col rounded-[2rem] text-white">
@@ -231,31 +295,43 @@ function SidebarBody({
               {nowLabel}
             </span>
             <span className="rounded-full border border-amber-300/30 bg-amber-300/12 px-3 py-1 text-[11px] font-semibold text-amber-100">
-              Premium lodge workflow
+              {roleLabel}
             </span>
           </div>
         </div>
 
         <div className="mt-4 grid grid-cols-2 gap-2">
-          <Link
-            to="/pos"
-            onClick={onNavigate}
-            className="rounded-[1.1rem] border border-white/0 bg-white px-3 py-3 text-center text-sm font-bold text-[#17300d] transition-[background-color,transform] hover:-translate-y-0.5 hover:bg-amber-50"
-          >
-            Open POS
-          </Link>
-          <Link
-            to="/products/new"
-            onClick={onNavigate}
-            className="rounded-[1.1rem] border border-white/10 bg-white/8 px-3 py-3 text-center text-sm font-bold text-white transition-[background-color,transform] hover:-translate-y-0.5 hover:bg-white/12"
-          >
-            Add Product
-          </Link>
+          {canOpenPos ? (
+            <Link
+              to="/pos"
+              onClick={onNavigate}
+              className="rounded-[1.1rem] border border-white/0 bg-white px-3 py-3 text-center text-sm font-bold text-[#17300d] transition-[background-color,transform] hover:-translate-y-0.5 hover:bg-amber-50"
+            >
+              Open POS
+            </Link>
+          ) : (
+            <div className="rounded-[1.1rem] border border-white/10 bg-white/4 px-3 py-3 text-center text-sm font-bold text-white/45">
+              POS locked
+            </div>
+          )}
+          {canManageCatalog ? (
+            <Link
+              to="/products/new"
+              onClick={onNavigate}
+              className="rounded-[1.1rem] border border-white/10 bg-white/8 px-3 py-3 text-center text-sm font-bold text-white transition-[background-color,transform] hover:-translate-y-0.5 hover:bg-white/12"
+            >
+              Add Product
+            </Link>
+          ) : (
+            <div className="rounded-[1.1rem] border border-white/10 bg-white/4 px-3 py-3 text-center text-sm font-bold text-white/45">
+              Catalog locked
+            </div>
+          )}
         </div>
       </div>
 
-      <nav className="admin-scrollbar flex-1 overflow-y-auto px-3 py-4">
-        {navSections.map((section, sectionIndex) => (
+      <nav className="admin-scrollbar admin-scrollbar-dark flex-1 overflow-y-auto px-3 py-4">
+        {visibleSections.map((section, sectionIndex) => (
           <div key={section.title} className={sectionIndex === 0 ? "" : "mt-6"}>
             <div className="px-3 pb-2">
               <p className="text-[11px] font-bold tracking-[0.22em] text-white/36 uppercase">
@@ -322,9 +398,9 @@ function SidebarBody({
 
       <div className="border-t border-white/10 px-3 py-3">
         <div className="mb-3 rounded-[1.2rem] border border-white/10 bg-white/6 px-4 py-3">
-          <p className="text-xs font-semibold text-white/75">Workspace status</p>
+          <p className="text-xs font-semibold text-white/75">{profileLabel}</p>
           <p className="mt-1 text-xs leading-5 text-white/46">
-            Reservations, POS, catalog, inventory, transfers, and sales are all available from this panel.
+            Navigation is trimmed to the routes your role can actually access, with session-backed user controls and staff permissions.
           </p>
         </div>
 
@@ -349,14 +425,47 @@ export function Sidebar() {
   const { location } = useRouterState();
   const [mobileOpen, setMobileOpen] = useState(false);
   const reduceMotion = useReducedMotion();
+  const sessionState = useAdminSession();
+  const session = sessionState.data;
+  const accessiblePaths = useMemo(
+    () =>
+      new Set(
+        [...reservationItems, ...operationsItems, ...systemItems]
+          .map((item) => item.to)
+          .filter((path) => canSessionAccess(path, session))
+      ),
+    [session]
+  );
+  const mobileVisibleItems = useMemo(() => {
+    const visiblePrimaryItems = mobilePrimaryItems.filter((item) =>
+      accessiblePaths.has(item.to)
+    );
+    const activeItem = [...reservationItems, ...operationsItems, ...systemItems].find(
+      (item) => isActivePath(location.pathname, item.to)
+    );
+
+    if (
+      activeItem &&
+      accessiblePaths.has(activeItem.to) &&
+      !visiblePrimaryItems.some((item) => item.to === activeItem.to)
+    ) {
+      return [...visiblePrimaryItems, activeItem];
+    }
+
+    return visiblePrimaryItems;
+  }, [accessiblePaths, location.pathname]);
+  const profileLabel = session
+    ? session.user.displayUsername || session.user.name || session.user.username || session.user.email
+    : "Staff session";
+  const roleLabel = getSessionRoleLabel(session);
 
   const activeLabel =
     Object.entries(routeTitles).find(([path]) =>
       isActivePath(location.pathname, path as NavItem["to"])
     )?.[1] ?? "Admin";
 
-  function handleLogout() {
-    logout();
+  async function handleLogout() {
+    await logout();
     setMobileOpen(false);
     navigate({ to: "/login" });
   }
@@ -382,7 +491,7 @@ export function Sidebar() {
           </div>
 
           <div className="admin-scrollbar mt-4 flex gap-2 overflow-x-auto pb-1">
-            {mobilePrimaryItems.map((item) => {
+            {mobileVisibleItems.map((item) => {
               const active = isActivePath(location.pathname, item.to);
 
               return (
@@ -406,7 +515,13 @@ export function Sidebar() {
 
       <aside className="hidden w-[320px] shrink-0 lg:block">
         <div className="sticky top-6 h-[calc(100vh-3rem)]">
-          <SidebarBody pathname={location.pathname} onLogout={handleLogout} />
+          <SidebarBody
+            pathname={location.pathname}
+            onLogout={handleLogout}
+            accessiblePaths={accessiblePaths}
+            profileLabel={profileLabel}
+            roleLabel={roleLabel}
+          />
         </div>
       </aside>
 
@@ -441,6 +556,9 @@ export function Sidebar() {
                   pathname={location.pathname}
                   onNavigate={() => setMobileOpen(false)}
                   onLogout={handleLogout}
+                  accessiblePaths={accessiblePaths}
+                  profileLabel={profileLabel}
+                  roleLabel={roleLabel}
                 />
               </div>
             </motion.div>

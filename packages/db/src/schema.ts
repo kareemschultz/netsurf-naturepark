@@ -2,12 +2,14 @@ import { sql } from "drizzle-orm";
 import {
   boolean,
   date,
+  index,
   integer,
   jsonb,
   pgTable,
   serial,
   text,
   timestamp,
+  uniqueIndex,
   varchar,
 } from "drizzle-orm/pg-core";
 
@@ -40,6 +42,93 @@ export const blockedDates = pgTable("netsurf_blocked_dates", {
   reason: text("reason").notNull().default(""),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
+
+export const authUsers = pgTable(
+  "user",
+  {
+    id: text("id").primaryKey(),
+    name: text("name").notNull(),
+    email: varchar("email", { length: 320 }).notNull(),
+    emailVerified: boolean("email_verified").notNull().default(false),
+    image: text("image"),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+    username: varchar("username", { length: 60 }),
+    displayUsername: varchar("display_username", { length: 120 }),
+    role: varchar("role", { length: 120 }).notNull().default("front_desk"),
+    banned: boolean("banned").notNull().default(false),
+    banReason: text("ban_reason"),
+    banExpires: timestamp("ban_expires"),
+  },
+  (table) => ({
+    emailUnique: uniqueIndex("user_email_unique").on(table.email),
+    usernameUnique: uniqueIndex("user_username_unique").on(table.username),
+  })
+);
+
+export const authSessions = pgTable(
+  "session",
+  {
+    id: text("id").primaryKey(),
+    expiresAt: timestamp("expires_at").notNull(),
+    token: text("token").notNull(),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+    ipAddress: text("ip_address"),
+    userAgent: text("user_agent"),
+    userId: text("user_id")
+      .notNull()
+      .references(() => authUsers.id, { onDelete: "cascade" }),
+    impersonatedBy: text("impersonated_by"),
+  },
+  (table) => ({
+    tokenUnique: uniqueIndex("session_token_unique").on(table.token),
+    userIdIdx: index("session_user_id_idx").on(table.userId),
+  })
+);
+
+export const authAccounts = pgTable(
+  "account",
+  {
+    id: text("id").primaryKey(),
+    accountId: text("account_id").notNull(),
+    providerId: text("provider_id").notNull(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => authUsers.id, { onDelete: "cascade" }),
+    accessToken: text("access_token"),
+    refreshToken: text("refresh_token"),
+    idToken: text("id_token"),
+    accessTokenExpiresAt: timestamp("access_token_expires_at"),
+    refreshTokenExpiresAt: timestamp("refresh_token_expires_at"),
+    scope: text("scope"),
+    password: text("password"),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (table) => ({
+    providerAccountUnique: uniqueIndex("account_provider_account_unique").on(
+      table.providerId,
+      table.accountId
+    ),
+    userIdIdx: index("account_user_id_idx").on(table.userId),
+  })
+);
+
+export const authVerifications = pgTable(
+  "verification",
+  {
+    id: text("id").primaryKey(),
+    identifier: text("identifier").notNull(),
+    value: text("value").notNull(),
+    expiresAt: timestamp("expires_at").notNull(),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (table) => ({
+    identifierIdx: index("verification_identifier_idx").on(table.identifier),
+  })
+);
 
 export const productCategories = pgTable("netsurf_product_categories", {
   id: serial("id").primaryKey(),
@@ -165,6 +254,14 @@ export type Booking = typeof bookings.$inferSelect;
 export type NewBooking = typeof bookings.$inferInsert;
 export type BlockedDate = typeof blockedDates.$inferSelect;
 export type NewBlockedDate = typeof blockedDates.$inferInsert;
+export type AuthUser = typeof authUsers.$inferSelect;
+export type NewAuthUser = typeof authUsers.$inferInsert;
+export type AuthSession = typeof authSessions.$inferSelect;
+export type NewAuthSession = typeof authSessions.$inferInsert;
+export type AuthAccount = typeof authAccounts.$inferSelect;
+export type NewAuthAccount = typeof authAccounts.$inferInsert;
+export type AuthVerification = typeof authVerifications.$inferSelect;
+export type NewAuthVerification = typeof authVerifications.$inferInsert;
 export type ProductCategory = typeof productCategories.$inferSelect;
 export type NewProductCategory = typeof productCategories.$inferInsert;
 export type Product = typeof products.$inferSelect;

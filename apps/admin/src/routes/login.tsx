@@ -2,17 +2,20 @@ import type { FormEvent } from "react";
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
-import { isAuthenticated, login } from "@/lib/api";
+import { login } from "@/lib/api";
+import { fetchAdminSession, getSessionLandingPath } from "@/lib/auth";
 
 export const Route = createFileRoute("/login")({
-  beforeLoad: () => {
-    if (isAuthenticated()) throw redirect({ to: "/" });
+  beforeLoad: async () => {
+    const session = await fetchAdminSession();
+    if (session) throw redirect({ to: getSessionLandingPath(session) });
   },
   component: LoginPage,
 });
 
 function LoginPage() {
   const navigate = useNavigate();
+  const [username, setUsername] = useState("admin");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -23,10 +26,11 @@ function LoginPage() {
     setLoading(true);
 
     try {
-      await login(password);
-      navigate({ to: "/" });
-    } catch {
-      setError("Incorrect password. Try again.");
+      await login(username, password);
+      const session = await fetchAdminSession();
+      navigate({ to: getSessionLandingPath(session) });
+    } catch (loginError) {
+      setError((loginError as Error).message || "Unable to sign in. Check your credentials.");
     } finally {
       setLoading(false);
     }
@@ -88,7 +92,7 @@ function LoginPage() {
               Session model
             </p>
             <p className="mt-2 text-sm leading-6 text-white/68">
-              Shared admin access is still in place. Staff accounts and RBAC can be layered on separately without undoing the catalog, POS, and reporting work.
+              Named staff accounts, role-based access, and cookie-backed sessions now replace the old shared-password admin flow.
             </p>
           </div>
         </motion.section>
@@ -105,10 +109,23 @@ function LoginPage() {
               Sign in to the admin panel
             </h1>
             <p className="mt-3 text-sm leading-6 text-muted-foreground">
-              Use the shared admin password to open booking controls, POS, inventory, and reporting.
+              Use your staff username and password to open the operations console for bookings, POS, inventory, and reporting.
             </p>
 
             <form onSubmit={handleSubmit} className="mt-8 space-y-4">
+              <label className="block">
+                <span className="mb-2 block text-sm font-bold text-foreground">Username</span>
+                <input
+                  name="username"
+                  autoComplete="username"
+                  value={username}
+                  onChange={(event) => setUsername(event.target.value)}
+                  placeholder="Enter your staff username"
+                  required
+                  className="admin-input w-full rounded-[1.2rem] px-4 py-3.5 text-sm outline-none"
+                />
+              </label>
+
               <label className="block">
                 <span className="mb-2 block text-sm font-bold text-foreground">Password</span>
                 <input
@@ -134,7 +151,7 @@ function LoginPage() {
 
               <button
                 type="submit"
-                disabled={loading || !password}
+                disabled={loading || !username || !password}
                 className="admin-button-primary w-full rounded-[1.2rem] px-5 py-3.5 text-sm font-bold disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {loading ? "Signing in..." : "Enter Admin"}

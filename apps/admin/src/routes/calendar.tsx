@@ -1,224 +1,333 @@
-import { useState, useEffect } from "react";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { getCalendar, type CalendarResponse, type Booking } from "@/lib/api";
-import { format, getDaysInMonth } from "date-fns";
-import { cabins } from "@workspace/shared";
+import { useEffect, useMemo, useState } from "react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { getCalendar, type BlockedDate, type Booking, type CalendarResponse } from "@/lib/api";
+import {
+  AdminPage,
+  InfoPill,
+  MetricCard,
+  PageHeader,
+  PageSection,
+  SectionTitle,
+} from "@/components/AdminUI";
 
 export const Route = createFileRoute("/calendar")({
   component: CalendarPage,
 });
 
+const monthLabel = new Intl.DateTimeFormat("en-US", {
+  month: "long",
+  year: "numeric",
+});
+
 function CalendarPage() {
   const now = new Date();
-  const navigate = useNavigate();
   const [year, setYear] = useState(now.getFullYear());
   const [month, setMonth] = useState(now.getMonth() + 1);
-  const [cal, setCal] = useState<CalendarResponse | null>(null);
+  const [calendar, setCalendar] = useState<CalendarResponse | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     setLoading(true);
     getCalendar(year, month)
-      .then(setCal)
+      .then(setCalendar)
       .catch(console.error)
       .finally(() => setLoading(false));
   }, [year, month]);
 
-  function prevMonth() {
-    if (month === 1) { setYear((y) => y - 1); setMonth(12); }
-    else setMonth((m) => m - 1);
-  }
-  function nextMonth() {
-    if (month === 12) { setYear((y) => y + 1); setMonth(1); }
-    else setMonth((m) => m + 1);
-  }
+  const monthDate = new Date(year, month - 1, 1);
+  const days = useMemo(() => {
+    const daysInMonth = new Date(year, month, 0).getDate();
+    return Array.from({ length: daysInMonth }, (_, index) => index + 1);
+  }, [year, month]);
 
-  const daysInMonth = getDaysInMonth(new Date(year, month - 1));
-  const days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
   const isCurrentMonth = year === now.getFullYear() && month === now.getMonth() + 1;
+  const bookings = calendar?.bookings ?? [];
+  const blockedRows = calendar?.blocked ?? [];
+  const confirmedCount = bookings.filter((booking) => booking.status === "confirmed").length;
+  const pendingCount = bookings.filter((booking) => booking.status === "pending").length;
+
+  function moveMonth(direction: -1 | 1) {
+    setMonth((currentMonth) => {
+      if (direction === -1) {
+        if (currentMonth === 1) {
+          setYear((currentYear) => currentYear - 1);
+          return 12;
+        }
+        return currentMonth - 1;
+      }
+
+      if (currentMonth === 12) {
+        setYear((currentYear) => currentYear + 1);
+        return 1;
+      }
+
+      return currentMonth + 1;
+    });
+  }
 
   return (
-    <div className="p-8 max-w-6xl mx-auto">
-      {/* Header */}
-      <div className="flex items-center gap-4 mb-6">
-        <h1 className="text-2xl font-black">Calendar</h1>
-        <div className="flex items-center gap-2 ml-auto">
-          <button
-            onClick={prevMonth}
-            className="w-8 h-8 rounded-lg border border-border flex items-center justify-center hover:bg-white transition-colors text-sm font-bold"
-          >
-            ‹
-          </button>
-          <span className="text-sm font-bold w-36 text-center">
-            {format(new Date(year, month - 1), "MMMM yyyy")}
-          </span>
-          <button
-            onClick={nextMonth}
-            className="w-8 h-8 rounded-lg border border-border flex items-center justify-center hover:bg-white transition-colors text-sm font-bold"
-          >
-            ›
-          </button>
-          {!isCurrentMonth && (
+    <AdminPage className="max-w-[1600px]">
+      <PageHeader
+        eyebrow="Occupancy"
+        title="Cabin calendar and reservation pressure"
+        description="Track confirmed stays, pending demand, and blocked ranges across the month. The calendar stays operationally useful without becoming a flat spreadsheet."
+        actions={
+          <>
             <button
-              onClick={() => { setYear(now.getFullYear()); setMonth(now.getMonth() + 1); }}
-              className="ml-2 text-xs font-semibold px-3 py-1.5 rounded-lg border border-border hover:bg-white transition-colors"
-              style={{ color: "#2D5016" }}
+              type="button"
+              onClick={() => moveMonth(-1)}
+              aria-label="Previous month"
+              className="admin-button-secondary rounded-full px-4 py-3 text-sm font-bold"
             >
-              Today
+              Previous
             </button>
-          )}
-        </div>
+            <button
+              type="button"
+              onClick={() => moveMonth(1)}
+              aria-label="Next month"
+              className="admin-button-secondary rounded-full px-4 py-3 text-sm font-bold"
+            >
+              Next
+            </button>
+            {!isCurrentMonth ? (
+              <button
+                type="button"
+                onClick={() => {
+                  setYear(now.getFullYear());
+                  setMonth(now.getMonth() + 1);
+                }}
+                className="admin-button-primary rounded-full px-5 py-3 text-sm font-bold"
+              >
+                Jump to Today
+              </button>
+            ) : null}
+          </>
+        }
+        meta={
+          <>
+            <InfoPill tone="green">{monthLabel.format(monthDate)}</InfoPill>
+            <InfoPill>{calendar?.cabins.length ?? 0} cabins</InfoPill>
+            <InfoPill tone="amber">{blockedRows.length} blocked ranges</InfoPill>
+          </>
+        }
+      />
+
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <MetricCard
+          label="Confirmed"
+          value={String(confirmedCount)}
+          note="Reservations with approval"
+          tone="green"
+        />
+        <MetricCard
+          label="Pending"
+          value={String(pendingCount)}
+          note="Requests still awaiting action"
+          tone="amber"
+        />
+        <MetricCard
+          label="Blocked"
+          value={String(blockedRows.length)}
+          note="Maintenance or override ranges"
+          tone="red"
+        />
+        <MetricCard
+          label="Month View"
+          value={monthLabel.format(monthDate)}
+          note="Active planning window"
+          tone="slate"
+        />
       </div>
 
-      {/* Legend */}
-      <div className="flex items-center gap-5 mb-4 text-xs font-semibold text-muted-foreground">
-        <span className="flex items-center gap-1.5">
-          <span className="w-3 h-3 rounded-sm" style={{ backgroundColor: "#86efac" }} />
-          Confirmed
-        </span>
-        <span className="flex items-center gap-1.5">
-          <span className="w-3 h-3 rounded-sm" style={{ backgroundColor: "#fde68a" }} />
-          Pending
-        </span>
-        <span className="flex items-center gap-1.5">
-          <span className="w-3 h-3 rounded-sm" style={{ backgroundColor: "#fca5a5" }} />
-          Blocked
-        </span>
-        <span className="text-xs text-muted-foreground ml-auto">
-          Click a coloured cell to view booking
-        </span>
-      </div>
-
-      {loading || !cal ? (
-        <div className="bg-white rounded-2xl border border-border p-10 text-center text-muted-foreground text-sm">
-          <div className="animate-spin w-5 h-5 border-2 border-border border-t-[#2D5016] rounded-full mx-auto mb-3" />
-          Loading calendar…
-        </div>
-      ) : (
-        <div className="bg-white rounded-2xl border border-border overflow-hidden">
-          {/* Day number header */}
-          <div className="flex border-b border-border">
-            <div className="w-44 shrink-0 px-4 py-2.5 text-xs font-bold text-muted-foreground border-r border-border bg-muted/20">
-              Cabin
+      <PageSection className="p-6 sm:p-7">
+        <SectionTitle
+          title="Occupancy Grid"
+          description="Select any confirmed or pending booking from the calendar to open the full reservation record."
+          action={
+            <div className="flex flex-wrap gap-2">
+              <InfoPill tone="green">Confirmed</InfoPill>
+              <InfoPill tone="amber">Pending</InfoPill>
+              <InfoPill tone="red">Blocked</InfoPill>
             </div>
-            <div className="flex flex-1 overflow-x-auto">
-              {days.map((d) => {
-                const isToday = isCurrentMonth && d === now.getDate();
-                return (
-                  <div
-                    key={d}
-                    className={`flex-1 min-w-[26px] py-2 text-center text-xs font-semibold border-r border-border last:border-r-0 ${
-                      isToday ? "text-white" : "text-muted-foreground"
-                    }`}
-                    style={isToday ? { backgroundColor: "#2D5016" } : undefined}
-                  >
-                    {d}
+          }
+        />
+
+        {loading || !calendar ? (
+          <div className="rounded-[1.7rem] border border-dashed border-primary/14 bg-primary/4 px-6 py-12 text-center text-sm text-muted-foreground">
+            Loading calendar…
+          </div>
+        ) : (
+          <div className="overflow-hidden rounded-[1.7rem] border border-primary/10 bg-white/76">
+            <div className="admin-scrollbar overflow-x-auto">
+              <div className="min-w-[1100px]">
+                <div
+                  className="grid border-b border-primary/8 bg-primary/4"
+                  style={{
+                    gridTemplateColumns: `16rem repeat(${days.length}, minmax(2.35rem, 1fr))`,
+                  }}
+                >
+                  <div className="border-r border-primary/8 px-5 py-4 text-[11px] font-bold tracking-[0.18em] text-muted-foreground uppercase">
+                    Cabin
                   </div>
-                );
-              })}
+                  {days.map((day) => {
+                    const isToday = isCurrentMonth && day === now.getDate();
+
+                    return (
+                      <div
+                        key={day}
+                        className={`flex items-center justify-center border-r border-primary/8 px-2 py-4 text-xs font-bold last:border-r-0 ${
+                          isToday ? "bg-primary text-white" : "text-muted-foreground"
+                        }`}
+                      >
+                        {day}
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {calendar.cabins.map((cabin) => (
+                  <CalendarRow
+                    key={cabin.slug}
+                    cabin={cabin}
+                    year={year}
+                    month={month}
+                    days={days}
+                    columnTemplate={`16rem repeat(${days.length}, minmax(2.35rem, 1fr))`}
+                    bookings={bookings}
+                    blockedRows={blockedRows}
+                    isCurrentMonth={isCurrentMonth}
+                    today={now.getDate()}
+                  />
+                ))}
+              </div>
             </div>
           </div>
+        )}
+      </PageSection>
 
-          {/* Cabin rows */}
-          {cal.cabins.map((cabin) => (
-            <div key={cabin.slug} className="flex border-b border-border last:border-b-0">
-              <div className="w-44 shrink-0 px-4 py-3 text-xs font-semibold border-r border-border flex items-center bg-muted/10">
-                {cabin.name}
-              </div>
-              <div className="flex flex-1 overflow-x-auto">
-                {days.map((d) => {
-                  const dateStr = `${year}-${String(month).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
-                  const booking = cal.bookings.find(
-                    (b) =>
-                      b.cabinSlug === cabin.slug &&
-                      b.checkIn <= dateStr &&
-                      b.checkOut > dateStr
-                  );
-                  const blocked = cal.blocked.find(
-                    (bl) =>
-                      (bl.cabinSlug === cabin.slug || bl.cabinSlug === null) &&
-                      bl.startDate <= dateStr &&
-                      bl.endDate >= dateStr
-                  );
-
-                  const isToday = isCurrentMonth && d === now.getDate();
-
-                  let bg = "transparent";
-                  let tooltip = "";
-                  let clickable = false;
-
-                  if (blocked) {
-                    bg = "#fca5a5";
-                    tooltip = `Blocked: ${blocked.reason || "No reason"}`;
-                  } else if (booking?.status === "confirmed") {
-                    bg = "#86efac";
-                    tooltip = `${booking.name} — confirmed`;
-                    clickable = true;
-                  } else if (booking?.status === "pending") {
-                    bg = "#fde68a";
-                    tooltip = `${booking.name} — pending`;
-                    clickable = true;
-                  }
-
-                  return (
-                    <div
-                      key={d}
-                      className={`flex-1 min-w-[26px] border-r border-border last:border-r-0 relative group ${
-                        clickable ? "cursor-pointer hover:opacity-80" : ""
-                      } ${isToday ? "ring-1 ring-inset ring-[#2D5016]/30" : ""}`}
-                      style={{ backgroundColor: bg || (isToday ? "#f0f7ea" : "transparent") }}
-                      title={tooltip || undefined}
-                      onClick={() => {
-                        if (clickable && booking) {
-                          navigate({ to: "/bookings/$id", params: { id: String(booking.id) } });
-                        }
-                      }}
-                    >
-                      {/* Tooltip */}
-                      {tooltip && (
-                        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 z-20 hidden group-hover:block pointer-events-none">
-                          <div className="bg-gray-900 text-white text-xs rounded-lg px-2.5 py-1.5 whitespace-nowrap max-w-[200px] shadow-lg">
-                            {tooltip}
-                          </div>
-                        </div>
-                      )}
-                      <div className="py-3" />
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Summary below calendar */}
-      {cal && (
-        <div className="mt-4 grid grid-cols-3 gap-3">
-          {cabins.map((cabin) => {
-            const confirmedCount = cal.bookings.filter(
-              (b) => b.cabinSlug === cabin.slug && b.status === "confirmed"
+      {calendar ? (
+        <div className="grid gap-4 lg:grid-cols-3">
+          {calendar.cabins.map((cabin) => {
+            const cabinConfirmed = bookings.filter(
+              (booking) => booking.cabinSlug === cabin.slug && booking.status === "confirmed"
             ).length;
-            const pendingCount = cal.bookings.filter(
-              (b) => b.cabinSlug === cabin.slug && b.status === "pending"
+            const cabinPending = bookings.filter(
+              (booking) => booking.cabinSlug === cabin.slug && booking.status === "pending"
             ).length;
-            if (confirmedCount === 0 && pendingCount === 0) return null;
+            const cabinBlocked = blockedRows.filter(
+              (row) => row.cabinSlug === null || row.cabinSlug === cabin.slug
+            ).length;
+
             return (
-              <div key={cabin.slug} className="bg-white rounded-xl border border-border px-4 py-3">
-                <p className="text-xs font-bold text-muted-foreground truncate mb-1">{cabin.name}</p>
-                <div className="flex gap-3 text-xs">
-                  {confirmedCount > 0 && (
-                    <span className="text-green-700 font-semibold">{confirmedCount} confirmed</span>
-                  )}
-                  {pendingCount > 0 && (
-                    <span className="text-amber-600 font-semibold">{pendingCount} pending</span>
-                  )}
+              <PageSection key={cabin.slug} className="p-5 sm:p-6">
+                <p className="text-lg font-black tracking-tight text-foreground">{cabin.name}</p>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  <InfoPill tone="green">{cabinConfirmed} confirmed</InfoPill>
+                  <InfoPill tone="amber">{cabinPending} pending</InfoPill>
+                  <InfoPill tone="red">{cabinBlocked} blocked</InfoPill>
                 </div>
-              </div>
+              </PageSection>
             );
           })}
         </div>
-      )}
+      ) : null}
+    </AdminPage>
+  );
+}
+
+function CalendarRow({
+  cabin,
+  year,
+  month,
+  days,
+  columnTemplate,
+  bookings,
+  blockedRows,
+  isCurrentMonth,
+  today,
+}: {
+  cabin: { slug: string; name: string };
+  year: number;
+  month: number;
+  days: number[];
+  columnTemplate: string;
+  bookings: Booking[];
+  blockedRows: BlockedDate[];
+  isCurrentMonth: boolean;
+  today: number;
+}) {
+  return (
+    <div
+      className="grid border-b border-primary/8 last:border-b-0"
+      style={{ gridTemplateColumns: columnTemplate }}
+    >
+      <div className="border-r border-primary/8 bg-primary/3 px-5 py-4">
+        <p className="font-semibold text-foreground">{cabin.name}</p>
+        <p className="mt-1 text-xs text-muted-foreground">Monthly occupancy row</p>
+      </div>
+
+      {days.map((day) => {
+        const dateStr = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+        const booking = bookings.find(
+          (entry) =>
+            entry.cabinSlug === cabin.slug &&
+            entry.checkIn <= dateStr &&
+            entry.checkOut > dateStr &&
+            ["pending", "confirmed"].includes(entry.status)
+        );
+        const blocked = blockedRows.find(
+          (row) =>
+            (row.cabinSlug === cabin.slug || row.cabinSlug === null) &&
+            row.startDate <= dateStr &&
+            row.endDate >= dateStr
+        );
+        const isToday = isCurrentMonth && day === today;
+
+        if (blocked) {
+          return (
+            <div
+              key={dateStr}
+              title={`Blocked: ${blocked.reason || "No reason provided"}`}
+              className={`border-r border-primary/8 bg-red-200/85 px-1 py-2 last:border-r-0 ${
+                isToday ? "ring-1 ring-inset ring-primary/30" : ""
+              }`}
+            />
+          );
+        }
+
+        if (booking) {
+          const toneClass =
+            booking.status === "confirmed"
+              ? "bg-emerald-200/90 hover:bg-emerald-300/90"
+              : "bg-amber-200/90 hover:bg-amber-300/90";
+
+          return (
+            <Link
+              key={dateStr}
+              to="/bookings/$id"
+              params={{ id: String(booking.id) }}
+              title={`${booking.name} · ${booking.status}`}
+              className={`block border-r border-primary/8 px-1 py-2 transition-[background-color] last:border-r-0 ${toneClass} ${
+                isToday ? "ring-1 ring-inset ring-primary/30" : ""
+              }`}
+              aria-label={`Open booking ${booking.id} for ${booking.name}`}
+            >
+              <span className="sr-only">
+                {booking.name} {booking.status}
+              </span>
+            </Link>
+          );
+        }
+
+        return (
+          <div
+            key={dateStr}
+            className={`border-r border-primary/8 px-1 py-2 last:border-r-0 ${
+              isToday ? "bg-primary/5 ring-1 ring-inset ring-primary/30" : ""
+            }`}
+          />
+        );
+      })}
     </div>
   );
 }

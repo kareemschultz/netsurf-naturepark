@@ -1,12 +1,16 @@
 import { Hono } from "hono"
 import { and, asc, eq, gte, gt, isNull, lte, or } from "drizzle-orm"
 import { db } from "../db.js"
+import { authorizeAdminRequest } from "../auth.js"
 import { blockedDates, bookings } from "@workspace/db"
 import { cabins } from "@workspace/shared"
 
 export const adminCabinsRoute = new Hono()
 
 adminCabinsRoute.get("/availability", async (c) => {
+  const denied = authorizeAdminRequest(c, { cabins: ["view"] })
+  if (denied) return denied
+
   const requestedDate =
     c.req.query("date") ?? new Date().toISOString().slice(0, 10)
 

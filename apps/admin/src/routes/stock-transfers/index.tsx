@@ -1,13 +1,22 @@
-import { useEffect, useState } from "react";
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useEffect, useMemo, useState } from "react";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { getStockTransfers, type StockTransferListItem } from "@/lib/api";
+import {
+  AdminPage,
+  EmptyState,
+  FilterChip,
+  InfoPill,
+  MetricCard,
+  PageHeader,
+  PageSection,
+  SectionTitle,
+} from "@/components/AdminUI";
 
 export const Route = createFileRoute("/stock-transfers/")({
   component: StockTransfersPage,
 });
 
 function StockTransfersPage() {
-  const navigate = useNavigate();
   const [transfers, setTransfers] = useState<StockTransferListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<"outgoing" | "incoming">("outgoing");
@@ -19,135 +28,193 @@ function StockTransfersPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  const filteredTransfers = transfers.filter((transfer) => {
-    if (tab === "incoming") {
-      return ["dispatched", "partial", "received"].includes(transfer.status);
-    }
-    return ["draft", "dispatched", "partial", "received"].includes(transfer.status);
-  });
+  const filteredTransfers = useMemo(
+    () =>
+      transfers.filter((transfer) => {
+        if (tab === "incoming") {
+          return ["dispatched", "partial", "received"].includes(transfer.status);
+        }
+        return ["draft", "dispatched", "partial", "received"].includes(transfer.status);
+      }),
+    [tab, transfers]
+  );
+
+  const draftCount = transfers.filter((transfer) => transfer.status === "draft").length;
+  const dispatchedCount = transfers.filter(
+    (transfer) => transfer.status === "dispatched" || transfer.status === "partial"
+  ).length;
+  const receivedCount = transfers.filter((transfer) => transfer.status === "received").length;
+  const unitsInMotion = transfers
+    .filter((transfer) => ["draft", "dispatched", "partial"].includes(transfer.status))
+    .reduce((sum, transfer) => sum + transfer.totalDispatchedQty, 0);
 
   return (
-    <div className="mx-auto max-w-7xl p-8">
-      <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-        <div>
-          <h1 className="text-2xl font-black">Stock Transfers</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Track Georgetown dispatches and park-side receipt verification.
-          </p>
-        </div>
-        <Link
-          to="/stock-transfers/new"
-          className="rounded-full px-5 py-2.5 text-sm font-bold text-white transition-opacity hover:opacity-90"
-          style={{ backgroundColor: "#2D5016" }}
-        >
-          + New Transfer
-        </Link>
-      </div>
-
-      <div className="mb-4 flex gap-2">
-        {[
-          { value: "outgoing", label: "Outgoing" },
-          { value: "incoming", label: "Incoming" },
-        ].map((option) => (
-          <button
-            key={option.value}
-            onClick={() => setTab(option.value as typeof tab)}
-            className={`rounded-full px-4 py-2 text-sm font-semibold transition-colors ${
-              tab === option.value
-                ? "text-white"
-                : "bg-white text-muted-foreground hover:text-foreground"
-            }`}
-            style={tab === option.value ? { backgroundColor: "#2D5016" } : undefined}
+    <AdminPage className="max-w-[1500px]">
+      <PageHeader
+        eyebrow="Transfers"
+        title="Dispatches between Georgetown and the park"
+        description="Track stock leaving the city, verify what actually arrived on site, and keep transfer records tidy enough for follow-up and reconciliation."
+        actions={
+          <Link
+            to="/stock-transfers/new"
+            className="admin-button-primary rounded-full px-5 py-3 text-sm font-bold"
           >
-            {option.label}
-          </button>
-        ))}
+            New Transfer
+          </Link>
+        }
+        meta={
+          <>
+            <InfoPill tone="green">{filteredTransfers.length} in current view</InfoPill>
+            <InfoPill>{tab === "incoming" ? "Incoming verification" : "Outgoing dispatches"}</InfoPill>
+          </>
+        }
+      />
+
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <MetricCard
+          label="Drafts"
+          value={String(draftCount)}
+          note="Built but not yet dispatched"
+          tone="slate"
+        />
+        <MetricCard
+          label="In Motion"
+          value={String(dispatchedCount)}
+          note="Awaiting or mid-way through receipt"
+          tone="amber"
+        />
+        <MetricCard
+          label="Received"
+          value={String(receivedCount)}
+          note="Closed transfer records"
+          tone="green"
+        />
+        <MetricCard
+          label="Units in Motion"
+          value={String(unitsInMotion)}
+          note="Across draft and dispatched transfers"
+          tone="red"
+        />
       </div>
 
-      <div className="rounded-2xl border border-border bg-white">
+      <PageSection className="p-6 sm:p-7">
+        <SectionTitle
+          title="Transfer Board"
+          description="Switch between outgoing dispatches and incoming verification work. Open any transfer to edit, dispatch, or receive it."
+        />
+
+        <div className="flex flex-wrap gap-2">
+          {[
+            { value: "outgoing", label: "Outgoing" },
+            { value: "incoming", label: "Incoming" },
+          ].map((option) => (
+            <FilterChip
+              key={option.value}
+              type="button"
+              active={tab === option.value}
+              onClick={() => setTab(option.value as typeof tab)}
+            >
+              {option.label}
+            </FilterChip>
+          ))}
+        </div>
+
         {loading ? (
-          <div className="p-10 text-center text-sm text-muted-foreground">
-            Loading transfers...
+          <div className="mt-6 rounded-[1.7rem] border border-dashed border-primary/14 bg-primary/4 px-6 py-12 text-center text-sm text-muted-foreground">
+            Loading transfers…
           </div>
         ) : filteredTransfers.length === 0 ? (
-          <div className="p-10 text-center text-sm text-muted-foreground">
-            No transfers in this view yet.
+          <div className="mt-6">
+            <EmptyState
+              title="No transfers in this view"
+              description="Create a new transfer when stock is being prepared in Georgetown, or return later when incoming verification is pending."
+            />
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-border bg-muted/30">
-                  <th className="px-5 py-3 text-left text-xs font-bold tracking-wide text-muted-foreground uppercase">
-                    Transfer
-                  </th>
-                  <th className="px-5 py-3 text-left text-xs font-bold tracking-wide text-muted-foreground uppercase">
-                    Dispatcher
-                  </th>
-                  <th className="px-5 py-3 text-left text-xs font-bold tracking-wide text-muted-foreground uppercase">
-                    Items
-                  </th>
-                  <th className="px-5 py-3 text-left text-xs font-bold tracking-wide text-muted-foreground uppercase">
-                    Status
-                  </th>
-                  <th className="px-5 py-3 text-left text-xs font-bold tracking-wide text-muted-foreground uppercase">
-                    Updated
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {filteredTransfers.map((transfer) => (
-                  <tr
-                    key={transfer.id}
-                    onClick={() =>
-                      navigate({
-                        to: "/stock-transfers/$id",
-                        params: { id: String(transfer.id) },
-                      })
-                    }
-                    className="cursor-pointer transition-colors hover:bg-muted/20"
-                  >
-                    <td className="px-5 py-4 font-semibold">{transfer.transferNumber}</td>
-                    <td className="px-5 py-4 text-muted-foreground">
+          <div className="mt-6 grid gap-4 lg:grid-cols-2">
+            {filteredTransfers.map((transfer) => (
+              <Link
+                key={transfer.id}
+                to="/stock-transfers/$id"
+                params={{ id: String(transfer.id) }}
+                className="rounded-[1.7rem] border border-primary/10 bg-white/78 p-5 shadow-[0_18px_40px_rgb(22_36_12_/6%)] transition-[border-color,box-shadow,transform] hover:-translate-y-0.5 hover:border-primary/18 hover:shadow-[0_24px_50px_rgb(22_36_12_/10%)]"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-lg font-black tracking-tight text-foreground">
+                      {transfer.transferNumber}
+                    </p>
+                    <p className="mt-1 truncate text-sm text-muted-foreground">
                       {transfer.dispatchedBy}
-                    </td>
-                    <td className="px-5 py-4">
-                      {transfer.itemCount} lines · {transfer.totalDispatchedQty} units
-                    </td>
-                    <td className="px-5 py-4">
-                      <StatusBadge status={transfer.status} />
-                    </td>
-                    <td className="px-5 py-4 text-muted-foreground">
-                      {new Date(
-                        transfer.receivedAt ?? transfer.dispatchedAt ?? transfer.createdAt
-                      ).toLocaleString()}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                    </p>
+                  </div>
+                  <StatusPill status={transfer.status} />
+                </div>
+
+                <div className="mt-4 grid gap-3 rounded-[1.4rem] border border-primary/8 bg-primary/4 p-4 sm:grid-cols-3">
+                  <TransferMeta label="Items" value={String(transfer.itemCount)} />
+                  <TransferMeta
+                    label="Units"
+                    value={String(transfer.totalDispatchedQty)}
+                  />
+                  <TransferMeta
+                    label="Updated"
+                    value={new Date(
+                      transfer.receivedAt ?? transfer.dispatchedAt ?? transfer.createdAt
+                    ).toLocaleDateString()}
+                  />
+                </div>
+
+                {transfer.notes ? (
+                  <p className="mt-4 line-clamp-2 text-sm leading-6 text-muted-foreground">
+                    {transfer.notes}
+                  </p>
+                ) : (
+                  <p className="mt-4 text-sm leading-6 text-muted-foreground">
+                    No dispatch notes recorded.
+                  </p>
+                )}
+              </Link>
+            ))}
           </div>
         )}
-      </div>
+      </PageSection>
+    </AdminPage>
+  );
+}
+
+function TransferMeta({
+  label,
+  value,
+}: {
+  label: string;
+  value: string;
+}) {
+  return (
+    <div>
+      <p className="text-[11px] font-bold tracking-[0.18em] text-muted-foreground uppercase">
+        {label}
+      </p>
+      <p className="mt-1 font-semibold text-foreground">{value}</p>
     </div>
   );
 }
 
-function StatusBadge({
+function StatusPill({
   status,
 }: {
   status: StockTransferListItem["status"];
 }) {
-  const styles = {
-    draft: "bg-gray-100 text-gray-600",
+  const tone = {
+    draft: "bg-slate-100 text-slate-700",
     dispatched: "bg-amber-100 text-amber-700",
-    received: "bg-green-100 text-green-700",
+    received: "bg-emerald-100 text-emerald-700",
     partial: "bg-orange-100 text-orange-700",
     cancelled: "bg-red-100 text-red-700",
-  } as const;
+  }[status];
 
   return (
-    <span className={`rounded-full px-3 py-1 text-xs font-bold ${styles[status]}`}>
+    <span className={`rounded-full px-3 py-1 text-xs font-bold capitalize ${tone}`}>
       {status}
     </span>
   );

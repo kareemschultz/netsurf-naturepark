@@ -3,6 +3,7 @@ import { zValidator } from "@hono/zod-validator"
 import { and, desc, eq, inArray, sql } from "drizzle-orm"
 import { z } from "zod"
 import { db } from "../db.js"
+import { authorizeAdminRequest } from "../auth.js"
 import {
   products,
   stockMovements,
@@ -95,6 +96,9 @@ async function getTransferDetail(transferId: number) {
 }
 
 adminStockTransfersRoute.get("/", async (c) => {
+  const denied = authorizeAdminRequest(c, { transfers: ["view"] })
+  if (denied) return denied
+
   const status = c.req.query("status")?.trim()
   const page = Math.max(1, Number.parseInt(c.req.query("page") || "1", 10))
   const limit = Math.min(100, Number.parseInt(c.req.query("limit") || "20", 10))
@@ -150,6 +154,9 @@ adminStockTransfersRoute.get("/", async (c) => {
 
 adminStockTransfersRoute.get("/:id", async (c) => {
   try {
+    const denied = authorizeAdminRequest(c, { transfers: ["view"] })
+    if (denied) return denied
+
     const id = parseId(c.req.param("id"))
     return c.json(await getTransferDetail(id))
   } catch (error) {
@@ -165,6 +172,9 @@ adminStockTransfersRoute.post(
   zValidator("json", createTransferSchema),
   async (c) => {
     try {
+      const denied = authorizeAdminRequest(c, { transfers: ["manage"] })
+      if (denied) return denied
+
       const payload = c.req.valid("json")
       const productMap = await assertTransferProducts(payload.items)
 
@@ -207,6 +217,9 @@ adminStockTransfersRoute.patch(
   zValidator("json", updateTransferSchema),
   async (c) => {
     try {
+      const denied = authorizeAdminRequest(c, { transfers: ["manage"] })
+      if (denied) return denied
+
       const id = parseId(c.req.param("id"))
       const payload = c.req.valid("json")
       if (Object.keys(payload).length === 0) {
@@ -269,6 +282,9 @@ adminStockTransfersRoute.patch(
 
 adminStockTransfersRoute.post("/:id/dispatch", async (c) => {
   try {
+    const denied = authorizeAdminRequest(c, { transfers: ["manage"] })
+    if (denied) return denied
+
     const id = parseId(c.req.param("id"))
     const [transfer] = await db
       .select()
@@ -306,6 +322,9 @@ adminStockTransfersRoute.post(
   zValidator("json", receiveTransferSchema),
   async (c) => {
     try {
+      const denied = authorizeAdminRequest(c, { transfers: ["manage"] })
+      if (denied) return denied
+
       const id = parseId(c.req.param("id"))
       const payload = c.req.valid("json")
 

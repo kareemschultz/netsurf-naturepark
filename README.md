@@ -39,7 +39,7 @@ Replaced QloApps (512MB PHP/MySQL monolith) with a lean, modern multi-service ap
 | **API** | Hono 4.8 (Bun native) |
 | **Database** | PostgreSQL 16 + Drizzle ORM |
 | **Validation** | Zod 3 |
-| **Auth** | JWT (HS256) + HMAC-SHA256 one-click action tokens |
+| **Auth** | Better Auth sessions + RBAC + HMAC-SHA256 one-click action tokens |
 | **Notifications** | ntfy.sh push to mobile |
 | **Container** | Docker — single unified image (`kt-netsurf`): nginx + Bun API, path-routed |
 
@@ -77,11 +77,12 @@ netsurf-naturepark/
 - Fully responsive, skip-link accessible, `prefers-reduced-motion` aware
 
 ### Admin Dashboard (`www.netsurfnaturepark.com/admin/`)
-- JWT-protected portal (password in `.env` as `ADMIN_PASSWORD`)
+- Better Auth staff portal with named accounts, cookie-backed sessions, and route-level RBAC
 - Dashboard: today's check-ins/check-outs, pending count, revenue stats
 - Booking management: view, confirm, decline, add notes
-- Calendar: month grid per cabin, clickable cells, "Today" button
-- Blocked date management (per-cabin or site-wide)
+- Calendar and blocked date management
+- POS, products, inventory, stock transfers, cabins, sales history, and reporting
+- Staff Users & Access screens for account management and role visibility
 
 ### Notification System
 - Instant push notifications via ntfy.sh on new booking
@@ -131,8 +132,11 @@ Production secrets live in `/opt/infrastructure/docker/netsurf-naturepark/.env`.
 
 ```env
 DATABASE_URL=postgresql://netsurf:password@localhost:5432/netsurf
-ADMIN_PASSWORD=your-admin-password
-JWT_SECRET=your-jwt-secret
+ADMIN_PASSWORD=temporary-bootstrap-password
+BETTER_AUTH_URL=http://localhost:3001/auth
+ADMIN_EMAIL=admin@netsurfnaturepark.com
+ADMIN_USERNAME=admin
+ADMIN_NAME=Netsurf Owner
 ACTION_TOKEN_SECRET=your-hmac-secret
 NTFY_URL=https://ntfy.sh
 NTFY_TOPIC=netsurf-bookings-xk9m4p
@@ -193,7 +197,7 @@ cd /opt/infrastructure/docker/netsurf-naturepark && docker compose up -d
 | Route | Serves |
 |-------|--------|
 | `/` | Web SPA (React, public booking site) |
-| `/admin/` | Admin SPA (React, JWT-protected) |
+| `/admin/` | Admin SPA (React, Better Auth staff sessions) |
 | `/api/` | Hono REST API (Bun) |
 
 ---
@@ -209,11 +213,10 @@ cd /opt/infrastructure/docker/netsurf-naturepark && docker compose up -d
 | `GET` | `/bookings/availability/:slug?checkIn=&checkOut=` | Check cabin availability |
 | `GET` | `/:id/action?action=confirm\|decline&token=` | One-click HMAC action |
 
-### Admin Endpoints (JWT Required)
+### Admin Endpoints (Authenticated Staff Sessions Required)
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| `POST` | `/admin/login` | Exchange password for JWT |
 | `GET` | `/admin/stats` | Booking counts + revenue |
 | `GET` | `/admin/bookings` | Paginated booking list |
 | `GET` | `/admin/bookings/:id` | Booking detail |
@@ -222,6 +225,8 @@ cd /opt/infrastructure/docker/netsurf-naturepark && docker compose up -d
 | `GET` | `/admin/blocked-dates` | List blocked dates |
 | `POST` | `/admin/blocked-dates` | Create blocked date range |
 | `DELETE` | `/admin/blocked-dates/:id` | Remove blocked date |
+| `POST` | `/auth/sign-in/username` | Staff login via username/password |
+| `GET` | `/auth/get-session` | Return the current Better Auth session |
 
 ### Example: Create Booking
 

@@ -1,6 +1,7 @@
 import { Hono } from "hono"
 import { and, desc, eq, sql } from "drizzle-orm"
 import { db } from "../db.js"
+import { authorizeAdminRequest } from "../auth.js"
 import {
   productCategories,
   products,
@@ -100,6 +101,9 @@ async function getSalesSummary(query: { date?: string; from?: string; to?: strin
 }
 
 adminSalesRoute.get("/", async (c) => {
+  const denied = authorizeAdminRequest(c, { sales: ["view"] })
+  if (denied) return denied
+
   const date = c.req.query("date")
   const from = c.req.query("from")
   const to = c.req.query("to")
@@ -138,11 +142,17 @@ adminSalesRoute.get("/", async (c) => {
 })
 
 adminSalesRoute.get("/summary", async (c) => {
+  const denied = authorizeAdminRequest(c, { reports: ["view"] })
+  if (denied) return denied
+
   const date = c.req.query("date") ?? new Date().toISOString().slice(0, 10)
   return c.json(await getSalesSummary({ date }))
 })
 
 adminSalesRoute.get("/summary/range", async (c) => {
+  const denied = authorizeAdminRequest(c, { reports: ["view"] })
+  if (denied) return denied
+
   const from = c.req.query("from")
   const to = c.req.query("to")
 
@@ -155,6 +165,9 @@ adminSalesRoute.get("/summary/range", async (c) => {
 
 adminSalesRoute.get("/:id", async (c) => {
   try {
+    const denied = authorizeAdminRequest(c, { sales: ["view"] })
+    if (denied) return denied
+
     const id = parseId(c.req.param("id"))
     const [sale] = await db
       .select()

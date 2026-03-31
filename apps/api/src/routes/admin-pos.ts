@@ -3,7 +3,7 @@ import { zValidator } from "@hono/zod-validator"
 import { and, asc, desc, eq, inArray, sql } from "drizzle-orm"
 import { z } from "zod"
 import { db } from "../db.js"
-import { getAdminSubject } from "../auth.js"
+import { authorizeAdminRequest, getAdminSubject } from "../auth.js"
 import {
   posAuditLog,
   productCategories,
@@ -66,6 +66,9 @@ async function generateSaleNumber(
 }
 
 adminPosRoute.get("/products", async (c) => {
+  const denied = authorizeAdminRequest(c, { pos: ["view"] })
+  if (denied) return denied
+
   const rows = await db
     .select({
       id: products.id,
@@ -94,6 +97,9 @@ adminPosRoute.get("/products", async (c) => {
 
 adminPosRoute.post("/sale", zValidator("json", saleSchema), async (c) => {
   try {
+    const denied = authorizeAdminRequest(c, { pos: ["checkout"] })
+    if (denied) return denied
+
     const payload = c.req.valid("json")
     const aggregatedItems = new Map<number, number>()
     for (const item of payload.items) {
@@ -226,6 +232,9 @@ adminPosRoute.post(
   zValidator("json", voidSaleSchema),
   async (c) => {
     try {
+      const denied = authorizeAdminRequest(c, { sales: ["void"] })
+      if (denied) return denied
+
       const id = parseId(c.req.param("id"))
       const payload = c.req.valid("json")
 

@@ -3,6 +3,7 @@ import { zValidator } from "@hono/zod-validator"
 import { and, asc, eq, ne, sql } from "drizzle-orm"
 import { z } from "zod"
 import { db } from "../db.js"
+import { authorizeAdminRequest } from "../auth.js"
 import { productCategories, products } from "@workspace/db"
 import { slugify } from "@workspace/shared"
 import { ApiError, parseBooleanFlag, parseId } from "./admin-helpers.js"
@@ -41,6 +42,9 @@ async function buildUniqueCategorySlug(name: string, excludeId?: number): Promis
 }
 
 adminCategoriesRoute.get("/", async (c) => {
+  const denied = authorizeAdminRequest(c, { catalog: ["view"] })
+  if (denied) return denied
+
   const active = parseBooleanFlag(c.req.query("active"))
   const conditions = []
   if (active !== undefined) {
@@ -79,6 +83,9 @@ adminCategoriesRoute.post(
   "/",
   zValidator("json", createCategorySchema),
   async (c) => {
+    const denied = authorizeAdminRequest(c, { catalog: ["manage"] })
+    if (denied) return denied
+
     const payload = c.req.valid("json")
     const slug = await buildUniqueCategorySlug(payload.name)
 
@@ -101,6 +108,9 @@ adminCategoriesRoute.patch(
   "/:id",
   zValidator("json", updateCategorySchema),
   async (c) => {
+    const denied = authorizeAdminRequest(c, { catalog: ["manage"] })
+    if (denied) return denied
+
     const id = parseId(c.req.param("id"))
     const payload = c.req.valid("json")
     if (Object.keys(payload).length === 0) {
@@ -144,6 +154,9 @@ adminCategoriesRoute.patch(
 
 adminCategoriesRoute.delete("/:id", async (c) => {
   try {
+    const denied = authorizeAdminRequest(c, { catalog: ["manage"] })
+    if (denied) return denied
+
     const id = parseId(c.req.param("id"))
     const [category] = await db
       .select()

@@ -18,6 +18,7 @@ import {
   SectionTitle,
 } from "@/components/AdminUI";
 import { formatGYD, paymentMethods, type PaymentMethod } from "@workspace/shared";
+import { cn } from "@workspace/ui/lib/utils";
 
 export const Route = createFileRoute("/pos")({
   component: PosPage,
@@ -47,6 +48,9 @@ const INITIAL_CART: CartState = {
   discountGyd: 0,
   taxGyd: 0,
 };
+
+type PosViewMode = "standard" | "terminal";
+type StockFocus = "all" | "available" | "low";
 
 function cartReducer(state: CartState, action: CartAction): CartState {
   switch (action.type) {
@@ -98,8 +102,13 @@ function cartReducer(state: CartState, action: CartAction): CartState {
 function PosPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
+  const [stockFocus, setStockFocus] = useState<StockFocus>("all");
   const [search, setSearch] = useState("");
   const deferredSearch = useDeferredValue(search);
+  const [viewMode, setViewMode] = useState<PosViewMode>(() => {
+    const saved = window.localStorage.getItem("netsurf-pos-view-mode");
+    return saved === "terminal" ? "terminal" : "standard";
+  });
   const [cart, dispatch] = useReducer(cartReducer, INITIAL_CART);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("cash");
   const [paymentReference, setPaymentReference] = useState("");
@@ -122,6 +131,10 @@ function PosPage() {
     loadProducts().catch(console.error);
   }, []);
 
+  useEffect(() => {
+    window.localStorage.setItem("netsurf-pos-view-mode", viewMode);
+  }, [viewMode]);
+
   const categories = [
     { slug: "all", name: "All Products" },
     ...Array.from(
@@ -142,7 +155,13 @@ function PosPage() {
       categoryFilter === "all" || product.categorySlug === categoryFilter;
     const text = `${product.name} ${product.description} ${product.sku ?? ""}`.toLowerCase();
     const matchesSearch = text.includes(deferredSearch.trim().toLowerCase());
-    return matchesCategory && matchesSearch;
+    const matchesStock =
+      stockFocus === "all"
+        ? true
+        : stockFocus === "available"
+          ? !product.trackStock || product.stockQty > 0
+          : product.trackStock && product.stockQty <= product.lowStockThreshold;
+    return matchesCategory && matchesSearch && matchesStock;
   });
 
   const subtotalGyd = cart.items.reduce(
@@ -154,6 +173,7 @@ function PosPage() {
   const lowStockCatalog = products.filter(
     (product) => product.trackStock && product.stockQty <= product.lowStockThreshold
   ).length;
+  const isTerminalView = viewMode === "terminal";
 
   async function handleCompleteSale() {
     if (cart.items.length === 0 || totalGyd < 0) return;
@@ -268,10 +288,28 @@ function PosPage() {
               {lowStockCatalog} low-stock items
             </InfoPill>
             <InfoPill>{cartUnits} units in cart</InfoPill>
+            <InfoPill>{isTerminalView ? "Terminal view" : "Standard view"}</InfoPill>
           </>
         }
         actions={
-          <>
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="rounded-full border border-primary/10 bg-white/70 p-1">
+              {(["standard", "terminal"] as const).map((mode) => (
+                <button
+                  key={mode}
+                  type="button"
+                  onClick={() => setViewMode(mode)}
+                  className={cn(
+                    "rounded-full px-4 py-2 text-sm font-semibold transition-[background-color,color,transform]",
+                    viewMode === mode
+                      ? "admin-button-primary"
+                      : "text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  {mode === "terminal" ? "Terminal View" : "Standard View"}
+                </button>
+              ))}
+            </div>
             <Link
               to="/products"
               className="admin-button-secondary rounded-2xl px-4 py-3 text-sm font-bold"
@@ -284,7 +322,7 @@ function PosPage() {
             >
               View Sales
             </Link>
-          </>
+          </div>
         }
       />
 
@@ -301,8 +339,22 @@ function PosPage() {
         ) : null}
       </AnimatePresence>
 
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.65fr)_minmax(360px,0.95fr)]">
-        <PageSection className="p-6">
+      <div
+        className={cn(
+          "grid gap-6",
+          isTerminalView
+            ? "xl:grid-cols-[minmax(0,1.9fr)_minmax(380px,0.82fr)]"
+            : "xl:grid-cols-[minmax(0,1.65fr)_minmax(360px,0.95fr)]"
+        )}
+      >
+        <PageSection
+          className={cn(
+            "p-6",
+            isTerminalView
+              ? "border-primary/18 bg-[linear-gradient(180deg,rgba(28,56,16,0.08),rgba(255,255,255,0.96))]"
+              : undefined
+          )}
+        >
           <SectionTitle
             title="Catalog"
             description="Filter by category, search quickly, and keep out-of-stock products visible but clearly disabled."
@@ -312,12 +364,15 @@ function PosPage() {
             <SearchField
               value={search}
               onChange={(event) => setSearch(event.target.value)}
-              placeholder="Search by product name, description, or SKU..."
+              label="Search POS catalog"
+              placeholder="Search by product name, description, or SKU…"
+              inputProps={{ name: "pos_search" }}
             />
-            <div className="flex flex-wrap gap-2">
+            <div className="admin-scrollbar flex flex-wrap gap-2 overflow-x-auto">
               {categories.map((category) => (
                 <FilterChip
                   key={category.slug}
+                  type="button"
                   active={categoryFilter === category.slug}
                   onClick={() => setCategoryFilter(category.slug)}
                 >
@@ -327,13 +382,60 @@ function PosPage() {
             </div>
           </div>
 
+          <div className="mt-4 flex flex-wrap gap-2">
+            <FilterChip
+              type="button"
+              active={stockFocus === "all"}
+              onClick={() => setStockFocus("all")}
+            >
+              All Stock
+            </FilterChip>
+            <FilterChip
+              type="button"
+              active={stockFocus === "available"}
+              onClick={() => setStockFocus("available")}
+            >
+              Available Now
+            </FilterChip>
+            <FilterChip
+              type="button"
+              active={stockFocus === "low"}
+              onClick={() => setStockFocus("low")}
+            >
+              Low Stock
+            </FilterChip>
+            {search || categoryFilter !== "all" || stockFocus !== "all" ? (
+              <button
+                type="button"
+                onClick={() => {
+                  setSearch("");
+                  setCategoryFilter("all");
+                  setStockFocus("all");
+                }}
+                className={cn(
+                  "rounded-full px-4 py-2 text-sm font-semibold transition-[background-color,color,transform]",
+                  isTerminalView
+                    ? "border border-white/12 bg-white/8 text-white/76 hover:bg-white/12 hover:text-white"
+                    : "admin-button-secondary text-muted-foreground hover:text-foreground"
+                )}
+              >
+                Clear Filters
+              </button>
+            ) : null}
+          </div>
+
           <div className="mt-6">
             {loading ? (
               <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
                 {Array.from({ length: 6 }).map((_, index) => (
                   <div
                     key={index}
-                    className="h-48 rounded-[1.7rem] border border-border bg-white/70 animate-pulse"
+                    className={cn(
+                      "h-48 rounded-[1.7rem] animate-pulse",
+                      isTerminalView
+                        ? "border border-white/10 bg-white/8"
+                        : "border border-border bg-white/70"
+                    )}
                   />
                 ))}
               </div>
@@ -343,7 +445,12 @@ function PosPage() {
                 description="Try a different category or search term. The catalog only shows active products, so unavailable items remain hidden from checkout until they are reactivated."
               />
             ) : (
-              <div className="grid gap-4 sm:grid-cols-2 2xl:grid-cols-3">
+              <div
+                className={cn(
+                  "grid gap-4 sm:grid-cols-2",
+                  isTerminalView ? "2xl:grid-cols-4" : "2xl:grid-cols-3"
+                )}
+              >
                 {filteredProducts.map((product) => {
                   const cartQuantity =
                     cart.items.find((item) => item.product.id === product.id)?.quantity ?? 0;
@@ -354,26 +461,42 @@ function PosPage() {
                       key={product.id}
                       whileHover={isOutOfStock ? undefined : { y: -4 }}
                       whileTap={isOutOfStock ? undefined : { scale: 0.985 }}
+                      type="button"
                       onClick={() => dispatch({ type: "ADD_ITEM", product })}
                       disabled={isOutOfStock}
-                      className={`group relative rounded-[1.8rem] border p-5 text-left transition-all ${
+                      className={cn(
+                        "group relative rounded-[1.8rem] border p-5 text-left transition-[background-color,border-color,box-shadow,transform,opacity]",
                         isOutOfStock
-                          ? "cursor-not-allowed border-border bg-muted/30 opacity-60"
-                          : "border-primary/8 bg-white/85 hover:border-primary/18 hover:shadow-[0_22px_34px_rgb(23_48_13_/10%)]"
-                      }`}
+                          ? isTerminalView
+                            ? "cursor-not-allowed border-white/8 bg-white/8 opacity-55"
+                            : "cursor-not-allowed border-border bg-muted/30 opacity-60"
+                          : isTerminalView
+                            ? "border-white/10 bg-white/[0.06] hover:border-white/18 hover:bg-white/[0.08] hover:shadow-[0_18px_28px_rgb(0_0_0_/18%)]"
+                            : "border-primary/8 bg-white/85 hover:border-primary/18 hover:shadow-[0_22px_34px_rgb(23_48_13_/10%)]"
+                      )}
                     >
-                      <p className="admin-kicker">
+                      <p className={cn("admin-kicker", isTerminalView ? "text-white/45" : undefined)}>
                         {product.categoryName ?? "Uncategorized"}
                       </p>
-                      <h2 className="mt-3 text-xl font-black tracking-tight text-foreground">
+                      <h2
+                        className={cn(
+                          "mt-3 text-xl font-black tracking-tight",
+                          isTerminalView ? "text-white" : "text-foreground"
+                        )}
+                      >
                         {product.name}
                       </h2>
-                      <p className="mt-2 min-h-12 text-sm leading-6 text-muted-foreground">
+                      <p
+                        className={cn(
+                          "mt-2 min-h-12 text-sm leading-6",
+                          isTerminalView ? "text-white/62" : "text-muted-foreground"
+                        )}
+                      >
                         {product.description || "No internal note provided for this item."}
                       </p>
 
                       <div className="mt-5 flex items-center justify-between gap-3">
-                        <span className="text-xl font-black text-primary">
+                        <span className={cn("text-xl font-black", isTerminalView ? "text-white" : "text-primary")}>
                           {formatGYD(product.priceGyd)}
                         </span>
 
@@ -387,7 +510,12 @@ function PosPage() {
                       </div>
 
                       {product.sku ? (
-                        <p className="mt-3 text-xs font-medium text-muted-foreground">
+                        <p
+                          className={cn(
+                            "mt-3 text-xs font-medium",
+                            isTerminalView ? "text-white/48" : "text-muted-foreground"
+                          )}
+                        >
                           SKU {product.sku}
                         </p>
                       ) : null}
@@ -399,7 +527,14 @@ function PosPage() {
           </div>
         </PageSection>
 
-        <PageSection className="p-6 xl:sticky xl:top-6 xl:self-start">
+        <PageSection
+          className={cn(
+            "p-6 xl:sticky xl:top-6 xl:self-start",
+            isTerminalView
+              ? "border-primary/16 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(248,244,235,0.96))]"
+              : undefined
+          )}
+        >
           <SectionTitle
             title="Checkout"
             description={`${cart.items.length} line item${cart.items.length === 1 ? "" : "s"} · ${cartUnits} unit${cartUnits === 1 ? "" : "s"} in cart`}
@@ -435,6 +570,7 @@ function PosPage() {
                       </p>
                     </div>
                     <button
+                      type="button"
                       onClick={() =>
                         dispatch({ type: "REMOVE_ITEM", productId: item.product.id })
                       }
@@ -447,6 +583,7 @@ function PosPage() {
                   <div className="mt-4 flex items-center justify-between gap-3">
                     <div className="flex items-center gap-2">
                       <button
+                        type="button"
                         onClick={() =>
                           dispatch({
                             type: "UPDATE_QTY",
@@ -462,6 +599,7 @@ function PosPage() {
                         {item.quantity}
                       </span>
                       <button
+                        type="button"
                         onClick={() =>
                           dispatch({
                             type: "UPDATE_QTY",
@@ -492,6 +630,8 @@ function PosPage() {
                 </span>
                 <input
                   type="number"
+                  name="discount_gyd"
+                  inputMode="numeric"
                   min={0}
                   value={cart.discountGyd}
                   onChange={(event) =>
@@ -510,6 +650,8 @@ function PosPage() {
                 </span>
                 <input
                   type="number"
+                  name="tax_gyd"
+                  inputMode="numeric"
                   min={0}
                   value={cart.taxGyd}
                   onChange={(event) =>
@@ -531,6 +673,7 @@ function PosPage() {
                 {paymentMethods.map((method) => (
                   <FilterChip
                     key={method.value}
+                    type="button"
                     active={paymentMethod === method.value}
                     onClick={() => setPaymentMethod(method.value)}
                   >
@@ -546,10 +689,12 @@ function PosPage() {
                   Reference
                 </span>
                 <input
+                  name="payment_reference"
+                  autoComplete="off"
                   value={paymentReference}
                   onChange={(event) => setPaymentReference(event.target.value)}
                   className="admin-input w-full rounded-[1.2rem] px-4 py-3 text-sm outline-none"
-                  placeholder="Card auth or transfer reference"
+                  placeholder="Card auth or transfer reference…"
                 />
               </label>
             ) : null}
@@ -559,11 +704,12 @@ function PosPage() {
                 Internal Note
               </span>
               <textarea
+                name="pos_notes"
                 rows={3}
                 value={notes}
                 onChange={(event) => setNotes(event.target.value)}
                 className="admin-input w-full rounded-[1.2rem] px-4 py-3 text-sm outline-none"
-                placeholder="Optional shift or transaction note"
+                placeholder="Optional shift or transaction note…"
               />
             </label>
 
@@ -589,11 +735,12 @@ function PosPage() {
             </div>
 
             <button
+              type="button"
               onClick={handleCompleteSale}
               disabled={submitting || cart.items.length === 0 || totalGyd < 0}
               className="admin-button-primary w-full rounded-[1.2rem] px-5 py-3.5 text-sm font-bold disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {submitting ? "Completing sale..." : "Complete Sale"}
+              {submitting ? "Completing sale…" : "Complete Sale"}
             </button>
           </div>
         </PageSection>

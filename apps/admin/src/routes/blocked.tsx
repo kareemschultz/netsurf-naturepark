@@ -1,220 +1,289 @@
-import { useState, useEffect } from "react"
-import { createFileRoute } from "@tanstack/react-router"
+import type { FormEvent, ReactNode } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { createFileRoute } from "@tanstack/react-router";
 import {
-  getBlockedDates,
   createBlockedDate,
   deleteBlockedDate,
+  getBlockedDates,
   type BlockedDate,
-} from "@/lib/api"
-import { cabins } from "@workspace/shared"
-import { format } from "date-fns"
+} from "@/lib/api";
+import {
+  AdminPage,
+  EmptyState,
+  InfoPill,
+  MetricCard,
+  PageHeader,
+  PageSection,
+  SectionTitle,
+} from "@/components/AdminUI";
+import { cabins } from "@workspace/shared";
 
 export const Route = createFileRoute("/blocked")({
   component: BlockedDatesPage,
-})
+});
 
 function BlockedDatesPage() {
-  const [rows, setRows] = useState<BlockedDate[]>([])
-  const [loading, setLoading] = useState(true)
-  const [saving, setSaving] = useState(false)
+  const [rows, setRows] = useState<BlockedDate[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
     cabinSlug: "" as string | null,
     startDate: "",
     endDate: "",
     reason: "",
-  })
+  });
 
   useEffect(() => {
-    load()
-  }, [])
+    load();
+  }, []);
 
   function load() {
-    setLoading(true)
+    setLoading(true);
     getBlockedDates()
       .then(setRows)
       .catch(console.error)
-      .finally(() => setLoading(false))
+      .finally(() => setLoading(false));
   }
 
-  async function handleAdd(e: React.FormEvent) {
-    e.preventDefault()
-    setSaving(true)
+  async function handleAdd(event: FormEvent) {
+    event.preventDefault();
+    setSaving(true);
+
     try {
       await createBlockedDate({
         cabinSlug: form.cabinSlug || null,
         startDate: form.startDate,
         endDate: form.endDate,
         reason: form.reason,
-      })
-      setForm({ cabinSlug: "", startDate: "", endDate: "", reason: "" })
-      load()
-    } catch (err) {
-      alert((err as Error).message)
+      });
+      setForm({ cabinSlug: "", startDate: "", endDate: "", reason: "" });
+      load();
+    } catch (error) {
+      alert((error as Error).message);
     } finally {
-      setSaving(false)
+      setSaving(false);
     }
   }
 
   async function handleDelete(id: number) {
-    if (!confirm("Remove this blocked date range?")) return
-    await deleteBlockedDate(id)
-    setRows((prev) => prev.filter((r) => r.id !== id))
+    if (!window.confirm("Remove this blocked date range?")) return;
+    await deleteBlockedDate(id);
+    setRows((current) => current.filter((row) => row.id !== id));
   }
 
-  const cabinName = (slug: string | null) =>
-    slug ? (cabins.find((c) => c.slug === slug)?.name ?? slug) : "All Cabins"
+  const parkwideCount = useMemo(
+    () => rows.filter((row) => row.cabinSlug === null).length,
+    [rows]
+  );
+  const cabinSpecificCount = rows.length - parkwideCount;
+  const nextBlock = useMemo(
+    () =>
+      [...rows]
+        .sort((a, b) => a.startDate.localeCompare(b.startDate))
+        .find((row) => row.startDate >= new Date().toISOString().slice(0, 10)) ?? null,
+    [rows]
+  );
 
   return (
-    <div className="max-w-3xl p-8">
-      <h1 className="mb-1 text-2xl font-black">Blocked Dates</h1>
-      <p className="mb-7 text-sm text-muted-foreground">
-        Block specific date ranges to prevent bookings — e.g. maintenance,
-        private events.
-      </p>
+    <AdminPage className="max-w-[1500px]">
+      <PageHeader
+        eyebrow="Availability Control"
+        title="Blocked dates, closures, and maintenance holds"
+        description="Protect cabin inventory from accidental bookings by applying parkwide or cabin-specific hold ranges for maintenance, private events, or operational overrides."
+        meta={
+          <>
+            <InfoPill tone="amber">{rows.length} active blocks</InfoPill>
+            <InfoPill>{parkwideCount} parkwide</InfoPill>
+            <InfoPill>{cabinSpecificCount} cabin specific</InfoPill>
+          </>
+        }
+      />
 
-      {/* Add form */}
-      <div className="mb-6 rounded-2xl border border-border bg-white p-6">
-        <h2 className="mb-4 text-sm font-bold tracking-widest text-muted-foreground uppercase">
-          Block a Date Range
-        </h2>
-        <form onSubmit={handleAdd} className="grid gap-4 sm:grid-cols-2">
-          <div>
-            <label
-              htmlFor="blocked-cabin"
-              className="mb-1 block text-xs font-semibold"
-            >
-              Cabin
-            </label>
-            <select
-              id="blocked-cabin"
-              name="cabinSlug"
-              value={form.cabinSlug ?? ""}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, cabinSlug: e.target.value || null }))
-              }
-              className="w-full rounded-xl border-2 border-border px-3 py-2 text-sm outline-none focus:border-[#2D5016]"
-            >
-              <option value="">All Cabins</option>
-              {cabins.map((c) => (
-                <option key={c.slug} value={c.slug}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
-          </div>
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <MetricCard
+          label="Active Blocks"
+          value={String(rows.length)}
+          note="All stored availability holds"
+          tone="amber"
+        />
+        <MetricCard
+          label="Parkwide"
+          value={String(parkwideCount)}
+          note="Applies to every cabin"
+          tone="red"
+        />
+        <MetricCard
+          label="Cabin Specific"
+          value={String(cabinSpecificCount)}
+          note="Scoped to a single cabin"
+          tone="slate"
+        />
+        <MetricCard
+          label="Next Block"
+          value={nextBlock ? nextBlock.startDate : "None"}
+          note={nextBlock ? cabinName(nextBlock.cabinSlug) : "No future blocks scheduled"}
+          tone="green"
+        />
+      </div>
 
-          <div>
-            <label
-              htmlFor="blocked-reason"
-              className="mb-1 block text-xs font-semibold"
-            >
-              Reason (optional)
-            </label>
-            <input
-              id="blocked-reason"
-              name="reason"
-              type="text"
-              autoComplete="off"
-              value={form.reason}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, reason: e.target.value }))
-              }
-              placeholder="e.g. Maintenance"
-              className="w-full rounded-xl border-2 border-border px-3 py-2 text-sm outline-none focus:border-[#2D5016]"
-            />
-          </div>
+      <div className="grid gap-6 xl:grid-cols-[24rem_minmax(0,1fr)]">
+        <PageSection className="p-6 sm:p-7">
+          <SectionTitle
+            title="Create Block"
+            description="Add a maintenance or closure range and keep reservation availability accurate."
+          />
 
-          <div>
-            <label
-              htmlFor="blocked-start-date"
-              className="mb-1 block text-xs font-semibold"
-            >
-              Start Date *
-            </label>
-            <input
-              id="blocked-start-date"
-              name="startDate"
-              type="date"
-              required
-              value={form.startDate}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, startDate: e.target.value }))
-              }
-              className="w-full rounded-xl border-2 border-border px-3 py-2 text-sm outline-none focus:border-[#2D5016]"
-            />
-          </div>
+          <form onSubmit={handleAdd} className="space-y-4">
+            <FieldLabel label="Cabin">
+              <select
+                name="cabin_slug"
+                value={form.cabinSlug ?? ""}
+                onChange={(event) =>
+                  setForm((current) => ({
+                    ...current,
+                    cabinSlug: event.target.value || null,
+                  }))
+                }
+                className="admin-input w-full rounded-[1.2rem] px-4 py-3 text-sm outline-none"
+              >
+                <option value="">All Cabins</option>
+                {cabins.map((cabin) => (
+                  <option key={cabin.slug} value={cabin.slug}>
+                    {cabin.name}
+                  </option>
+                ))}
+              </select>
+            </FieldLabel>
 
-          <div>
-            <label
-              htmlFor="blocked-end-date"
-              className="mb-1 block text-xs font-semibold"
-            >
-              End Date *
-            </label>
-            <input
-              id="blocked-end-date"
-              name="endDate"
-              type="date"
-              required
-              value={form.endDate}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, endDate: e.target.value }))
-              }
-              className="w-full rounded-xl border-2 border-border px-3 py-2 text-sm outline-none focus:border-[#2D5016]"
-            />
-          </div>
+            <FieldLabel label="Reason">
+              <input
+                type="text"
+                name="reason"
+                autoComplete="off"
+                value={form.reason}
+                onChange={(event) =>
+                  setForm((current) => ({ ...current, reason: event.target.value }))
+                }
+                placeholder="Maintenance, private event, cleaning…"
+                className="admin-input w-full rounded-[1.2rem] px-4 py-3 text-sm outline-none"
+              />
+            </FieldLabel>
 
-          <div className="sm:col-span-2">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <FieldLabel label="Start Date">
+                <input
+                  type="date"
+                  required
+                  name="start_date"
+                  value={form.startDate}
+                  onChange={(event) =>
+                    setForm((current) => ({ ...current, startDate: event.target.value }))
+                  }
+                  className="admin-input w-full rounded-[1.2rem] px-4 py-3 text-sm outline-none"
+                />
+              </FieldLabel>
+
+              <FieldLabel label="End Date">
+                <input
+                  type="date"
+                  required
+                  name="end_date"
+                  value={form.endDate}
+                  onChange={(event) =>
+                    setForm((current) => ({ ...current, endDate: event.target.value }))
+                  }
+                  className="admin-input w-full rounded-[1.2rem] px-4 py-3 text-sm outline-none"
+                />
+              </FieldLabel>
+            </div>
+
             <button
               type="submit"
               disabled={saving}
-              className="rounded-full px-6 py-2.5 text-sm font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
-              style={{ backgroundColor: "#2D5016" }}
+              className="admin-button-primary w-full rounded-full px-5 py-3 text-sm font-bold disabled:cursor-not-allowed disabled:opacity-50"
             >
               {saving ? "Saving…" : "Block Dates"}
             </button>
-          </div>
-        </form>
-      </div>
+          </form>
+        </PageSection>
 
-      {/* List */}
-      <div className="overflow-hidden rounded-2xl border border-border bg-white">
-        <div className="border-b border-border px-6 py-4">
-          <h2 className="text-sm font-bold">Existing Blocks</h2>
-        </div>
+        <PageSection className="p-6 sm:p-7">
+          <SectionTitle
+            title="Existing Blocks"
+            description="Review active hold windows and remove them once the cabin or park is ready to sell again."
+          />
 
-        {loading ? (
-          <div className="p-8 text-center text-sm text-muted-foreground">
-            Loading…
-          </div>
-        ) : rows.length === 0 ? (
-          <div className="p-8 text-center text-sm text-muted-foreground">
-            No blocked dates.
-          </div>
-        ) : (
-          <div className="divide-y divide-border">
-            {rows.map((row) => (
-              <div key={row.id} className="flex items-center gap-4 px-6 py-3.5">
-                <div className="flex-1">
-                  <p className="text-sm font-semibold">
-                    {cabinName(row.cabinSlug)}
-                  </p>
-                  <p className="font-mono text-xs text-muted-foreground">
-                    {row.startDate} → {row.endDate}
-                    {row.reason && ` · ${row.reason}`}
-                  </p>
-                </div>
-                <button
-                  onClick={() => handleDelete(row.id)}
-                  className="text-xs font-semibold text-red-500 transition-colors hover:text-red-700"
+          {loading ? (
+            <div className="rounded-[1.7rem] border border-dashed border-primary/14 bg-primary/4 px-6 py-12 text-center text-sm text-muted-foreground">
+              Loading blocked dates…
+            </div>
+          ) : rows.length === 0 ? (
+            <EmptyState
+              title="No blocked dates"
+              description="The park is fully open right now. New maintenance or closure holds will appear here."
+            />
+          ) : (
+            <div className="space-y-3">
+              {rows.map((row) => (
+                <div
+                  key={row.id}
+                  className="rounded-[1.5rem] border border-primary/10 bg-white/78 p-4"
                 >
-                  Remove
-                </button>
-              </div>
-            ))}
-          </div>
-        )}
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                    <div className="min-w-0">
+                      <p className="font-semibold text-foreground">
+                        {cabinName(row.cabinSlug)}
+                      </p>
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        {row.startDate} → {row.endDate}
+                      </p>
+                      {row.reason ? (
+                        <p className="mt-3 text-sm leading-6 text-muted-foreground">
+                          {row.reason}
+                        </p>
+                      ) : null}
+                    </div>
+
+                    <div className="flex flex-wrap gap-2">
+                      <InfoPill tone={row.cabinSlug ? "amber" : "red"}>
+                        {row.cabinSlug ? "Cabin Hold" : "Parkwide Hold"}
+                      </InfoPill>
+                      <button
+                        type="button"
+                        onClick={() => handleDelete(row.id)}
+                        className="rounded-full border border-red-200 bg-red-50 px-4 py-2 text-sm font-semibold text-red-700 transition-[background-color,border-color,color] hover:border-red-300 hover:bg-red-100"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </PageSection>
       </div>
-    </div>
-  )
+    </AdminPage>
+  );
+}
+
+function FieldLabel({
+  label,
+  children,
+}: {
+  label: string;
+  children: ReactNode;
+}) {
+  return (
+    <label className="block">
+      <span className="mb-2 block text-xs font-bold tracking-[0.18em] text-muted-foreground uppercase">
+        {label}
+      </span>
+      {children}
+    </label>
+  );
+}
+
+function cabinName(slug: string | null) {
+  return slug ? (cabins.find((cabin) => cabin.slug === slug)?.name ?? slug) : "All Cabins";
 }

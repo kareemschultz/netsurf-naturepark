@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as UsersRouteImport } from './routes/users'
 import { Route as ReportsRouteImport } from './routes/reports'
 import { Route as PosRouteImport } from './routes/pos'
 import { Route as LoginRouteImport } from './routes/login'
@@ -16,6 +17,7 @@ import { Route as InventoryRouteImport } from './routes/inventory'
 import { Route as CalendarRouteImport } from './routes/calendar'
 import { Route as CabinsRouteImport } from './routes/cabins'
 import { Route as BlockedRouteImport } from './routes/blocked'
+import { Route as AccessRouteImport } from './routes/access'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as StockTransfersIndexRouteImport } from './routes/stock-transfers/index'
 import { Route as SalesIndexRouteImport } from './routes/sales/index'
@@ -28,6 +30,11 @@ import { Route as ProductsNewRouteImport } from './routes/products/new'
 import { Route as ProductsIdRouteImport } from './routes/products/$id'
 import { Route as BookingsIdRouteImport } from './routes/bookings/$id'
 
+const UsersRoute = UsersRouteImport.update({
+  id: '/users',
+  path: '/users',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ReportsRoute = ReportsRouteImport.update({
   id: '/reports',
   path: '/reports',
@@ -61,6 +68,11 @@ const CabinsRoute = CabinsRouteImport.update({
 const BlockedRoute = BlockedRouteImport.update({
   id: '/blocked',
   path: '/blocked',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AccessRoute = AccessRouteImport.update({
+  id: '/access',
+  path: '/access',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -121,6 +133,7 @@ const BookingsIdRoute = BookingsIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/access': typeof AccessRoute
   '/blocked': typeof BlockedRoute
   '/cabins': typeof CabinsRoute
   '/calendar': typeof CalendarRoute
@@ -128,6 +141,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/pos': typeof PosRoute
   '/reports': typeof ReportsRoute
+  '/users': typeof UsersRoute
   '/bookings/$id': typeof BookingsIdRoute
   '/products/$id': typeof ProductsIdRoute
   '/products/new': typeof ProductsNewRoute
@@ -141,6 +155,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/access': typeof AccessRoute
   '/blocked': typeof BlockedRoute
   '/cabins': typeof CabinsRoute
   '/calendar': typeof CalendarRoute
@@ -148,6 +163,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/pos': typeof PosRoute
   '/reports': typeof ReportsRoute
+  '/users': typeof UsersRoute
   '/bookings/$id': typeof BookingsIdRoute
   '/products/$id': typeof ProductsIdRoute
   '/products/new': typeof ProductsNewRoute
@@ -162,6 +178,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/access': typeof AccessRoute
   '/blocked': typeof BlockedRoute
   '/cabins': typeof CabinsRoute
   '/calendar': typeof CalendarRoute
@@ -169,6 +186,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/pos': typeof PosRoute
   '/reports': typeof ReportsRoute
+  '/users': typeof UsersRoute
   '/bookings/$id': typeof BookingsIdRoute
   '/products/$id': typeof ProductsIdRoute
   '/products/new': typeof ProductsNewRoute
@@ -184,6 +202,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/access'
     | '/blocked'
     | '/cabins'
     | '/calendar'
@@ -191,6 +210,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/pos'
     | '/reports'
+    | '/users'
     | '/bookings/$id'
     | '/products/$id'
     | '/products/new'
@@ -204,6 +224,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/access'
     | '/blocked'
     | '/cabins'
     | '/calendar'
@@ -211,6 +232,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/pos'
     | '/reports'
+    | '/users'
     | '/bookings/$id'
     | '/products/$id'
     | '/products/new'
@@ -224,6 +246,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/access'
     | '/blocked'
     | '/cabins'
     | '/calendar'
@@ -231,6 +254,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/pos'
     | '/reports'
+    | '/users'
     | '/bookings/$id'
     | '/products/$id'
     | '/products/new'
@@ -245,6 +269,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AccessRoute: typeof AccessRoute
   BlockedRoute: typeof BlockedRoute
   CabinsRoute: typeof CabinsRoute
   CalendarRoute: typeof CalendarRoute
@@ -252,6 +277,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   PosRoute: typeof PosRoute
   ReportsRoute: typeof ReportsRoute
+  UsersRoute: typeof UsersRoute
   BookingsIdRoute: typeof BookingsIdRoute
   ProductsIdRoute: typeof ProductsIdRoute
   ProductsNewRoute: typeof ProductsNewRoute
@@ -266,6 +292,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/users': {
+      id: '/users'
+      path: '/users'
+      fullPath: '/users'
+      preLoaderRoute: typeof UsersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/reports': {
       id: '/reports'
       path: '/reports'
@@ -313,6 +346,13 @@ declare module '@tanstack/react-router' {
       path: '/blocked'
       fullPath: '/blocked'
       preLoaderRoute: typeof BlockedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/access': {
+      id: '/access'
+      path: '/access'
+      fullPath: '/access'
+      preLoaderRoute: typeof AccessRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -397,6 +437,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AccessRoute: AccessRoute,
   BlockedRoute: BlockedRoute,
   CabinsRoute: CabinsRoute,
   CalendarRoute: CalendarRoute,
@@ -404,6 +445,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   PosRoute: PosRoute,
   ReportsRoute: ReportsRoute,
+  UsersRoute: UsersRoute,
   BookingsIdRoute: BookingsIdRoute,
   ProductsIdRoute: ProductsIdRoute,
   ProductsNewRoute: ProductsNewRoute,

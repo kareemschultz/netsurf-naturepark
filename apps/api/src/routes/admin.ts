@@ -1,10 +1,10 @@
 import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
-import { and, desc, eq, gte, isNull, lte, or, sql } from "drizzle-orm";
+import { and, desc, eq, gte, lte, or, sql } from "drizzle-orm";
 import { db } from "../db.js";
 import { bookings, blockedDates } from "@workspace/db";
-import { adminMiddleware, createAdminToken } from "../auth.js";
+import { adminMiddleware, authorizeAdminRequest } from "../auth.js";
 import { cabins } from "@workspace/shared";
 import { adminCategoriesRoute } from "./admin-categories.js";
 import { adminProductsRoute } from "./admin-products.js";
@@ -16,23 +16,8 @@ import { adminSalesRoute } from "./admin-sales.js";
 
 export const adminRoute = new Hono();
 
-// ─── Login (public) ───────────────────────────────────────────────────────────
-
-adminRoute.post(
-  "/login",
-  zValidator("json", z.object({ password: z.string() })),
-  async (c) => {
-    const { password } = c.req.valid("json");
-    const adminPassword = process.env.ADMIN_PASSWORD;
-    if (!adminPassword) return c.json({ error: "Admin not configured" }, 500);
-    if (password !== adminPassword) return c.json({ error: "Invalid password" }, 401);
-    const token = await createAdminToken();
-    return c.json({ token });
-  }
-);
-
 // All routes below require admin auth
-adminRoute.use("/*", adminMiddleware);
+adminRoute.use("/*", adminMiddleware());
 
 adminRoute.route("/categories", adminCategoriesRoute);
 adminRoute.route("/products", adminProductsRoute);
@@ -45,6 +30,9 @@ adminRoute.route("/sales", adminSalesRoute);
 // ─── Stats ────────────────────────────────────────────────────────────────────
 
 adminRoute.get("/stats", async (c) => {
+  const denied = authorizeAdminRequest(c, { dashboard: ["view"] });
+  if (denied) return denied;
+
   const rows = await db
     .select({
       status: bookings.status,
@@ -68,6 +56,9 @@ adminRoute.get("/stats", async (c) => {
 // ─── Bookings list ────────────────────────────────────────────────────────────
 
 adminRoute.get("/bookings", async (c) => {
+  const denied = authorizeAdminRequest(c, { bookings: ["view"] });
+  if (denied) return denied;
+
   const status = c.req.query("status"); // pending | confirmed | declined | cancelled | all
   const cabin = c.req.query("cabin");
   const page = Math.max(1, parseInt(c.req.query("page") || "1", 10));
@@ -105,6 +96,9 @@ adminRoute.get("/bookings", async (c) => {
 // ─── Single booking ───────────────────────────────────────────────────────────
 
 adminRoute.get("/bookings/:id", async (c) => {
+  const denied = authorizeAdminRequest(c, { bookings: ["view"] });
+  if (denied) return denied;
+
   const id = parseInt(c.req.param("id"), 10);
   if (isNaN(id)) return c.json({ error: "Invalid id" }, 400);
 
@@ -122,6 +116,9 @@ const updateSchema = z.object({
 });
 
 adminRoute.patch("/bookings/:id", zValidator("json", updateSchema), async (c) => {
+  const denied = authorizeAdminRequest(c, { bookings: ["manage"] });
+  if (denied) return denied;
+
   const id = parseInt(c.req.param("id"), 10);
   if (isNaN(id)) return c.json({ error: "Invalid id" }, 400);
 
@@ -141,6 +138,9 @@ adminRoute.patch("/bookings/:id", zValidator("json", updateSchema), async (c) =>
 // ─── Blocked dates ────────────────────────────────────────────────────────────
 
 adminRoute.get("/blocked-dates", async (c) => {
+  const denied = authorizeAdminRequest(c, { blockedDates: ["view"] });
+  if (denied) return denied;
+
   const rows = await db
     .select()
     .from(blockedDates)
@@ -157,6 +157,9 @@ const blockSchema = z.object({
 });
 
 adminRoute.post("/blocked-dates", zValidator("json", blockSchema), async (c) => {
+  const denied = authorizeAdminRequest(c, { blockedDates: ["manage"] });
+  if (denied) return denied;
+
   const data = c.req.valid("json");
   if (data.startDate > data.endDate) {
     return c.json({ error: "endDate must be >= startDate" }, 400);
@@ -167,6 +170,9 @@ adminRoute.post("/blocked-dates", zValidator("json", blockSchema), async (c) => 
 });
 
 adminRoute.delete("/blocked-dates/:id", async (c) => {
+  const denied = authorizeAdminRequest(c, { blockedDates: ["manage"] });
+  if (denied) return denied;
+
   const id = parseInt(c.req.param("id"), 10);
   if (isNaN(id)) return c.json({ error: "Invalid id" }, 400);
 
@@ -182,6 +188,9 @@ adminRoute.delete("/blocked-dates/:id", async (c) => {
 // ─── Calendar availability (used by admin calendar view) ──────────────────────
 
 adminRoute.get("/calendar", async (c) => {
+  const denied = authorizeAdminRequest(c, { calendar: ["view"] });
+  if (denied) return denied;
+
   const year = parseInt(c.req.query("year") || String(new Date().getFullYear()), 10);
   const month = parseInt(c.req.query("month") || String(new Date().getMonth() + 1), 10);
 

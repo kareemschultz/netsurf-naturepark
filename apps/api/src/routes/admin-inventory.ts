@@ -3,7 +3,7 @@ import { zValidator } from "@hono/zod-validator"
 import { and, asc, desc, eq, sql } from "drizzle-orm"
 import { z } from "zod"
 import { db } from "../db.js"
-import { getAdminSubject } from "../auth.js"
+import { authorizeAdminRequest, getAdminSubject } from "../auth.js"
 import {
   posAuditLog,
   productCategories,
@@ -52,6 +52,9 @@ function lowStockCondition() {
 }
 
 adminInventoryRoute.get("/", async (c) => {
+  const denied = authorizeAdminRequest(c, { inventory: ["view"] })
+  if (denied) return denied
+
   const categoryIdQuery = c.req.query("categoryId")
   const lowStock = parseBooleanFlag(c.req.query("lowStock"))
   const categoryId = categoryIdQuery ? parseId(categoryIdQuery, "categoryId") : undefined
@@ -92,6 +95,9 @@ adminInventoryRoute.get("/", async (c) => {
 })
 
 adminInventoryRoute.get("/alerts", async (c) => {
+  const denied = authorizeAdminRequest(c, { inventory: ["view"] })
+  if (denied) return denied
+
   const rows = await db
     .select({
       id: products.id,
@@ -114,6 +120,9 @@ adminInventoryRoute.post(
   zValidator("json", restockSchema),
   async (c) => {
     try {
+      const denied = authorizeAdminRequest(c, { inventory: ["manage"] })
+      if (denied) return denied
+
       const payload = c.req.valid("json")
       const product = await getTrackedProduct(payload.productId)
 
@@ -148,6 +157,9 @@ adminInventoryRoute.post(
   zValidator("json", adjustSchema),
   async (c) => {
     try {
+      const denied = authorizeAdminRequest(c, { inventory: ["manage"] })
+      if (denied) return denied
+
       const payload = c.req.valid("json")
       const product = await getTrackedProduct(payload.productId)
       const quantityChange = payload.newQty - product.stockQty
@@ -197,6 +209,9 @@ adminInventoryRoute.post(
 )
 
 adminInventoryRoute.get("/movements", async (c) => {
+  const denied = authorizeAdminRequest(c, { inventory: ["view"] })
+  if (denied) return denied
+
   const productIdQuery = c.req.query("productId")
   const type = c.req.query("type")?.trim()
   const page = Math.max(1, Number.parseInt(c.req.query("page") || "1", 10))

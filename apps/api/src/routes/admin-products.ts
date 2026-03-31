@@ -3,7 +3,7 @@ import { zValidator } from "@hono/zod-validator"
 import { and, desc, eq, ilike, ne, or, sql } from "drizzle-orm"
 import { z } from "zod"
 import { db } from "../db.js"
-import { getAdminSubject } from "../auth.js"
+import { authorizeAdminRequest, getAdminSubject } from "../auth.js"
 import { posAuditLog, productCategories, products } from "@workspace/db"
 import { slugify } from "@workspace/shared"
 import { ApiError, parseBooleanFlag, parseId } from "./admin-helpers.js"
@@ -64,6 +64,9 @@ async function buildUniqueProductSlug(name: string, excludeId?: number): Promise
 }
 
 adminProductsRoute.get("/", async (c) => {
+  const denied = authorizeAdminRequest(c, { catalog: ["view"] })
+  if (denied) return denied
+
   const categoryIdQuery = c.req.query("categoryId")
   const active = parseBooleanFlag(c.req.query("active"))
   const search = c.req.query("search")?.trim()
@@ -131,6 +134,9 @@ adminProductsRoute.get("/", async (c) => {
 })
 
 adminProductsRoute.get("/:id", async (c) => {
+  const denied = authorizeAdminRequest(c, { catalog: ["view"] })
+  if (denied) return denied
+
   const id = parseId(c.req.param("id"))
   const [product] = await db
     .select({
@@ -167,6 +173,9 @@ adminProductsRoute.post(
   zValidator("json", createProductSchema),
   async (c) => {
     try {
+      const denied = authorizeAdminRequest(c, { catalog: ["manage"] })
+      if (denied) return denied
+
       const payload = c.req.valid("json")
       await ensureCategoryExists(payload.categoryId)
 
@@ -203,6 +212,9 @@ adminProductsRoute.patch(
   zValidator("json", updateProductSchema),
   async (c) => {
     try {
+      const denied = authorizeAdminRequest(c, { catalog: ["manage"] })
+      if (denied) return denied
+
       const id = parseId(c.req.param("id"))
       const payload = c.req.valid("json")
       if (Object.keys(payload).length === 0) {
@@ -288,6 +300,9 @@ adminProductsRoute.patch(
 
 adminProductsRoute.delete("/:id", async (c) => {
   try {
+    const denied = authorizeAdminRequest(c, { catalog: ["manage"] })
+    if (denied) return denied
+
     const id = parseId(c.req.param("id"))
     const [existing] = await db
       .select()

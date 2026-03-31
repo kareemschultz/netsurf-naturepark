@@ -1,52 +1,228 @@
-import type { Context, Next } from "hono";
-import { sign, verify } from "hono/jwt";
+import type { Context, MiddlewareHandler, Next } from "hono";
+import { betterAuth } from "better-auth";
+import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { admin, username } from "better-auth/plugins";
+import { createAccessControl } from "better-auth/plugins/access";
+import {
+  adminPermissionStatements,
+  adminRoleDefinitions,
+  adminRolesWithElevatedManagement,
+  defaultAdminRole,
+  hasAdminPermissions,
+  type AdminPermissionRequest,
+  type AdminRoleSlug,
+} from "@workspace/shared";
+import {
+  authAccounts,
+  authSessions,
+  authUsers,
+  authVerifications,
+} from "@workspace/db";
+import { db } from "./db.js";
 
-const JWT_ALG = "HS256";
-const TOKEN_TTL_SECONDS = 7 * 24 * 60 * 60; // 7 days
+const authAccessControl = createAccessControl(adminPermissionStatements);
+type BetterAuthRoleDefinition = Parameters<typeof authAccessControl.newRole>[0];
+const authRoles = Object.fromEntries(
+  Object.entries(adminRoleDefinitions).map(([role, definition]) => [
+    role,
+    authAccessControl.newRole(definition as BetterAuthRoleDefinition),
+  ])
+) as Record<
+  AdminRoleSlug,
+  ReturnType<typeof authAccessControl.newRole>
+>;
 
-function getSecret(): string {
-  const s = process.env.JWT_SECRET;
-  if (!s) throw new Error("JWT_SECRET env var not set");
-  return s;
+function splitOrigins(value?: string): string[] {
+  return (value ?? "")
+    .split(",")
+    .map((entry) => entry.trim())
+    .filter(Boolean);
 }
 
-export async function createAdminToken(): Promise<string> {
-  const payload = {
-    admin: true,
-    sub: process.env.ADMIN_EMAIL || "admin",
-    exp: Math.floor(Date.now() / 1000) + TOKEN_TTL_SECONDS,
-    iat: Math.floor(Date.now() / 1000),
-  };
-  return sign(payload, getSecret(), JWT_ALG);
+function buildTrustedOrigins(): string[] {
+  const origins = new Set<string>();
+
+  for (const origin of splitOrigins(process.env.ALLOWED_ORIGINS)) {
+    origins.add(origin);
+  }
+
+  for (const origin of splitOrigins(process.env.BETTER_AUTH_TRUSTED_ORIGINS)) {
+    origins.add(origin);
+  }
+
+  const betterAuthUrl = process.env.BETTER_AUTH_URL?.trim();
+  if (betterAuthUrl) {
+    origins.add(new URL(betterAuthUrl).origin);
+  }
+
+  return Array.from(origins);
 }
 
-export async function adminMiddleware(c: Context, next: Next) {
-  const header = c.req.header("Authorization");
-  if (!header?.startsWith("Bearer ")) {
-    return c.json({ error: "Unauthorized" }, 401);
-  }
-  const token = header.slice(7);
-  try {
-    const payload = (await verify(token, getSecret(), JWT_ALG)) as {
-      admin?: boolean;
-      sub?: string;
-    };
-    if (!payload.admin) {
-      return c.json({ error: "Unauthorized" }, 401);
-    }
-    c.set(
-      "adminSubject",
-      typeof payload.sub === "string" && payload.sub.length > 0
-        ? payload.sub
-        : "admin"
-    );
-    await next();
-  } catch {
-    return c.json({ error: "Invalid or expired token" }, 401);
-  }
+export const auth = betterAuth({
+  basePath: "/auth",
+  baseURL: process.env.BETTER_AUTH_URL,
+  trustedOrigins: buildTrustedOrigins(),
+  advanced: {
+    trustedProxyHeaders: true,
+  },
+  database: drizzleAdapter(db, {
+    provider: "pg",
+    schema: {
+      user: authUsers,
+      session: authSessions,
+      account: authAccounts,
+      verification: authVerifications,
+    },
+  }),
+  emailAndPassword: {
+    enabled: true,
+    disableSignUp: true,
+    minPasswordLength: 8,
+    maxPasswordLength: 128,
+  },
+  plugins: [
+    username({
+      minUsernameLength: 3,
+      maxUsernameLength: 40,
+    }),
+    admin({
+      ac: authAccessControl,
+      roles: authRoles,
+      defaultRole: defaultAdminRole,
+      adminRoles: Array.from(adminRolesWithElevatedManagement),
+    }),
+  ],
+});
+
+type SessionRecord = Awaited<ReturnType<typeof auth.api.getSession>>;
+
+function getSessionRoleValue(session: SessionRecord | null | undefined): string | null {
+  const role = session?.user.role;
+  return typeof role === "string" && role.length > 0 ? role : null;
+}
+
+export async function getAdminSession(c: Context): Promise<SessionRecord | null> {
+  return auth.api.getSession({
+    headers: c.req.raw.headers,
+  });
 }
 
 export function getAdminSubject(c: Context): string {
-  const subject = c.get("adminSubject");
-  return typeof subject === "string" && subject.length > 0 ? subject : "admin";
+  const session = c.get("adminSession") as SessionRecord | undefined;
+  if (!session) return "unknown";
+
+  return (
+    session.user.displayUsername ||
+    session.user.username ||
+    session.user.email ||
+    session.user.id
+  );
+}
+
+export function getAdminRoleValue(c: Context): string | null {
+  const session = c.get("adminSession") as SessionRecord | undefined;
+  return getSessionRoleValue(session);
+}
+
+export function authorizeAdminRequest(
+  c: Context,
+  requiredPermissions: AdminPermissionRequest
+): Response | null {
+  const roleValue = getAdminRoleValue(c);
+
+  if (!hasAdminPermissions(roleValue, requiredPermissions)) {
+    return c.json({ error: "Forbidden" }, 403);
+  }
+
+  return null;
+}
+
+export function adminMiddleware(
+  requiredPermissions?: AdminPermissionRequest
+): MiddlewareHandler {
+  return async (c: Context, next: Next) => {
+    const session = await getAdminSession(c);
+
+    if (!session) {
+      return c.json({ error: "Unauthorized" }, 401);
+    }
+
+    const roleValue = getSessionRoleValue(session);
+    if (
+      requiredPermissions &&
+      !hasAdminPermissions(roleValue, requiredPermissions)
+    ) {
+      return c.json({ error: "Forbidden" }, 403);
+    }
+
+    c.set("adminSession", session);
+    c.set("adminSubject", getAdminSubjectFromSession(session));
+    await next();
+  };
+}
+
+function getAdminSubjectFromSession(session: NonNullable<SessionRecord>): string {
+  return (
+    session.user.displayUsername ||
+    session.user.username ||
+    session.user.email ||
+    session.user.id
+  );
+}
+
+function getBootstrapCredentials() {
+  const password =
+    process.env.ADMIN_BOOTSTRAP_PASSWORD?.trim() ||
+    process.env.ADMIN_PASSWORD?.trim();
+
+  if (!password) return null;
+
+  const email =
+    process.env.ADMIN_EMAIL?.trim().toLowerCase() ||
+    "admin@netsurfnaturepark.com";
+  const username =
+    process.env.ADMIN_USERNAME?.trim().toLowerCase() ||
+    email.split("@")[0] ||
+    "admin";
+  const name = process.env.ADMIN_NAME?.trim() || "Netsurf Owner";
+
+  return {
+    email,
+    password,
+    username,
+    name,
+  };
+}
+
+export async function ensureAuthBootstrap(): Promise<void> {
+  const [existingSessionUser] = await db.select({ id: authUsers.id }).from(authUsers).limit(1);
+
+  if (existingSessionUser) {
+    return;
+  }
+
+  const bootstrap = getBootstrapCredentials();
+  if (!bootstrap) {
+    console.warn(
+      "[auth] No bootstrap password configured. Set ADMIN_PASSWORD or ADMIN_BOOTSTRAP_PASSWORD before first launch."
+    );
+    return;
+  }
+
+  await auth.api.createUser({
+    body: {
+      email: bootstrap.email,
+      password: bootstrap.password,
+      name: bootstrap.name,
+      role: "owner",
+      data: {
+        username: bootstrap.username,
+        displayUsername: bootstrap.name,
+      },
+    },
+  });
+
+  console.log(
+    `[auth] Bootstrapped owner account ${bootstrap.username} (${bootstrap.email})`
+  );
 }
