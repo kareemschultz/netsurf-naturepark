@@ -9,21 +9,47 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as PosRouteImport } from './routes/pos'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as InventoryRouteImport } from './routes/inventory'
 import { Route as CalendarRouteImport } from './routes/calendar'
+import { Route as CabinsRouteImport } from './routes/cabins'
 import { Route as BlockedRouteImport } from './routes/blocked'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as StockTransfersIndexRouteImport } from './routes/stock-transfers/index'
+import { Route as SalesIndexRouteImport } from './routes/sales/index'
+import { Route as ProductsIndexRouteImport } from './routes/products/index'
 import { Route as BookingsIndexRouteImport } from './routes/bookings/index'
+import { Route as StockTransfersNewRouteImport } from './routes/stock-transfers/new'
+import { Route as StockTransfersIdRouteImport } from './routes/stock-transfers/$id'
+import { Route as SalesIdRouteImport } from './routes/sales/$id'
+import { Route as ProductsNewRouteImport } from './routes/products/new'
+import { Route as ProductsIdRouteImport } from './routes/products/$id'
 import { Route as BookingsIdRouteImport } from './routes/bookings/$id'
 
+const PosRoute = PosRouteImport.update({
+  id: '/pos',
+  path: '/pos',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
+const InventoryRoute = InventoryRouteImport.update({
+  id: '/inventory',
+  path: '/inventory',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CalendarRoute = CalendarRouteImport.update({
   id: '/calendar',
   path: '/calendar',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CabinsRoute = CabinsRouteImport.update({
+  id: '/cabins',
+  path: '/cabins',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BlockedRoute = BlockedRouteImport.update({
@@ -36,9 +62,49 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const StockTransfersIndexRoute = StockTransfersIndexRouteImport.update({
+  id: '/stock-transfers/',
+  path: '/stock-transfers/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SalesIndexRoute = SalesIndexRouteImport.update({
+  id: '/sales/',
+  path: '/sales/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProductsIndexRoute = ProductsIndexRouteImport.update({
+  id: '/products/',
+  path: '/products/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const BookingsIndexRoute = BookingsIndexRouteImport.update({
   id: '/bookings/',
   path: '/bookings/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StockTransfersNewRoute = StockTransfersNewRouteImport.update({
+  id: '/stock-transfers/new',
+  path: '/stock-transfers/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StockTransfersIdRoute = StockTransfersIdRouteImport.update({
+  id: '/stock-transfers/$id',
+  path: '/stock-transfers/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SalesIdRoute = SalesIdRouteImport.update({
+  id: '/sales/$id',
+  path: '/sales/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProductsNewRoute = ProductsNewRouteImport.update({
+  id: '/products/new',
+  path: '/products/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProductsIdRoute = ProductsIdRouteImport.update({
+  id: '/products/$id',
+  path: '/products/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BookingsIdRoute = BookingsIdRouteImport.update({
@@ -50,60 +116,150 @@ const BookingsIdRoute = BookingsIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/blocked': typeof BlockedRoute
+  '/cabins': typeof CabinsRoute
   '/calendar': typeof CalendarRoute
+  '/inventory': typeof InventoryRoute
   '/login': typeof LoginRoute
+  '/pos': typeof PosRoute
   '/bookings/$id': typeof BookingsIdRoute
+  '/products/$id': typeof ProductsIdRoute
+  '/products/new': typeof ProductsNewRoute
+  '/sales/$id': typeof SalesIdRoute
+  '/stock-transfers/$id': typeof StockTransfersIdRoute
+  '/stock-transfers/new': typeof StockTransfersNewRoute
   '/bookings/': typeof BookingsIndexRoute
+  '/products/': typeof ProductsIndexRoute
+  '/sales/': typeof SalesIndexRoute
+  '/stock-transfers/': typeof StockTransfersIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/blocked': typeof BlockedRoute
+  '/cabins': typeof CabinsRoute
   '/calendar': typeof CalendarRoute
+  '/inventory': typeof InventoryRoute
   '/login': typeof LoginRoute
+  '/pos': typeof PosRoute
   '/bookings/$id': typeof BookingsIdRoute
+  '/products/$id': typeof ProductsIdRoute
+  '/products/new': typeof ProductsNewRoute
+  '/sales/$id': typeof SalesIdRoute
+  '/stock-transfers/$id': typeof StockTransfersIdRoute
+  '/stock-transfers/new': typeof StockTransfersNewRoute
   '/bookings': typeof BookingsIndexRoute
+  '/products': typeof ProductsIndexRoute
+  '/sales': typeof SalesIndexRoute
+  '/stock-transfers': typeof StockTransfersIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/blocked': typeof BlockedRoute
+  '/cabins': typeof CabinsRoute
   '/calendar': typeof CalendarRoute
+  '/inventory': typeof InventoryRoute
   '/login': typeof LoginRoute
+  '/pos': typeof PosRoute
   '/bookings/$id': typeof BookingsIdRoute
+  '/products/$id': typeof ProductsIdRoute
+  '/products/new': typeof ProductsNewRoute
+  '/sales/$id': typeof SalesIdRoute
+  '/stock-transfers/$id': typeof StockTransfersIdRoute
+  '/stock-transfers/new': typeof StockTransfersNewRoute
   '/bookings/': typeof BookingsIndexRoute
+  '/products/': typeof ProductsIndexRoute
+  '/sales/': typeof SalesIndexRoute
+  '/stock-transfers/': typeof StockTransfersIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/blocked'
+    | '/cabins'
     | '/calendar'
+    | '/inventory'
     | '/login'
+    | '/pos'
     | '/bookings/$id'
+    | '/products/$id'
+    | '/products/new'
+    | '/sales/$id'
+    | '/stock-transfers/$id'
+    | '/stock-transfers/new'
     | '/bookings/'
+    | '/products/'
+    | '/sales/'
+    | '/stock-transfers/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/blocked' | '/calendar' | '/login' | '/bookings/$id' | '/bookings'
+  to:
+    | '/'
+    | '/blocked'
+    | '/cabins'
+    | '/calendar'
+    | '/inventory'
+    | '/login'
+    | '/pos'
+    | '/bookings/$id'
+    | '/products/$id'
+    | '/products/new'
+    | '/sales/$id'
+    | '/stock-transfers/$id'
+    | '/stock-transfers/new'
+    | '/bookings'
+    | '/products'
+    | '/sales'
+    | '/stock-transfers'
   id:
     | '__root__'
     | '/'
     | '/blocked'
+    | '/cabins'
     | '/calendar'
+    | '/inventory'
     | '/login'
+    | '/pos'
     | '/bookings/$id'
+    | '/products/$id'
+    | '/products/new'
+    | '/sales/$id'
+    | '/stock-transfers/$id'
+    | '/stock-transfers/new'
     | '/bookings/'
+    | '/products/'
+    | '/sales/'
+    | '/stock-transfers/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   BlockedRoute: typeof BlockedRoute
+  CabinsRoute: typeof CabinsRoute
   CalendarRoute: typeof CalendarRoute
+  InventoryRoute: typeof InventoryRoute
   LoginRoute: typeof LoginRoute
+  PosRoute: typeof PosRoute
   BookingsIdRoute: typeof BookingsIdRoute
+  ProductsIdRoute: typeof ProductsIdRoute
+  ProductsNewRoute: typeof ProductsNewRoute
+  SalesIdRoute: typeof SalesIdRoute
+  StockTransfersIdRoute: typeof StockTransfersIdRoute
+  StockTransfersNewRoute: typeof StockTransfersNewRoute
   BookingsIndexRoute: typeof BookingsIndexRoute
+  ProductsIndexRoute: typeof ProductsIndexRoute
+  SalesIndexRoute: typeof SalesIndexRoute
+  StockTransfersIndexRoute: typeof StockTransfersIndexRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/pos': {
+      id: '/pos'
+      path: '/pos'
+      fullPath: '/pos'
+      preLoaderRoute: typeof PosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/login': {
       id: '/login'
       path: '/login'
@@ -111,11 +267,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/inventory': {
+      id: '/inventory'
+      path: '/inventory'
+      fullPath: '/inventory'
+      preLoaderRoute: typeof InventoryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/calendar': {
       id: '/calendar'
       path: '/calendar'
       fullPath: '/calendar'
       preLoaderRoute: typeof CalendarRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cabins': {
+      id: '/cabins'
+      path: '/cabins'
+      fullPath: '/cabins'
+      preLoaderRoute: typeof CabinsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/blocked': {
@@ -132,11 +302,67 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/stock-transfers/': {
+      id: '/stock-transfers/'
+      path: '/stock-transfers'
+      fullPath: '/stock-transfers/'
+      preLoaderRoute: typeof StockTransfersIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sales/': {
+      id: '/sales/'
+      path: '/sales'
+      fullPath: '/sales/'
+      preLoaderRoute: typeof SalesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/products/': {
+      id: '/products/'
+      path: '/products'
+      fullPath: '/products/'
+      preLoaderRoute: typeof ProductsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/bookings/': {
       id: '/bookings/'
       path: '/bookings'
       fullPath: '/bookings/'
       preLoaderRoute: typeof BookingsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/stock-transfers/new': {
+      id: '/stock-transfers/new'
+      path: '/stock-transfers/new'
+      fullPath: '/stock-transfers/new'
+      preLoaderRoute: typeof StockTransfersNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/stock-transfers/$id': {
+      id: '/stock-transfers/$id'
+      path: '/stock-transfers/$id'
+      fullPath: '/stock-transfers/$id'
+      preLoaderRoute: typeof StockTransfersIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sales/$id': {
+      id: '/sales/$id'
+      path: '/sales/$id'
+      fullPath: '/sales/$id'
+      preLoaderRoute: typeof SalesIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/products/new': {
+      id: '/products/new'
+      path: '/products/new'
+      fullPath: '/products/new'
+      preLoaderRoute: typeof ProductsNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/products/$id': {
+      id: '/products/$id'
+      path: '/products/$id'
+      fullPath: '/products/$id'
+      preLoaderRoute: typeof ProductsIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/bookings/$id': {
@@ -152,10 +378,21 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   BlockedRoute: BlockedRoute,
+  CabinsRoute: CabinsRoute,
   CalendarRoute: CalendarRoute,
+  InventoryRoute: InventoryRoute,
   LoginRoute: LoginRoute,
+  PosRoute: PosRoute,
   BookingsIdRoute: BookingsIdRoute,
+  ProductsIdRoute: ProductsIdRoute,
+  ProductsNewRoute: ProductsNewRoute,
+  SalesIdRoute: SalesIdRoute,
+  StockTransfersIdRoute: StockTransfersIdRoute,
+  StockTransfersNewRoute: StockTransfersNewRoute,
   BookingsIndexRoute: BookingsIndexRoute,
+  ProductsIndexRoute: ProductsIndexRoute,
+  SalesIndexRoute: SalesIndexRoute,
+  StockTransfersIndexRoute: StockTransfersIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

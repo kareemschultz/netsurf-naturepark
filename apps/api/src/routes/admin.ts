@@ -6,6 +6,13 @@ import { db } from "../db.js";
 import { bookings, blockedDates } from "@workspace/db";
 import { adminMiddleware, createAdminToken } from "../auth.js";
 import { cabins } from "@workspace/shared";
+import { adminCategoriesRoute } from "./admin-categories.js";
+import { adminProductsRoute } from "./admin-products.js";
+import { adminPosRoute } from "./admin-pos.js";
+import { adminCabinsRoute } from "./admin-cabins.js";
+import { adminInventoryRoute } from "./admin-inventory.js";
+import { adminStockTransfersRoute } from "./admin-stock-transfers.js";
+import { adminSalesRoute } from "./admin-sales.js";
 
 export const adminRoute = new Hono();
 
@@ -26,6 +33,14 @@ adminRoute.post(
 
 // All routes below require admin auth
 adminRoute.use("/*", adminMiddleware);
+
+adminRoute.route("/categories", adminCategoriesRoute);
+adminRoute.route("/products", adminProductsRoute);
+adminRoute.route("/pos", adminPosRoute);
+adminRoute.route("/cabins", adminCabinsRoute);
+adminRoute.route("/inventory", adminInventoryRoute);
+adminRoute.route("/stock-transfers", adminStockTransfersRoute);
+adminRoute.route("/sales", adminSalesRoute);
 
 // ─── Stats ────────────────────────────────────────────────────────────────────
 

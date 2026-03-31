@@ -24,6 +24,7 @@ import {
   formatGYD,
   type BookingRequest,
   type Cabin,
+  type StayType,
 } from "@workspace/shared"
 
 import { NatureArtwork } from "../components/NatureArtwork"
@@ -72,6 +73,7 @@ function BookPage() {
 
   const [step, setStep] = useState<Step>(initialCabin ? 2 : 1)
   const [selectedCabin, setSelectedCabin] = useState<Cabin | null>(initialCabin)
+  const [stayType, setStayType] = useState<StayType>("overnight")
   const [dateRange, setDateRange] = useState<DateRange | undefined>()
   const [guests, setGuests] = useState(1)
   const [selectedAddOns, setSelectedAddOns] = useState<string[]>([])
@@ -96,8 +98,15 @@ function BookPage() {
     [selectedAddOns]
   )
 
+  const billableNights =
+    stayType === "day_use"
+      ? dateRange?.from
+        ? 1
+        : 0
+      : Math.max(nights, 0)
+
   const total = selectedCabin
-    ? selectedCabin.priceGYD * Math.max(nights, 1) + addOnTotal
+    ? selectedCabin.priceGYD * billableNights + addOnTotal
     : 0
 
   const contactDetails = [whatsapp.trim(), email.trim()]
@@ -109,6 +118,7 @@ function BookPage() {
       ? (() => {
           const bookingRequest: BookingRequest = {
             cabin: selectedCabin,
+            stayType,
             checkIn: dateRange.from,
             checkOut: dateRange.to,
             guests,
@@ -194,7 +204,11 @@ function BookPage() {
         body: JSON.stringify({
           cabinSlug: selectedCabin.slug,
           checkIn: format(dateRange.from, "yyyy-MM-dd"),
-          checkOut: format(dateRange.to, "yyyy-MM-dd"),
+          checkOut: format(
+            stayType === "day_use" ? dateRange.from : dateRange.to,
+            "yyyy-MM-dd"
+          ),
+          stayType,
           guests,
           addOnSlugs: selectedAddOns,
           name,
@@ -267,6 +281,8 @@ function BookPage() {
                     <StepDates
                       headingRef={stepHeadingRef}
                       cabin={selectedCabin}
+                      stayType={stayType}
+                      setStayType={setStayType}
                       range={dateRange}
                       onChange={setDateRange}
                       onBack={() => setStep(1)}
@@ -305,6 +321,7 @@ function BookPage() {
                     <StepConfirm
                       headingRef={stepHeadingRef}
                       cabin={selectedCabin}
+                      stayType={stayType}
                       range={dateRange}
                       nights={nights}
                       guests={guests}
@@ -328,6 +345,7 @@ function BookPage() {
 
           <BookingSidebar
             cabin={selectedCabin}
+            stayType={stayType}
             nights={nights}
             guests={guests}
             selectedAddOns={selectedAddOns}
@@ -460,6 +478,8 @@ function StepCabin({
 function StepDates({
   headingRef,
   cabin,
+  stayType,
+  setStayType,
   range,
   onChange,
   onBack,
@@ -468,6 +488,8 @@ function StepDates({
 }: {
   headingRef: RefObject<HTMLHeadingElement | null>
   cabin: Cabin | null
+  stayType: StayType
+  setStayType: (stayType: StayType) => void
   range: DateRange | undefined
   onChange: (range: DateRange | undefined) => void
   onBack: () => void
@@ -475,7 +497,10 @@ function StepDates({
   nights: number
 }) {
   const today = startOfToday()
-  const canContinue = Boolean(range?.from && range?.to && nights >= 1)
+  const canContinue =
+    stayType === "day_use"
+      ? Boolean(range?.from)
+      : Boolean(range?.from && range?.to && nights >= 1)
 
   return (
     <div className="p-6 md:p-8">
@@ -483,33 +508,94 @@ function StepDates({
         headingRef={headingRef}
         title="Choose Your Dates"
         subtitle={
-          cabin ? `${cabin.name} — ${formatGYD(cabin.priceGYD)} per night` : ""
+          cabin
+            ? `${cabin.name} — ${formatGYD(cabin.priceGYD)} ${
+                stayType === "day_use" ? "for day use" : "per night"
+              }`
+            : ""
         }
       />
+      <div className="mt-5 flex flex-wrap gap-2">
+        <button
+          type="button"
+          onClick={() => {
+            setStayType("overnight")
+            if (range?.from && range?.to && range.from.getTime() === range.to.getTime()) {
+              onChange({ from: range.from, to: undefined })
+            }
+          }}
+          className={`rounded-full px-4 py-2 text-sm font-semibold transition-colors ${
+            stayType === "overnight"
+              ? "text-white"
+              : "bg-muted text-muted-foreground hover:text-foreground"
+          }`}
+          style={stayType === "overnight" ? { backgroundColor: "#2D5016" } : undefined}
+        >
+          I want to stay overnight
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            setStayType("day_use")
+            if (range?.from) {
+              onChange({ from: range.from, to: range.from })
+            }
+          }}
+          className={`rounded-full px-4 py-2 text-sm font-semibold transition-colors ${
+            stayType === "day_use"
+              ? "text-white"
+              : "bg-muted text-muted-foreground hover:text-foreground"
+          }`}
+          style={stayType === "day_use" ? { backgroundColor: "#2D5016" } : undefined}
+        >
+          Day visit only
+        </button>
+      </div>
       <div className="mt-2 rounded-2xl bg-secondary px-4 py-3 text-sm text-muted-foreground">
         Check-in starts tomorrow so we have time to confirm your stay properly.
       </div>
       <div className="mt-5 flex justify-center">
         <div className="rdp-brand">
-          <DayPicker
-            mode="range"
-            selected={range}
-            onSelect={onChange}
-            disabled={{ before: addDays(today, 1) }}
-            numberOfMonths={1}
-            showOutsideDays={false}
-          />
+          {stayType === "day_use" ? (
+            <DayPicker
+              mode="single"
+              selected={range?.from}
+              onSelect={(date) =>
+                onChange(date ? { from: date, to: date } : undefined)
+              }
+              disabled={{ before: addDays(today, 1) }}
+              numberOfMonths={1}
+              showOutsideDays={false}
+            />
+          ) : (
+            <DayPicker
+              mode="range"
+              selected={range}
+              onSelect={onChange}
+              disabled={{ before: addDays(today, 1) }}
+              numberOfMonths={1}
+              showOutsideDays={false}
+            />
+          )}
         </div>
       </div>
-      {range?.from && range?.to && (
+      {range?.from && (
         <div
           className="mt-4 rounded-xl p-3 text-center text-sm font-medium text-white"
           style={{ backgroundColor: "#2D5016" }}
         >
-          {format(range.from, "d MMM")} → {format(range.to, "d MMM yyyy")} ·{" "}
-          {nights} night
-          {nights !== 1 ? "s" : ""} ·{" "}
-          {cabin && formatGYD(cabin.priceGYD * nights)}
+          {stayType === "day_use"
+            ? `${format(range.from, "d MMM yyyy")} · Day visit · ${
+                cabin ? formatGYD(cabin.priceGYD) : ""
+              }`
+            : range.to
+              ? `${format(range.from, "d MMM")} → ${format(
+                  range.to,
+                  "d MMM yyyy"
+                )} · ${nights} night${nights !== 1 ? "s" : ""} · ${
+                  cabin ? formatGYD(cabin.priceGYD * nights) : ""
+                }`
+              : null}
         </div>
       )}
       <StepNav onBack={onBack} onNext={onNext} canNext={canContinue} />
@@ -797,6 +883,7 @@ function StepDetails({
 function StepConfirm({
   headingRef,
   cabin,
+  stayType,
   range,
   nights,
   guests,
@@ -814,6 +901,7 @@ function StepConfirm({
 }: {
   headingRef: RefObject<HTMLHeadingElement | null>
   cabin: Cabin | null
+  stayType: StayType
   range: DateRange | undefined
   nights: number
   guests: number
@@ -885,10 +973,19 @@ function StepConfirm({
           onEdit={() => onEditStep(1)}
         />
         <SummaryRow
+          label="Stay Type"
+          value={stayType === "day_use" ? "Day visit only" : "Overnight stay"}
+          onEdit={() => onEditStep(2)}
+        />
+        <SummaryRow
           label="Dates"
           value={
-            range?.from && range?.to
-              ? `${format(range.from, "d MMM")} - ${format(range.to, "d MMM yyyy")} (${nights} night${nights !== 1 ? "s" : ""})`
+            range?.from
+              ? stayType === "day_use"
+                ? `${format(range.from, "d MMM yyyy")} (day use)`
+                : range.to
+                  ? `${format(range.from, "d MMM")} - ${format(range.to, "d MMM yyyy")} (${nights} night${nights !== 1 ? "s" : ""})`
+                  : "-"
               : "-"
           }
           onEdit={() => onEditStep(2)}
@@ -1011,12 +1108,14 @@ function StepConfirm({
 
 function BookingSidebar({
   cabin,
+  stayType,
   nights,
   guests,
   selectedAddOns,
   total,
 }: {
   cabin: Cabin | null
+  stayType: StayType
   nights: number
   guests: number
   selectedAddOns: string[]
@@ -1054,8 +1153,16 @@ function BookingSidebar({
         <dl className="mt-5 space-y-3 text-sm">
           <SidebarDetail label="Guests" value={`${guests}`} />
           <SidebarDetail
-            label="Nights"
-            value={nights > 0 ? `${nights}` : "-"}
+            label={stayType === "day_use" ? "Visit" : "Nights"}
+            value={
+              stayType === "day_use"
+                ? cabin
+                  ? "1 day"
+                  : "-"
+                : nights > 0
+                  ? `${nights}`
+                  : "-"
+            }
           />
           <SidebarDetail
             label="Add-ons"

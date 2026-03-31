@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
-import { and, eq, gte, isNull, lte, or } from "drizzle-orm";
+import { and, eq, gt, gte, isNull, lt, lte, or } from "drizzle-orm";
 import { db } from "../db.js";
 import { bookings, blockedDates } from "@workspace/db";
 import { addOns, cabins } from "@workspace/shared";
@@ -12,6 +12,7 @@ export const bookingsRoute = new Hono();
 
 const createSchema = z.object({
   cabinSlug: z.string().min(1),
+  stayType: z.enum(["overnight", "day_use"]).default("overnight"),
   checkIn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Use YYYY-MM-DD format"),
   checkOut: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Use YYYY-MM-DD format"),
   guests: z.number().int().min(1).max(20),
@@ -30,11 +31,16 @@ bookingsRoute.post("/", zValidator("json", createSchema), async (c) => {
   if (!cabin) return c.json({ error: "Unknown cabin slug" }, 400);
 
   // Validate date order
-  if (data.checkIn >= data.checkOut) {
+  if (data.stayType === "day_use" && data.checkIn !== data.checkOut) {
+    return c.json({ error: "Day-use bookings must use the same date for check-in and check-out" }, 400);
+  }
+
+  if (data.stayType === "overnight" && data.checkIn >= data.checkOut) {
     return c.json({ error: "checkOut must be after checkIn" }, 400);
   }
 
-  // Check for conflicting confirmed/pending bookings
+  // Overnight and day-use bookings are tracked independently.
+  // A cabin can host daytime use and an overnight stay on the same date.
   const conflicts = await db
     .select({ id: bookings.id })
     .from(bookings)
@@ -42,8 +48,13 @@ bookingsRoute.post("/", zValidator("json", createSchema), async (c) => {
       and(
         eq(bookings.cabinSlug, data.cabinSlug),
         or(eq(bookings.status, "pending"), eq(bookings.status, "confirmed")),
-        lte(bookings.checkIn, data.checkOut),
-        gte(bookings.checkOut, data.checkIn)
+        eq(bookings.stayType, data.stayType),
+        data.stayType === "day_use"
+          ? eq(bookings.checkIn, data.checkIn)
+          : and(
+              lt(bookings.checkIn, data.checkOut),
+              gt(bookings.checkOut, data.checkIn)
+            )
       )
     );
 
@@ -58,8 +69,15 @@ bookingsRoute.post("/", zValidator("json", createSchema), async (c) => {
     .where(
       and(
         or(eq(blockedDates.cabinSlug, data.cabinSlug), isNull(blockedDates.cabinSlug)),
-        lte(blockedDates.startDate, data.checkOut),
-        gte(blockedDates.endDate, data.checkIn)
+        data.stayType === "day_use"
+          ? and(
+              lte(blockedDates.startDate, data.checkIn),
+              gte(blockedDates.endDate, data.checkIn)
+            )
+          : and(
+              lte(blockedDates.startDate, data.checkOut),
+              gte(blockedDates.endDate, data.checkIn)
+            )
       )
     );
 
@@ -71,15 +89,17 @@ bookingsRoute.post("/", zValidator("json", createSchema), async (c) => {
   const nights = Math.round(
     (new Date(data.checkOut).getTime() - new Date(data.checkIn).getTime()) / 86_400_000
   );
+  const billableNights = data.stayType === "day_use" ? 1 : Math.max(nights, 1);
   const chosenAddOns = addOns.filter((a) => data.addOnSlugs.includes(a.slug));
   const addOnTotal = chosenAddOns.reduce((s, a) => s + a.priceGYD, 0);
-  const estimatedTotal = cabin.priceGYD * Math.max(nights, 1) + addOnTotal;
+  const estimatedTotal = cabin.priceGYD * billableNights + addOnTotal;
 
   // Insert booking
   const [booking] = await db
     .insert(bookings)
     .values({
       cabinSlug: data.cabinSlug,
+      stayType: data.stayType,
       checkIn: data.checkIn,
       checkOut: data.checkOut,
       guests: data.guests,
@@ -103,6 +123,7 @@ bookingsRoute.post("/", zValidator("json", createSchema), async (c) => {
   sendBookingNotification({
     id: booking.id,
     cabinName: cabin.name,
+    stayType: data.stayType,
     checkIn: data.checkIn,
     checkOut: data.checkOut,
     nights,
@@ -121,6 +142,7 @@ bookingsRoute.post("/", zValidator("json", createSchema), async (c) => {
 // GET /bookings/availability/:slug?checkIn=&checkOut=
 bookingsRoute.get("/availability/:slug", async (c) => {
   const slug = c.req.param("slug");
+  const stayType = c.req.query("stayType") === "day_use" ? "day_use" : "overnight";
   const checkIn = c.req.query("checkIn");
   const checkOut = c.req.query("checkOut");
 
@@ -136,8 +158,10 @@ bookingsRoute.get("/availability/:slug", async (c) => {
         and(
           eq(bookings.cabinSlug, slug),
           or(eq(bookings.status, "pending"), eq(bookings.status, "confirmed")),
-          lte(bookings.checkIn, checkOut),
-          gte(bookings.checkOut, checkIn)
+          eq(bookings.stayType, stayType),
+          stayType === "day_use"
+            ? eq(bookings.checkIn, checkIn)
+            : and(lt(bookings.checkIn, checkOut), gt(bookings.checkOut, checkIn))
         )
       ),
     db
@@ -146,12 +170,18 @@ bookingsRoute.get("/availability/:slug", async (c) => {
       .where(
         and(
           or(eq(blockedDates.cabinSlug, slug), isNull(blockedDates.cabinSlug)),
-          lte(blockedDates.startDate, checkOut),
-          gte(blockedDates.endDate, checkIn)
+          stayType === "day_use"
+            ? and(
+                lte(blockedDates.startDate, checkIn),
+                gte(blockedDates.endDate, checkIn)
+              )
+            : and(
+                lte(blockedDates.startDate, checkOut),
+                gte(blockedDates.endDate, checkIn)
+              )
         )
       ),
   ]);
 
   return c.json({ available: bookingConflict.length === 0 && blockedConflict.length === 0 });
 });
-

@@ -5,6 +5,7 @@
 interface BookingNotification {
   id: number;
   cabinName: string;
+  stayType?: "overnight" | "day_use";
   checkIn: string;
   checkOut: string;
   nights: number;
@@ -33,10 +34,14 @@ export async function sendBookingNotification(b: BookingNotification): Promise<v
 
   const addOnsLine = b.addOns.length > 0 ? `\nAdd-ons: ${b.addOns.join(", ")}` : "";
   const notesLine = b.notes.trim() ? `\nNotes: ${b.notes}` : "";
+  const stayLine =
+    b.stayType === "day_use"
+      ? `${b.checkIn} (day use)`
+      : `${b.checkIn} → ${b.checkOut} (${b.nights} night${b.nights !== 1 ? "s" : ""})`;
 
   const message = [
     `${b.cabinName}`,
-    `${b.checkIn} → ${b.checkOut} (${b.nights} night${b.nights !== 1 ? "s" : ""})`,
+    stayLine,
     `Guests: ${b.guests}${addOnsLine}`,
     `From: ${b.name} | ${b.contact}${notesLine}`,
     `Total: GYD $${b.totalGyd.toLocaleString()}`,

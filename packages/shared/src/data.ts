@@ -169,6 +169,26 @@ export const addOns: AddOn[] = [
   },
 ]
 
+export const paymentMethods = [
+  { value: "cash", label: "Cash" },
+  { value: "card", label: "Card" },
+  { value: "transfer", label: "Bank Transfer" },
+] as const
+
+export type PaymentMethod = (typeof paymentMethods)[number]["value"]
+
+export function slugify(value: string): string {
+  return value
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim()
+    .replace(/&/g, " and ")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .replace(/-{2,}/g, "-")
+}
+
 export const testimonials = [
   {
     id: 1,
@@ -308,8 +328,11 @@ export function whatsappBookingLink(cabin: Cabin): string {
   return buildWhatsAppTextLink(cabin.whatsappText)
 }
 
+export type StayType = "overnight" | "day_use"
+
 export interface BookingRequest {
   cabin: Cabin
+  stayType: StayType
   checkIn: Date
   checkOut: Date
   guests: number
@@ -320,10 +343,11 @@ export interface BookingRequest {
 }
 
 export function buildWhatsAppBookingMessage(req: BookingRequest): string {
+  const stayType = req.stayType ?? "overnight"
   const computedNights = Math.round(
     (req.checkOut.getTime() - req.checkIn.getTime()) / (1000 * 60 * 60 * 24)
   )
-  const nights = Math.max(1, computedNights)
+  const nights = stayType === "day_use" ? 1 : Math.max(1, computedNights)
   const fmt = (d: Date) => bookingDateFormatter.format(d)
 
   const selectedAddOns = addOns.filter((a) => req.addOnSlugs.includes(a.slug))
@@ -334,8 +358,13 @@ export function buildWhatsAppBookingMessage(req: BookingRequest): string {
     `Hi! I'd like to book at Netsurf Nature Park.`,
     ``,
     `*Accommodation:* ${req.cabin.name}`,
-    `*Check-in:* ${fmt(req.checkIn)}`,
-    `*Check-out:* ${fmt(req.checkOut)} (${nights} night${nights !== 1 ? "s" : ""})`,
+    `*Stay Type:* ${stayType === "day_use" ? "Day visit only" : "Overnight stay"}`,
+    stayType === "day_use"
+      ? `*Visit Date:* ${fmt(req.checkIn)}`
+      : `*Check-in:* ${fmt(req.checkIn)}`,
+    ...(stayType === "day_use"
+      ? []
+      : [`*Check-out:* ${fmt(req.checkOut)} (${nights} night${nights !== 1 ? "s" : ""})`]),
     `*Guests:* ${req.guests}`,
   ]
 

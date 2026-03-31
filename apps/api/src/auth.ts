@@ -13,6 +13,7 @@ function getSecret(): string {
 export async function createAdminToken(): Promise<string> {
   const payload = {
     admin: true,
+    sub: process.env.ADMIN_EMAIL || "admin",
     exp: Math.floor(Date.now() / 1000) + TOKEN_TTL_SECONDS,
     iat: Math.floor(Date.now() / 1000),
   };
@@ -26,9 +27,26 @@ export async function adminMiddleware(c: Context, next: Next) {
   }
   const token = header.slice(7);
   try {
-    await verify(token, getSecret(), JWT_ALG);
+    const payload = (await verify(token, getSecret(), JWT_ALG)) as {
+      admin?: boolean;
+      sub?: string;
+    };
+    if (!payload.admin) {
+      return c.json({ error: "Unauthorized" }, 401);
+    }
+    c.set(
+      "adminSubject",
+      typeof payload.sub === "string" && payload.sub.length > 0
+        ? payload.sub
+        : "admin"
+    );
     await next();
   } catch {
     return c.json({ error: "Invalid or expired token" }, 401);
   }
+}
+
+export function getAdminSubject(c: Context): string {
+  const subject = c.get("adminSubject");
+  return typeof subject === "string" && subject.length > 0 ? subject : "admin";
 }
