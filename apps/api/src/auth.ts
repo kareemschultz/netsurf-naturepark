@@ -58,9 +58,20 @@ function buildTrustedOrigins(): string[] {
   return Array.from(origins);
 }
 
+function resolveBetterAuthBaseUrl(): string | undefined {
+  const configuredUrl = process.env.BETTER_AUTH_URL?.trim();
+  if (!configuredUrl) return undefined;
+
+  try {
+    return new URL(configuredUrl).origin;
+  } catch {
+    return configuredUrl;
+  }
+}
+
 export const auth = betterAuth({
   basePath: "/auth",
-  baseURL: process.env.BETTER_AUTH_URL,
+  baseURL: resolveBetterAuthBaseUrl(),
   trustedOrigins: buildTrustedOrigins(),
   advanced: {
     trustedProxyHeaders: true,
