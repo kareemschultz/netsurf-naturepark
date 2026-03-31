@@ -188,6 +188,12 @@ function PosPage() {
     "!border-white/10 !bg-white/[0.06] !text-white/72 !shadow-none hover:!bg-white/[0.1] hover:!text-white";
   const terminalActiveChipClass =
     "!border-amber-300/30 !bg-amber-300/14 !text-amber-100 !shadow-none hover:!bg-amber-300/18 hover:!text-amber-50";
+  const terminalHeroBackground =
+    "radial-gradient(circle at top left, rgba(196,148,26,0.18), transparent 20%), radial-gradient(circle at 82% 18%, rgba(83,125,46,0.18), transparent 24%), linear-gradient(135deg, rgba(16,34,8,0.98), rgba(12,24,7,0.98))";
+  const terminalCatalogBackground =
+    "radial-gradient(circle at top right, rgba(196,148,26,0.14), transparent 24%), radial-gradient(circle at bottom left, rgba(83,125,46,0.16), transparent 26%), linear-gradient(180deg, rgba(17,37,10,0.98), rgba(12,24,7,0.98))";
+  const terminalCheckoutBackground =
+    "radial-gradient(circle at top right, rgba(196,148,26,0.1), transparent 24%), linear-gradient(180deg, rgba(255,255,255,0.98), rgba(248,244,235,0.96))";
 
   async function handleCompleteSale() {
     if (cart.items.length === 0 || totalGyd < 0) return;
@@ -299,7 +305,8 @@ function PosPage() {
             initial={reduceMotion ? false : { opacity: 0, y: 18 }}
             animate={reduceMotion ? undefined : { opacity: 1, y: 0 }}
             transition={{ duration: 0.52, ease: [0.22, 1, 0.36, 1] }}
-            className="admin-surface relative overflow-hidden rounded-[2.2rem] border border-white/10 bg-[radial-gradient(circle_at_top_left,rgba(196,148,26,0.18),transparent_20%),radial-gradient(circle_at_82%_18%,rgba(83,125,46,0.18),transparent_24%),linear-gradient(135deg,rgba(16,34,8,0.98),rgba(12,24,7,0.98))] p-6 text-white shadow-[0_28px_80px_rgb(7_15_4_/32%)] sm:p-8"
+            className="admin-surface relative overflow-hidden rounded-[2.2rem] border border-white/10 p-6 text-white shadow-[0_28px_80px_rgb(7_15_4_/32%)] sm:p-8"
+            style={{ background: terminalHeroBackground }}
           >
             <div className="pointer-events-none absolute inset-0">
               <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.05)_1px,transparent_1px)] bg-[size:54px_54px] opacity-20 [mask-image:linear-gradient(180deg,rgba(0,0,0,0.88),transparent_96%)]" />
@@ -465,9 +472,10 @@ function PosPage() {
             className={cn(
               "relative overflow-hidden p-6",
               isTerminalView
-                ? "border-white/10 bg-[radial-gradient(circle_at_top_right,rgba(196,148,26,0.14),transparent_24%),radial-gradient(circle_at_bottom_left,rgba(83,125,46,0.16),transparent_26%),linear-gradient(180deg,rgba(17,37,10,0.98),rgba(12,24,7,0.98))] text-white shadow-[0_26px_70px_rgb(8_16_4_/28%)]"
+                ? "border-white/10 text-white shadow-[0_26px_70px_rgb(8_16_4_/28%)]"
                 : undefined
             )}
+            style={isTerminalView ? { background: terminalCatalogBackground } : undefined}
           >
             {isTerminalView ? (
               <div className="pointer-events-none absolute inset-0">
@@ -730,9 +738,10 @@ function PosPage() {
             className={cn(
               "relative overflow-hidden p-6 xl:sticky xl:top-6 xl:self-start",
               isTerminalView
-                ? "border-primary/16 bg-[radial-gradient(circle_at_top_right,rgba(196,148,26,0.1),transparent_24%),linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,244,235,0.96))] shadow-[0_26px_60px_rgb(27_42_15_/12%)]"
+                ? "border-primary/16 shadow-[0_26px_60px_rgb(27_42_15_/12%)]"
                 : undefined
             )}
+            style={isTerminalView ? { background: terminalCheckoutBackground } : undefined}
           >
             {isTerminalView ? (
               <div className="pointer-events-none absolute inset-0">
