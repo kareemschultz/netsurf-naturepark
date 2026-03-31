@@ -4,23 +4,25 @@ import {
   canSessionAccess,
   fetchAdminSession,
   getSessionLandingPath,
+  normalizeAdminPathname,
 } from "@/lib/auth";
 
 export const Route = createRootRoute({
   beforeLoad: async ({ location }) => {
     const session = await fetchAdminSession();
+    const adminPathname = normalizeAdminPathname(location.pathname);
 
-    if (!session && location.pathname !== "/login") {
+    if (!session && adminPathname !== "/login") {
       throw redirect({ to: "/login" });
     }
 
     if (!session) return;
 
-    if (location.pathname === "/login") {
+    if (adminPathname === "/login") {
       throw redirect({ to: getSessionLandingPath(session) });
     }
 
-    if (!canSessionAccess(location.pathname, session)) {
+    if (!canSessionAccess(adminPathname, session)) {
       throw redirect({ to: getSessionLandingPath(session) });
     }
   },
@@ -29,7 +31,8 @@ export const Route = createRootRoute({
 
 function RootLayout() {
   const { location } = useRouterState();
-  const isLogin = location.pathname === "/login";
+  const adminPathname = normalizeAdminPathname(location.pathname);
+  const isLogin = adminPathname === "/login";
 
   if (isLogin) {
     return <Outlet />;

@@ -6,6 +6,7 @@ import { logout } from "@/lib/api";
 import {
   canSessionAccess,
   getSessionRoleLabel,
+  normalizeAdminPathname,
   useAdminSession,
 } from "@/lib/auth";
 import { cn } from "@workspace/ui/lib/utils";
@@ -427,6 +428,7 @@ export function Sidebar() {
   const reduceMotion = useReducedMotion();
   const sessionState = useAdminSession();
   const session = sessionState.data;
+  const adminPathname = normalizeAdminPathname(location.pathname);
   const accessiblePaths = useMemo(
     () =>
       new Set(
@@ -441,7 +443,7 @@ export function Sidebar() {
       accessiblePaths.has(item.to)
     );
     const activeItem = [...reservationItems, ...operationsItems, ...systemItems].find(
-      (item) => isActivePath(location.pathname, item.to)
+      (item) => isActivePath(adminPathname, item.to)
     );
 
     if (
@@ -453,7 +455,7 @@ export function Sidebar() {
     }
 
     return visiblePrimaryItems;
-  }, [accessiblePaths, location.pathname]);
+  }, [accessiblePaths, adminPathname]);
   const profileLabel = session
     ? session.user.displayUsername || session.user.name || session.user.username || session.user.email
     : "Staff session";
@@ -461,7 +463,7 @@ export function Sidebar() {
 
   const activeLabel =
     Object.entries(routeTitles).find(([path]) =>
-      isActivePath(location.pathname, path as NavItem["to"])
+      isActivePath(adminPathname, path as NavItem["to"])
     )?.[1] ?? "Admin";
 
   async function handleLogout() {
@@ -492,7 +494,7 @@ export function Sidebar() {
 
           <div className="admin-scrollbar mt-4 flex gap-2 overflow-x-auto pb-1">
             {mobileVisibleItems.map((item) => {
-              const active = isActivePath(location.pathname, item.to);
+              const active = isActivePath(adminPathname, item.to);
 
               return (
                 <Link
@@ -515,8 +517,8 @@ export function Sidebar() {
 
       <aside className="hidden w-[320px] shrink-0 lg:block">
         <div className="sticky top-6 h-[calc(100vh-3rem)]">
-          <SidebarBody
-            pathname={location.pathname}
+            <SidebarBody
+            pathname={adminPathname}
             onLogout={handleLogout}
             accessiblePaths={accessiblePaths}
             profileLabel={profileLabel}
@@ -553,7 +555,7 @@ export function Sidebar() {
 
               <div className="min-h-0 flex-1">
                 <SidebarBody
-                  pathname={location.pathname}
+                  pathname={adminPathname}
                   onNavigate={() => setMobileOpen(false)}
                   onLogout={handleLogout}
                   accessiblePaths={accessiblePaths}

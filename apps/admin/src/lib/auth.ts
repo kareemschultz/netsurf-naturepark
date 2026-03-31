@@ -15,6 +15,7 @@ import {
 export const API_BASE = import.meta.env.VITE_API_URL
   ? `${import.meta.env.VITE_API_URL}`
   : "/api";
+export const ADMIN_BASE_PATH = "/admin";
 
 const authAccessControl = createAccessControl(adminPermissionStatements);
 type BetterAuthRoleDefinition = Parameters<typeof authAccessControl.newRole>[0];
@@ -69,11 +70,28 @@ export async function signOutAdmin(): Promise<void> {
   await authClient.signOut();
 }
 
+export function normalizeAdminPathname(pathname: string): string {
+  if (!pathname) return "/";
+
+  const trimmed = pathname.startsWith(ADMIN_BASE_PATH)
+    ? pathname.slice(ADMIN_BASE_PATH.length) || "/"
+    : pathname;
+
+  if (!trimmed.startsWith("/")) {
+    return `/${trimmed}`;
+  }
+
+  return trimmed;
+}
+
 export function canSessionAccess(
   pathname: string,
   session: AdminSession | null | undefined
 ): boolean {
-  return canAccessAdminPath(pathname, session?.user.role ?? null);
+  return canAccessAdminPath(
+    normalizeAdminPathname(pathname),
+    session?.user.role ?? null
+  );
 }
 
 export function getSessionLandingPath(

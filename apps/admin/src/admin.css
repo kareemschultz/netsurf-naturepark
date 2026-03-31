@@ -183,6 +183,90 @@
   background-clip: padding-box;
 }
 
+.admin-login-grid {
+  background-image:
+    linear-gradient(rgb(45 80 22 / 5%) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(45 80 22 / 5%) 1px, transparent 1px);
+  background-size: 120px 120px;
+  mask-image: linear-gradient(180deg, rgb(0 0 0 / 72%), transparent 96%);
+  opacity: 0.55;
+}
+
+.admin-login-topography {
+  background:
+    radial-gradient(circle at 14% 18%, rgb(255 255 255 / 55%), transparent 20%),
+    repeating-radial-gradient(
+      circle at 16% 20%,
+      rgb(45 80 22 / 10%) 0 1.5px,
+      transparent 1.5px 30px
+    ),
+    repeating-radial-gradient(
+      circle at 82% 18%,
+      rgb(196 148 26 / 10%) 0 1px,
+      transparent 1px 32px
+    );
+  mask-image: radial-gradient(circle at center, rgb(0 0 0 / 92%) 0%, transparent 82%);
+  opacity: 0.72;
+}
+
+.admin-login-hero {
+  border-color: rgb(255 255 255 / 12%);
+  background:
+    radial-gradient(circle at top left, rgb(196 148 26 / 18%), transparent 24%),
+    radial-gradient(circle at 82% 22%, rgb(94 147 48 / 18%), transparent 26%),
+    linear-gradient(135deg, rgb(20 39 11 / 98%), rgb(16 32 8 / 96%));
+}
+
+.admin-login-panel {
+  border-color: rgb(255 255 255 / 76%);
+  background:
+    radial-gradient(circle at top right, rgb(196 148 26 / 10%), transparent 28%),
+    linear-gradient(180deg, rgb(255 255 255 / 96%), rgb(255 255 255 / 88%));
+  box-shadow:
+    0 28px 80px rgb(21 36 12 / 12%),
+    inset 0 1px 0 rgb(255 255 255 / 88%);
+}
+
+.admin-login-panel::before {
+  content: "";
+  position: absolute;
+  inset: 1.1rem;
+  border: 1px solid rgb(255 255 255 / 78%);
+  border-radius: 2rem;
+  pointer-events: none;
+}
+
+.admin-login-pill {
+  border: 1px solid rgb(45 80 22 / 10%);
+  background: rgb(255 255 255 / 72%);
+  border-radius: 9999px;
+  padding: 0.55rem 0.95rem;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgb(45 80 22 / 68%);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 88%);
+}
+
+.admin-login-terminal {
+  border: 1px solid rgb(255 255 255 / 10%);
+  background:
+    linear-gradient(180deg, rgb(255 255 255 / 5%), rgb(255 255 255 / 3%)),
+    rgb(255 255 255 / 4%);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 8%),
+    0 18px 50px rgb(4 10 2 / 18%);
+}
+
+.admin-login-signal {
+  border: 1px solid rgb(255 255 255 / 10%);
+  background:
+    linear-gradient(180deg, rgb(255 255 255 / 7%), rgb(255 255 255 / 3%)),
+    rgb(255 255 255 / 4%);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 7%);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .admin-button-primary,
   .admin-button-secondary,
