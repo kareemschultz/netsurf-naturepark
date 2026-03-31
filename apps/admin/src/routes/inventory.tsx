@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import type { ReactNode } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import {
   adjustInventory,
@@ -10,6 +11,19 @@ import {
   type InventoryItem,
   type StockMovement,
 } from "@/lib/api";
+import {
+  AdminPage,
+  EmptyState,
+  FilterChip,
+  InfoPill,
+  MetricCard,
+  PageHeader,
+  PageSection,
+  SearchField,
+  SectionTitle,
+} from "@/components/AdminUI";
+import { downloadCsv, exportPrintableReport } from "@/lib/export";
+import { formatGYD } from "@workspace/shared";
 
 export const Route = createFileRoute("/inventory")({
   component: InventoryPage,
@@ -26,9 +40,12 @@ function InventoryPage() {
   const [adjustQty, setAdjustQty] = useState(0);
   const [adjustNotes, setAdjustNotes] = useState("");
   const [saving, setSaving] = useState(false);
+  const [search, setSearch] = useState("");
+  const [stockView, setStockView] = useState<"all" | "low" | "out">("all");
 
   async function loadData() {
     setLoading(true);
+
     try {
       const [inventoryResponse, alertRows, movementResponse] = await Promise.all([
         getInventory(),
@@ -47,8 +64,43 @@ function InventoryPage() {
     loadData().catch(console.error);
   }, []);
 
+  const filteredItems = useMemo(() => {
+    const query = search.trim().toLowerCase();
+
+    return items.filter((item) => {
+      const matchesSearch =
+        !query ||
+        item.name.toLowerCase().includes(query) ||
+        (item.categoryName ?? "").toLowerCase().includes(query) ||
+        (item.sku ?? "").toLowerCase().includes(query);
+
+      if (!matchesSearch) return false;
+      if (stockView === "low") return item.stockQty <= item.lowStockThreshold;
+      if (stockView === "out") return item.stockQty === 0;
+      return true;
+    });
+  }, [items, search, stockView]);
+
+  const totalUnits = useMemo(
+    () => items.reduce((sum, item) => sum + item.stockQty, 0),
+    [items]
+  );
+  const lowStockCount = useMemo(
+    () => items.filter((item) => item.stockQty <= item.lowStockThreshold).length,
+    [items]
+  );
+  const outOfStockCount = useMemo(
+    () => items.filter((item) => item.stockQty === 0).length,
+    [items]
+  );
+  const inventoryValue = useMemo(
+    () => items.reduce((sum, item) => sum + item.stockQty * item.priceGyd, 0),
+    [items]
+  );
+
   async function handleRestock() {
     if (!activeProduct || restockQty <= 0) return;
+
     setSaving(true);
     try {
       await restockInventory({
@@ -67,6 +119,7 @@ function InventoryPage() {
 
   async function handleAdjust() {
     if (!activeProduct || adjustNotes.trim().length < 2) return;
+
     setSaving(true);
     try {
       await adjustInventory({
@@ -83,246 +136,454 @@ function InventoryPage() {
     }
   }
 
-  const lowStockCount = items.filter((item) => item.stockQty <= item.lowStockThreshold).length;
-  const outOfStockCount = items.filter((item) => item.stockQty === 0).length;
+  function handleSelectProduct(item: InventoryItem) {
+    setActiveProduct(item);
+    setRestockQty(0);
+    setRestockNotes("");
+    setAdjustQty(item.stockQty);
+    setAdjustNotes("");
+  }
+
+  function handleExportInventory() {
+    downloadCsv(
+      `netsurf-inventory-${new Date().toISOString().slice(0, 10)}.csv`,
+      ["Product", "Category", "SKU", "Price (GYD)", "Stock Qty", "Threshold", "Status"],
+      filteredItems.map((item) => [
+        item.name,
+        item.categoryName ?? "Uncategorized",
+        item.sku ?? "",
+        item.priceGyd,
+        item.stockQty,
+        item.lowStockThreshold,
+        item.isActive ? "Active" : "Inactive",
+      ])
+    );
+  }
+
+  function handleExportInventoryPdf() {
+    exportPrintableReport({
+      title: "Inventory Snapshot",
+      subtitle: "Current tracked stock levels, alerts, and most recent movement history.",
+      generatedAt: new Date().toLocaleString(),
+      metrics: [
+        { label: "Tracked SKUs", value: String(items.length), note: `${filteredItems.length} in view` },
+        { label: "On-Hand Units", value: String(totalUnits), note: formatGYD(inventoryValue) },
+        { label: "Low-Stock Alerts", value: String(lowStockCount), note: `${outOfStockCount} fully out` },
+      ],
+      sections: [
+        {
+          title: "Inventory Board",
+          columns: ["Product", "Category", "SKU", "Stock", "Threshold", "Value", "Status"],
+          rows: filteredItems.map((item) => [
+            item.name,
+            item.categoryName ?? "Uncategorized",
+            item.sku ?? item.slug,
+            item.stockQty,
+            item.lowStockThreshold,
+            formatGYD(item.stockQty * item.priceGyd),
+            item.isActive ? "Active" : "Inactive",
+          ]),
+        },
+        {
+          title: "Alerts",
+          columns: ["Product", "Stock", "Threshold"],
+          rows:
+            alerts.length > 0
+              ? alerts.map((alert) => [alert.name, alert.stockQty, alert.lowStockThreshold])
+              : [["No active low-stock alerts", "", ""]],
+        },
+        {
+          title: "Recent Movements",
+          columns: ["Time", "Product", "Type", "Quantity", "Notes"],
+          rows: movements.map((movement) => [
+            new Date(movement.createdAt).toLocaleString(),
+            movement.productName,
+            movement.type,
+            movement.quantityChange,
+            movement.notes || "",
+          ]),
+        },
+      ],
+    });
+  }
 
   return (
-    <div className="mx-auto max-w-7xl p-8">
-      <div className="mb-6">
-        <h1 className="text-2xl font-black">Inventory</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Monitor tracked stock, restock products, and review movement history.
-        </p>
+    <AdminPage className="max-w-[1500px]">
+      <PageHeader
+        eyebrow="Inventory"
+        title="Stock health, movement control, and replenishment"
+        description="Keep beverage stock accurate with a filtered inventory board, quick restock and recount workflows, and recent movement visibility for every tracked SKU."
+        actions={
+          <>
+            <button
+              type="button"
+              onClick={handleExportInventory}
+              className="admin-button-secondary rounded-full px-5 py-3 text-sm font-bold"
+            >
+              Export CSV
+            </button>
+            <button
+              type="button"
+              onClick={handleExportInventoryPdf}
+              className="admin-button-secondary rounded-full px-5 py-3 text-sm font-bold"
+            >
+              Export PDF
+            </button>
+          </>
+        }
+        meta={
+          <>
+            <InfoPill tone={alerts.length > 0 ? "amber" : "green"}>
+              {alerts.length > 0 ? `${alerts.length} active alerts` : "No urgent alerts"}
+            </InfoPill>
+            <InfoPill>{filteredItems.length} items in view</InfoPill>
+            <InfoPill tone="green">{formatGYD(inventoryValue)} shelf value</InfoPill>
+          </>
+        }
+      />
+
+      {alerts.length > 0 ? (
+        <PageSection className="border-amber-200/70 bg-[linear-gradient(180deg,rgba(255,251,235,0.96),rgba(255,247,220,0.9))] p-5 sm:p-6">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-xs font-bold tracking-[0.2em] text-amber-800 uppercase">
+                Low-Stock Watch
+              </p>
+              <p className="mt-2 text-sm text-amber-900">
+                {alerts.map((alert) => `${alert.name} (${alert.stockQty})`).join(", ")}
+              </p>
+            </div>
+            <InfoPill tone="amber">Restock soon</InfoPill>
+          </div>
+        </PageSection>
+      ) : null}
+
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <MetricCard
+          label="Tracked SKUs"
+          value={String(items.length)}
+          note="Products with inventory tracking"
+        />
+        <MetricCard
+          label="On-Hand Units"
+          value={String(totalUnits)}
+          note="Across all tracked stock"
+          tone="green"
+        />
+        <MetricCard
+          label="Low Stock"
+          value={String(lowStockCount)}
+          note="At or below threshold"
+          tone={lowStockCount > 0 ? "amber" : "green"}
+        />
+        <MetricCard
+          label="Out of Stock"
+          value={String(outOfStockCount)}
+          note="Unavailable for sale"
+          tone={outOfStockCount > 0 ? "red" : "slate"}
+        />
       </div>
 
-      {alerts.length > 0 && (
-        <div className="mb-6 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
-          Low-stock alert:{" "}
-          {alerts.map((alert) => `${alert.name} (${alert.stockQty})`).join(", ")}
-        </div>
-      )}
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.4fr)_24rem]">
+        <PageSection className="p-6 sm:p-7">
+          <SectionTitle
+            title="Stock Board"
+            description="Filter the inventory board, inspect threshold pressure, and select any product for a stock action."
+            action={
+              search || stockView !== "all" ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSearch("");
+                    setStockView("all");
+                  }}
+                  className="admin-button-secondary rounded-full px-4 py-2 text-sm font-semibold"
+                >
+                  Reset Filters
+                </button>
+              ) : null
+            }
+          />
 
-      <div className="mb-6 grid gap-4 md:grid-cols-3">
-        <StatCard label="Tracked SKUs" value={String(items.length)} />
-        <StatCard label="Low Stock" value={String(lowStockCount)} accent="#C4941A" />
-        <StatCard label="Out of Stock" value={String(outOfStockCount)} accent="#B91C1C" />
-      </div>
+          <div className="flex flex-wrap gap-2">
+            <FilterChip type="button" active={stockView === "all"} onClick={() => setStockView("all")}>
+              All Stock
+            </FilterChip>
+            <FilterChip type="button" active={stockView === "low"} onClick={() => setStockView("low")}>
+              Low Stock
+            </FilterChip>
+            <FilterChip type="button" active={stockView === "out"} onClick={() => setStockView("out")}>
+              Out of Stock
+            </FilterChip>
+          </div>
 
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_24rem]">
-        <div className="rounded-2xl border border-border bg-white">
+          <div className="mt-4">
+            <SearchField
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              label="Search inventory"
+              placeholder="Search by product, category, or SKU…"
+              inputProps={{ name: "inventory_search" }}
+            />
+          </div>
+
           {loading ? (
-            <div className="p-10 text-center text-sm text-muted-foreground">
-              Loading inventory...
+            <div className="mt-6 rounded-[1.7rem] border border-dashed border-primary/14 bg-primary/4 px-6 py-12 text-center text-sm text-muted-foreground">
+              Loading inventory…
+            </div>
+          ) : filteredItems.length === 0 ? (
+            <div className="mt-6">
+              <EmptyState
+                title="No inventory items matched this view"
+                description="Broaden the filter or clear the search to return to the full tracked stock board."
+              />
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-border bg-muted/30">
-                    <th className="px-5 py-3 text-left text-xs font-bold tracking-wide text-muted-foreground uppercase">
-                      Product
-                    </th>
-                    <th className="px-5 py-3 text-left text-xs font-bold tracking-wide text-muted-foreground uppercase">
-                      Category
-                    </th>
-                    <th className="px-5 py-3 text-left text-xs font-bold tracking-wide text-muted-foreground uppercase">
-                      Current Stock
-                    </th>
-                    <th className="px-5 py-3 text-left text-xs font-bold tracking-wide text-muted-foreground uppercase">
-                      Threshold
-                    </th>
-                    <th className="px-5 py-3 text-left text-xs font-bold tracking-wide text-muted-foreground uppercase">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border">
-                  {items.map((item) => (
-                    <tr key={item.id}>
-                      <td className="px-5 py-4">
-                        <p className="font-semibold">{item.name}</p>
-                        <p className="text-xs text-muted-foreground">{item.sku || item.slug}</p>
-                      </td>
-                      <td className="px-5 py-4 text-muted-foreground">
-                        {item.categoryName ?? "Uncategorized"}
-                      </td>
-                      <td className="px-5 py-4">
-                        <span
-                          className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                            item.stockQty === 0
-                              ? "bg-red-100 text-red-700"
-                              : item.stockQty <= item.lowStockThreshold
-                                ? "bg-amber-100 text-amber-700"
-                                : "bg-green-100 text-green-700"
-                          }`}
-                        >
-                          {item.stockQty}
-                        </span>
-                      </td>
-                      <td className="px-5 py-4 text-muted-foreground">
-                        {item.lowStockThreshold}
-                      </td>
-                      <td className="px-5 py-4">
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => {
-                              setActiveProduct(item);
-                              setRestockQty(0);
-                              setRestockNotes("");
-                              setAdjustQty(item.stockQty);
-                              setAdjustNotes("");
-                            }}
-                            className="rounded-full border border-border px-3 py-1 text-xs font-semibold transition-colors hover:bg-muted"
-                          >
-                            Restock
-                          </button>
-                          <button
-                            onClick={() => {
-                              setActiveProduct(item);
-                              setAdjustQty(item.stockQty);
-                              setAdjustNotes("");
-                              setRestockQty(0);
-                              setRestockNotes("");
-                            }}
-                            className="rounded-full border border-border px-3 py-1 text-xs font-semibold transition-colors hover:bg-muted"
-                          >
-                            Adjust
-                          </button>
-                        </div>
-                      </td>
+            <div className="mt-6 overflow-hidden rounded-[1.7rem] border border-primary/10 bg-white/72">
+              <div className="overflow-x-auto">
+                <table className="min-w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-primary/8 bg-primary/4">
+                      <th className="px-5 py-4 text-left text-[11px] font-bold tracking-[0.18em] text-muted-foreground uppercase">
+                        Product
+                      </th>
+                      <th className="px-5 py-4 text-left text-[11px] font-bold tracking-[0.18em] text-muted-foreground uppercase">
+                        Category
+                      </th>
+                      <th className="px-5 py-4 text-left text-[11px] font-bold tracking-[0.18em] text-muted-foreground uppercase">
+                        Stock
+                      </th>
+                      <th className="px-5 py-4 text-left text-[11px] font-bold tracking-[0.18em] text-muted-foreground uppercase">
+                        Threshold
+                      </th>
+                      <th className="px-5 py-4 text-left text-[11px] font-bold tracking-[0.18em] text-muted-foreground uppercase">
+                        Shelf Value
+                      </th>
+                      <th className="px-5 py-4 text-right text-[11px] font-bold tracking-[0.18em] text-muted-foreground uppercase">
+                        Action
+                      </th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="divide-y divide-primary/8">
+                    {filteredItems.map((item) => {
+                      const toneClass =
+                        item.stockQty === 0
+                          ? "bg-red-50 text-red-700"
+                          : item.stockQty <= item.lowStockThreshold
+                            ? "bg-amber-50 text-amber-800"
+                            : "bg-emerald-50 text-emerald-700";
+
+                      return (
+                        <tr key={item.id} className="hover:bg-primary/3">
+                          <td className="px-5 py-4">
+                            <p className="font-semibold text-foreground">{item.name}</p>
+                            <p className="mt-1 text-xs text-muted-foreground">
+                              {item.sku ?? item.slug}
+                            </p>
+                          </td>
+                          <td className="px-5 py-4 text-muted-foreground">
+                            {item.categoryName ?? "Uncategorized"}
+                          </td>
+                          <td className="px-5 py-4">
+                            <span className={`rounded-full px-3 py-1 text-xs font-bold ${toneClass}`}>
+                              {item.stockQty}
+                            </span>
+                          </td>
+                          <td className="px-5 py-4 text-muted-foreground">
+                            {item.lowStockThreshold}
+                          </td>
+                          <td className="px-5 py-4 font-semibold tabular-nums text-foreground">
+                            {formatGYD(item.stockQty * item.priceGyd)}
+                          </td>
+                          <td className="px-5 py-4 text-right">
+                            <button
+                              type="button"
+                              onClick={() => handleSelectProduct(item)}
+                              className="admin-button-secondary rounded-full px-4 py-2 text-sm font-semibold"
+                            >
+                              Manage
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
             </div>
           )}
-        </div>
+        </PageSection>
 
         <div className="space-y-6">
-          <div className="rounded-2xl border border-border bg-white p-5">
-            <h2 className="text-base font-bold">Stock Actions</h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              {activeProduct
-                ? `Selected: ${activeProduct.name}`
-                : "Choose a product from the table to restock or adjust."}
-            </p>
+          <PageSection className="p-6 sm:p-7">
+            <SectionTitle
+              title="Stock Actions"
+              description={
+                activeProduct
+                  ? "Update the selected product with a restock or a counted adjustment."
+                  : "Select a product from the stock board to start an action."
+              }
+            />
 
-            {activeProduct && (
-              <div className="mt-4 space-y-5">
-                <div className="rounded-2xl border border-border bg-muted/10 p-4">
-                  <p className="text-sm font-bold">Restock</p>
-                  <div className="mt-3 space-y-3">
-                    <input
-                      type="number"
-                      min={1}
-                      value={restockQty}
-                      onChange={(event) => setRestockQty(Number(event.target.value))}
-                      className="w-full rounded-xl border border-border bg-white px-4 py-3 text-sm outline-none transition-colors focus:border-[#2D5016]"
-                      placeholder="Quantity to add"
-                    />
-                    <textarea
-                      rows={3}
-                      value={restockNotes}
-                      onChange={(event) => setRestockNotes(event.target.value)}
-                      className="w-full rounded-2xl border border-border bg-white px-4 py-3 text-sm outline-none transition-colors focus:border-[#2D5016]"
-                      placeholder="Optional restock note"
-                    />
-                    <button
-                      onClick={handleRestock}
-                      disabled={saving || restockQty <= 0}
-                      className="w-full rounded-full px-4 py-2.5 text-sm font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
-                      style={{ backgroundColor: "#2D5016" }}
-                    >
-                      {saving ? "Saving..." : "Restock Item"}
-                    </button>
-                  </div>
-                </div>
-
-                <div className="rounded-2xl border border-border bg-muted/10 p-4">
-                  <p className="text-sm font-bold">Adjust</p>
-                  <div className="mt-3 space-y-3">
-                    <input
-                      type="number"
-                      min={0}
-                      value={adjustQty}
-                      onChange={(event) => setAdjustQty(Number(event.target.value))}
-                      className="w-full rounded-xl border border-border bg-white px-4 py-3 text-sm outline-none transition-colors focus:border-[#2D5016]"
-                      placeholder="Set stock to"
-                    />
-                    <textarea
-                      rows={3}
-                      value={adjustNotes}
-                      onChange={(event) => setAdjustNotes(event.target.value)}
-                      className="w-full rounded-2xl border border-border bg-white px-4 py-3 text-sm outline-none transition-colors focus:border-[#2D5016]"
-                      placeholder="Reason for adjustment"
-                    />
-                    <button
-                      onClick={handleAdjust}
-                      disabled={saving || adjustNotes.trim().length < 2}
-                      className="w-full rounded-full border border-border px-4 py-2.5 text-sm font-bold transition-colors hover:bg-muted disabled:opacity-50"
-                    >
-                      {saving ? "Saving..." : "Adjust Stock"}
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-
-          <div className="rounded-2xl border border-border bg-white p-5">
-            <h2 className="text-base font-bold">Recent Movements</h2>
-            <div className="mt-4 space-y-3">
-              {movements.map((movement) => (
-                <div
-                  key={movement.id}
-                  className="rounded-2xl border border-border bg-muted/10 px-4 py-3"
-                >
-                  <div className="flex items-center justify-between gap-3">
-                    <p className="font-semibold">{movement.productName ?? "Unknown Product"}</p>
-                    <span
-                      className={`rounded-full px-3 py-1 text-xs font-bold ${
-                        movement.quantityChange > 0
-                          ? "bg-green-100 text-green-700"
-                          : "bg-red-100 text-red-700"
-                      }`}
-                    >
-                      {movement.quantityChange > 0 ? "+" : ""}
-                      {movement.quantityChange}
-                    </span>
-                  </div>
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    {movement.type} · {new Date(movement.createdAt).toLocaleString()}
+            {activeProduct ? (
+              <>
+                <div className="rounded-[1.5rem] border border-primary/10 bg-primary/4 p-4">
+                  <p className="text-lg font-black tracking-tight text-foreground">
+                    {activeProduct.name}
                   </p>
-                  {movement.notes && (
-                    <p className="mt-1 text-sm text-muted-foreground">{movement.notes}</p>
-                  )}
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <InfoPill>{activeProduct.categoryName ?? "Uncategorized"}</InfoPill>
+                    <InfoPill tone="green">{activeProduct.stockQty} on hand</InfoPill>
+                    <InfoPill tone="amber">
+                      Threshold {activeProduct.lowStockThreshold}
+                    </InfoPill>
+                  </div>
                 </div>
-              ))}
+
+                <div className="mt-5 space-y-5">
+                  <div className="rounded-[1.5rem] border border-primary/10 bg-white/70 p-4">
+                    <p className="text-sm font-bold text-foreground">Restock</p>
+                    <div className="mt-3 space-y-3">
+                      <FieldLabel label="Quantity to Add">
+                        <input
+                          type="number"
+                          min={1}
+                          name="restock_quantity"
+                          inputMode="numeric"
+                          value={restockQty}
+                          onChange={(event) => setRestockQty(Number(event.target.value))}
+                          className="admin-input w-full rounded-[1.2rem] px-4 py-3 text-sm outline-none"
+                          placeholder="0"
+                        />
+                      </FieldLabel>
+                      <FieldLabel label="Restock Note">
+                        <textarea
+                          name="restock_notes"
+                          rows={3}
+                          value={restockNotes}
+                          onChange={(event) => setRestockNotes(event.target.value)}
+                          className="admin-input w-full rounded-[1.4rem] px-4 py-3 text-sm outline-none"
+                          placeholder="Optional receiving note…"
+                        />
+                      </FieldLabel>
+                      <button
+                        type="button"
+                        onClick={handleRestock}
+                        disabled={saving || restockQty <= 0}
+                        className="admin-button-primary w-full rounded-full px-4 py-3 text-sm font-bold disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        {saving ? "Saving…" : "Restock Item"}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="rounded-[1.5rem] border border-primary/10 bg-white/70 p-4">
+                    <p className="text-sm font-bold text-foreground">Adjust to Count</p>
+                    <div className="mt-3 space-y-3">
+                      <FieldLabel label="New Counted Quantity">
+                        <input
+                          type="number"
+                          min={0}
+                          name="adjust_quantity"
+                          inputMode="numeric"
+                          value={adjustQty}
+                          onChange={(event) => setAdjustQty(Number(event.target.value))}
+                          className="admin-input w-full rounded-[1.2rem] px-4 py-3 text-sm outline-none"
+                          placeholder="0"
+                        />
+                      </FieldLabel>
+                      <FieldLabel label="Adjustment Note">
+                        <textarea
+                          name="adjust_notes"
+                          rows={3}
+                          value={adjustNotes}
+                          onChange={(event) => setAdjustNotes(event.target.value)}
+                          className="admin-input w-full rounded-[1.4rem] px-4 py-3 text-sm outline-none"
+                          placeholder="Explain the recount or variance…"
+                        />
+                      </FieldLabel>
+                      <button
+                        type="button"
+                        onClick={handleAdjust}
+                        disabled={saving || adjustNotes.trim().length < 2}
+                        className="admin-button-secondary w-full rounded-full px-4 py-3 text-sm font-bold disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        {saving ? "Saving…" : "Adjust Stock"}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <EmptyState
+                title="No product selected"
+                description="Choose a line from the stock board to open the quick action panel."
+              />
+            )}
+          </PageSection>
+
+          <PageSection className="p-6 sm:p-7">
+            <SectionTitle
+              title="Recent Movements"
+              description="The latest stock changes across restocks, adjustments, and sales."
+            />
+
+            <div className="space-y-3">
+              {movements.length === 0 ? (
+                <EmptyState
+                  title="No movement history yet"
+                  description="Inventory movement entries will appear here once stock changes begin."
+                />
+              ) : (
+                movements.map((movement) => (
+                  <div
+                    key={movement.id}
+                    className="rounded-[1.35rem] border border-primary/10 bg-white/78 p-4"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="truncate font-semibold text-foreground">
+                          {movement.productName}
+                        </p>
+                        <p className="mt-1 text-xs text-muted-foreground">
+                          {new Date(movement.createdAt).toLocaleString()}
+                        </p>
+                      </div>
+                      <InfoPill
+                        tone={movement.quantityChange >= 0 ? "green" : "amber"}
+                      >
+                        {movement.quantityChange > 0 ? "+" : ""}
+                        {movement.quantityChange}
+                      </InfoPill>
+                    </div>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      <InfoPill>{movement.type.replaceAll("_", " ")}</InfoPill>
+                      {movement.notes ? <InfoPill>{movement.notes}</InfoPill> : null}
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
-          </div>
+          </PageSection>
         </div>
       </div>
-    </div>
+    </AdminPage>
   );
 }
 
-function StatCard({
+function FieldLabel({
   label,
-  value,
-  accent = "#2D5016",
+  children,
 }: {
   label: string;
-  value: string;
-  accent?: string;
+  children: ReactNode;
 }) {
   return (
-    <div className="rounded-2xl border border-border bg-white p-5">
-      <p className="text-xs font-bold tracking-wide text-muted-foreground uppercase">
+    <label className="block">
+      <span className="mb-2 block text-xs font-bold tracking-[0.18em] text-muted-foreground uppercase">
         {label}
-      </p>
-      <p className="mt-2 text-3xl font-black" style={{ color: accent }}>
-        {value}
-      </p>
-    </div>
+      </span>
+      {children}
+    </label>
   );
 }

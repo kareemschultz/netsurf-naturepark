@@ -20,11 +20,13 @@ function RootLayout() {
   }
 
   return (
-    <div className="flex min-h-screen" style={{ backgroundColor: "#FAF6F0" }}>
-      <Sidebar />
-      <main className="flex-1 overflow-auto">
-        <Outlet />
-      </main>
+    <div className="admin-shell">
+      <div className="relative mx-auto min-h-screen max-w-[1800px] px-4 py-4 lg:flex lg:gap-6 lg:px-6 lg:py-6">
+        <Sidebar />
+        <main className="min-w-0 flex-1">
+          <Outlet />
+        </main>
+      </div>
     </div>
   );
 }

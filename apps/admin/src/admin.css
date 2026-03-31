@@ -1,0 +1,146 @@
+.admin-shell {
+  position: relative;
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at top left, rgb(196 148 26 / 18%), transparent 28%),
+    radial-gradient(circle at 84% 14%, rgb(45 80 22 / 14%), transparent 24%),
+    linear-gradient(180deg, #f8f3e9 0%, #f3ecdf 36%, #f7f3eb 100%);
+}
+
+.admin-shell::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgb(45 80 22 / 5%) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(45 80 22 / 5%) 1px, transparent 1px);
+  background-size: 72px 72px;
+  mask-image: linear-gradient(180deg, rgb(0 0 0 / 85%), transparent 92%);
+}
+
+.admin-surface {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgb(255 255 255 / 72%);
+  background:
+    linear-gradient(180deg, rgb(255 255 255 / 94%), rgb(255 255 255 / 82%)),
+    rgb(255 255 255 / 88%);
+  box-shadow:
+    0 20px 50px rgb(21 36 12 / 10%),
+    inset 0 1px 0 rgb(255 255 255 / 85%);
+  backdrop-filter: blur(18px);
+}
+
+.admin-surface::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(135deg, rgb(255 255 255 / 16%), transparent 38%);
+}
+
+.admin-input {
+  border: 1px solid rgb(45 80 22 / 12%);
+  background: rgb(255 255 255 / 82%);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 86%);
+  transition:
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    background-color 180ms ease,
+    transform 180ms ease;
+}
+
+.admin-input:is(:focus, :focus-within) {
+  border-color: rgb(45 80 22 / 38%);
+  box-shadow:
+    0 0 0 4px rgb(45 80 22 / 10%),
+    inset 0 1px 0 rgb(255 255 255 / 92%);
+  background: rgb(255 255 255 / 96%);
+}
+
+.admin-input :focus-visible {
+  outline: none;
+}
+
+.admin-button-primary {
+  border: 1px solid rgb(45 80 22 / 12%);
+  background: linear-gradient(135deg, #2d5016, #203c10);
+  color: white;
+  box-shadow: 0 16px 30px rgb(32 60 16 / 22%);
+  touch-action: manipulation;
+}
+
+.admin-button-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 18px 34px rgb(32 60 16 / 26%);
+}
+
+.admin-button-secondary {
+  border: 1px solid rgb(45 80 22 / 12%);
+  background: rgb(255 255 255 / 82%);
+  color: #254213;
+  touch-action: manipulation;
+}
+
+.admin-button-secondary:hover {
+  border-color: rgb(45 80 22 / 22%);
+  background: rgb(255 255 255 / 94%);
+  transform: translateY(-1px);
+}
+
+.admin-button-primary:focus-visible,
+.admin-button-secondary:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 4px rgb(45 80 22 / 10%),
+    0 16px 30px rgb(32 60 16 / 18%);
+}
+
+.admin-kicker {
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgb(45 80 22 / 56%);
+}
+
+.admin-metric-glow::before {
+  content: "";
+  position: absolute;
+  inset: auto -10% -58% auto;
+  width: 14rem;
+  height: 14rem;
+  border-radius: 9999px;
+  background: radial-gradient(circle, var(--metric-glow, rgb(45 80 22 / 18%)) 0%, transparent 72%);
+  pointer-events: none;
+}
+
+.admin-dotted {
+  background-image: radial-gradient(rgb(45 80 22 / 10%) 0.9px, transparent 0.9px);
+  background-size: 14px 14px;
+}
+
+.admin-scrollbar::-webkit-scrollbar {
+  height: 10px;
+  width: 10px;
+}
+
+.admin-scrollbar::-webkit-scrollbar-thumb {
+  border: 2px solid transparent;
+  border-radius: 9999px;
+  background: rgb(45 80 22 / 18%);
+  background-clip: padding-box;
+}
+
+.admin-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-button-primary,
+  .admin-button-secondary,
+  .admin-input {
+    transition: none;
+  }
+}

@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as ReportsRouteImport } from './routes/reports'
 import { Route as PosRouteImport } from './routes/pos'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as InventoryRouteImport } from './routes/inventory'
@@ -27,6 +28,11 @@ import { Route as ProductsNewRouteImport } from './routes/products/new'
 import { Route as ProductsIdRouteImport } from './routes/products/$id'
 import { Route as BookingsIdRouteImport } from './routes/bookings/$id'
 
+const ReportsRoute = ReportsRouteImport.update({
+  id: '/reports',
+  path: '/reports',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PosRoute = PosRouteImport.update({
   id: '/pos',
   path: '/pos',
@@ -121,6 +127,7 @@ export interface FileRoutesByFullPath {
   '/inventory': typeof InventoryRoute
   '/login': typeof LoginRoute
   '/pos': typeof PosRoute
+  '/reports': typeof ReportsRoute
   '/bookings/$id': typeof BookingsIdRoute
   '/products/$id': typeof ProductsIdRoute
   '/products/new': typeof ProductsNewRoute
@@ -140,6 +147,7 @@ export interface FileRoutesByTo {
   '/inventory': typeof InventoryRoute
   '/login': typeof LoginRoute
   '/pos': typeof PosRoute
+  '/reports': typeof ReportsRoute
   '/bookings/$id': typeof BookingsIdRoute
   '/products/$id': typeof ProductsIdRoute
   '/products/new': typeof ProductsNewRoute
@@ -160,6 +168,7 @@ export interface FileRoutesById {
   '/inventory': typeof InventoryRoute
   '/login': typeof LoginRoute
   '/pos': typeof PosRoute
+  '/reports': typeof ReportsRoute
   '/bookings/$id': typeof BookingsIdRoute
   '/products/$id': typeof ProductsIdRoute
   '/products/new': typeof ProductsNewRoute
@@ -181,6 +190,7 @@ export interface FileRouteTypes {
     | '/inventory'
     | '/login'
     | '/pos'
+    | '/reports'
     | '/bookings/$id'
     | '/products/$id'
     | '/products/new'
@@ -200,6 +210,7 @@ export interface FileRouteTypes {
     | '/inventory'
     | '/login'
     | '/pos'
+    | '/reports'
     | '/bookings/$id'
     | '/products/$id'
     | '/products/new'
@@ -219,6 +230,7 @@ export interface FileRouteTypes {
     | '/inventory'
     | '/login'
     | '/pos'
+    | '/reports'
     | '/bookings/$id'
     | '/products/$id'
     | '/products/new'
@@ -239,6 +251,7 @@ export interface RootRouteChildren {
   InventoryRoute: typeof InventoryRoute
   LoginRoute: typeof LoginRoute
   PosRoute: typeof PosRoute
+  ReportsRoute: typeof ReportsRoute
   BookingsIdRoute: typeof BookingsIdRoute
   ProductsIdRoute: typeof ProductsIdRoute
   ProductsNewRoute: typeof ProductsNewRoute
@@ -253,6 +266,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/reports': {
+      id: '/reports'
+      path: '/reports'
+      fullPath: '/reports'
+      preLoaderRoute: typeof ReportsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/pos': {
       id: '/pos'
       path: '/pos'
@@ -383,6 +403,7 @@ const rootRouteChildren: RootRouteChildren = {
   InventoryRoute: InventoryRoute,
   LoginRoute: LoginRoute,
   PosRoute: PosRoute,
+  ReportsRoute: ReportsRoute,
   BookingsIdRoute: BookingsIdRoute,
   ProductsIdRoute: ProductsIdRoute,
   ProductsNewRoute: ProductsNewRoute,

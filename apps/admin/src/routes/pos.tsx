@@ -1,11 +1,22 @@
-import { useEffect, useReducer, useState } from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { useDeferredValue, useEffect, useReducer, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   createSale,
   getPosProducts,
   type CompletedSaleResponse,
   type Product,
 } from "@/lib/api";
+import {
+  AdminPage,
+  EmptyState,
+  FilterChip,
+  InfoPill,
+  PageHeader,
+  PageSection,
+  SearchField,
+  SectionTitle,
+} from "@/components/AdminUI";
 import { formatGYD, paymentMethods, type PaymentMethod } from "@workspace/shared";
 
 export const Route = createFileRoute("/pos")({
@@ -51,6 +62,7 @@ function cartReducer(state: CartState, action: CartAction): CartState {
           ),
         };
       }
+
       return {
         ...state,
         items: [...state.items, { product: action.product, quantity: 1 }],
@@ -87,6 +99,7 @@ function PosPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [search, setSearch] = useState("");
+  const deferredSearch = useDeferredValue(search);
   const [cart, dispatch] = useReducer(cartReducer, INITIAL_CART);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("cash");
   const [paymentReference, setPaymentReference] = useState("");
@@ -128,7 +141,7 @@ function PosPage() {
     const matchesCategory =
       categoryFilter === "all" || product.categorySlug === categoryFilter;
     const text = `${product.name} ${product.description} ${product.sku ?? ""}`.toLowerCase();
-    const matchesSearch = text.includes(search.trim().toLowerCase());
+    const matchesSearch = text.includes(deferredSearch.trim().toLowerCase());
     return matchesCategory && matchesSearch;
   });
 
@@ -137,6 +150,10 @@ function PosPage() {
     0
   );
   const totalGyd = subtotalGyd - cart.discountGyd + cart.taxGyd;
+  const cartUnits = cart.items.reduce((sum, item) => sum + item.quantity, 0);
+  const lowStockCatalog = products.filter(
+    (product) => product.trackStock && product.stockQty <= product.lowStockThreshold
+  ).length;
 
   async function handleCompleteSale() {
     if (cart.items.length === 0 || totalGyd < 0) return;
@@ -155,6 +172,7 @@ function PosPage() {
         taxGyd: cart.taxGyd,
         notes,
       });
+
       setReceipt(completedSale);
       dispatch({ type: "CLEAR_CART" });
       setPaymentMethod("cash");
@@ -170,200 +188,263 @@ function PosPage() {
 
   function printReceipt() {
     if (!receipt) return;
-    const win = window.open("", "_blank", "width=600,height=800");
+
+    const win = window.open("", "_blank", "width=720,height=900");
     if (!win) return;
 
     const itemsHtml = receipt.items
       .map(
-        (item) =>
-          `<tr><td>${item.productName}</td><td>${item.quantity}</td><td>${formatGYD(item.lineTotalGyd)}</td></tr>`
+        (item) => `
+          <tr>
+            <td>${item.productName}</td>
+            <td>${item.quantity}</td>
+            <td>${formatGYD(item.lineTotalGyd)}</td>
+          </tr>
+        `
       )
       .join("");
 
     win.document.write(`
+      <!doctype html>
       <html>
         <head>
+          <meta charset="utf-8" />
           <title>${receipt.sale.saleNumber}</title>
           <style>
-            body { font-family: Arial, sans-serif; padding: 24px; }
-            table { width: 100%; border-collapse: collapse; margin-top: 16px; }
-            td, th { padding: 8px 0; border-bottom: 1px solid #ddd; text-align: left; }
+            body { font-family: "DM Sans", "Segoe UI", sans-serif; padding: 32px; color: #1f2d18; }
+            .card { border: 1px solid #dbe5d5; border-radius: 28px; padding: 24px; }
+            .eyebrow { font-size: 11px; text-transform: uppercase; letter-spacing: .2em; color: #64715d; font-weight: 700; }
+            h1 { margin: 8px 0 0; font-size: 32px; }
+            .muted { color: #64715d; }
+            table { width: 100%; border-collapse: collapse; margin-top: 18px; }
+            th, td { text-align: left; padding: 12px 0; border-bottom: 1px solid #dbe5d5; font-size: 14px; }
+            th { font-size: 11px; text-transform: uppercase; letter-spacing: .15em; color: #64715d; }
+            .totals { margin-top: 18px; }
+            .totals div { display: flex; justify-content: space-between; padding: 6px 0; }
+            .total { font-weight: 800; font-size: 18px; color: #1f4120; border-top: 1px solid #dbe5d5; margin-top: 8px; padding-top: 12px; }
           </style>
         </head>
         <body>
-          <h1>Netsurf Nature Park</h1>
-          <p>Receipt ${receipt.sale.saleNumber}</p>
-          <p>${new Date(receipt.sale.createdAt).toLocaleString()}</p>
-          <table>
-            <thead>
-              <tr><th>Item</th><th>Qty</th><th>Total</th></tr>
-            </thead>
-            <tbody>${itemsHtml}</tbody>
-          </table>
-          <p>Subtotal: ${formatGYD(receipt.sale.subtotalGyd)}</p>
-          <p>Discount: ${formatGYD(receipt.sale.discountGyd)}</p>
-          <p>Tax: ${formatGYD(receipt.sale.taxGyd)}</p>
-          <p><strong>Total: ${formatGYD(receipt.sale.totalGyd)}</strong></p>
+          <section class="card">
+            <p class="eyebrow">Netsurf Nature Park</p>
+            <h1>${receipt.sale.saleNumber}</h1>
+            <p class="muted">${new Date(receipt.sale.createdAt).toLocaleString()}</p>
+            <table>
+              <thead>
+                <tr>
+                  <th>Item</th>
+                  <th>Qty</th>
+                  <th>Total</th>
+                </tr>
+              </thead>
+              <tbody>${itemsHtml}</tbody>
+            </table>
+            <div class="totals">
+              <div><span>Subtotal</span><span>${formatGYD(receipt.sale.subtotalGyd)}</span></div>
+              <div><span>Discount</span><span>${formatGYD(receipt.sale.discountGyd)}</span></div>
+              <div><span>Tax</span><span>${formatGYD(receipt.sale.taxGyd)}</span></div>
+              <div class="total"><span>Total</span><span>${formatGYD(receipt.sale.totalGyd)}</span></div>
+            </div>
+          </section>
         </body>
       </html>
     `);
+
     win.document.close();
     win.focus();
     win.print();
   }
 
   return (
-    <div className="mx-auto max-w-[1600px] p-8">
-      <div className="mb-6">
-        <h1 className="text-2xl font-black">POS Terminal</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Ring up in-park sales, manage the cart, and issue printable or WhatsApp receipts.
-        </p>
-      </div>
+    <AdminPage className="max-w-[1600px]">
+      <PageHeader
+        eyebrow="POS"
+        title="Point of sale terminal"
+        description="Run walk-in sales, keep the catalog visible, and finish transactions without burying staff in a cramped cart. The terminal is tuned for quick scanning, stock awareness, and a cleaner receipt flow."
+        meta={
+          <>
+            <InfoPill>{products.length} active products</InfoPill>
+            <InfoPill tone={lowStockCatalog > 0 ? "amber" : "green"}>
+              {lowStockCatalog} low-stock items
+            </InfoPill>
+            <InfoPill>{cartUnits} units in cart</InfoPill>
+          </>
+        }
+        actions={
+          <>
+            <Link
+              to="/products"
+              className="admin-button-secondary rounded-2xl px-4 py-3 text-sm font-bold"
+            >
+              Manage Catalog
+            </Link>
+            <Link
+              to="/sales"
+              className="admin-button-primary rounded-2xl px-4 py-3 text-sm font-bold"
+            >
+              View Sales
+            </Link>
+          </>
+        }
+      />
 
-      {error && (
-        <div className="mb-4 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-          {error}
-        </div>
-      )}
+      <AnimatePresence>
+        {error ? (
+          <motion.div
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            className="rounded-[1.5rem] border border-red-200 bg-red-50 px-5 py-4 text-sm font-medium text-red-700"
+          >
+            {error}
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
 
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.7fr)_minmax(320px,0.95fr)]">
-        <section className="rounded-3xl border border-border bg-white p-5">
-          <div className="mb-4 flex flex-wrap gap-2">
-            {categories.map((category) => (
-              <button
-                key={category.slug}
-                onClick={() => setCategoryFilter(category.slug)}
-                className={`rounded-full px-4 py-2 text-sm font-semibold transition-colors ${
-                  categoryFilter === category.slug
-                    ? "text-white"
-                    : "bg-muted text-muted-foreground hover:text-foreground"
-                }`}
-                style={
-                  categoryFilter === category.slug
-                    ? { backgroundColor: "#2D5016" }
-                    : undefined
-                }
-              >
-                {category.name}
-              </button>
-            ))}
-          </div>
-
-          <input
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            placeholder="Search products..."
-            className="mb-5 w-full rounded-xl border border-border bg-white px-4 py-3 text-sm outline-none transition-colors focus:border-[#2D5016]"
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.65fr)_minmax(360px,0.95fr)]">
+        <PageSection className="p-6">
+          <SectionTitle
+            title="Catalog"
+            description="Filter by category, search quickly, and keep out-of-stock products visible but clearly disabled."
           />
 
-          {loading ? (
-            <div className="p-10 text-center text-sm text-muted-foreground">
-              Loading catalog...
+          <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-center">
+            <SearchField
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              placeholder="Search by product name, description, or SKU..."
+            />
+            <div className="flex flex-wrap gap-2">
+              {categories.map((category) => (
+                <FilterChip
+                  key={category.slug}
+                  active={categoryFilter === category.slug}
+                  onClick={() => setCategoryFilter(category.slug)}
+                >
+                  {category.name}
+                </FilterChip>
+              ))}
             </div>
-          ) : (
-            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-              {filteredProducts.map((product) => {
-                const cartQuantity =
-                  cart.items.find((item) => item.product.id === product.id)?.quantity ?? 0;
-                const isOutOfStock = product.trackStock && product.stockQty <= cartQuantity;
+          </div>
 
-                return (
-                  <button
-                    key={product.id}
-                    onClick={() => dispatch({ type: "ADD_ITEM", product })}
-                    disabled={isOutOfStock}
-                    className={`rounded-3xl border p-5 text-left transition-all ${
-                      isOutOfStock
-                        ? "cursor-not-allowed border-border bg-muted/30 opacity-55"
-                        : "border-border bg-white hover:-translate-y-0.5 hover:border-[#2D5016]/40 hover:shadow-md"
-                    }`}
-                  >
-                    <p className="text-xs font-bold tracking-wide text-muted-foreground uppercase">
-                      {product.categoryName ?? "Uncategorized"}
-                    </p>
-                    <h2 className="mt-2 text-lg font-black">{product.name}</h2>
-                    <p className="mt-1 min-h-10 text-sm text-muted-foreground">
-                      {product.description || "No description"}
-                    </p>
-                    <div className="mt-4 flex items-center justify-between">
-                      <span className="text-lg font-black" style={{ color: "#2D5016" }}>
-                        {formatGYD(product.priceGyd)}
-                      </span>
-                      {product.trackStock ? (
-                        <span
-                          className={`rounded-full px-3 py-1 text-xs font-bold ${
-                            product.stockQty === 0
-                              ? "bg-red-100 text-red-700"
-                              : product.stockQty <= product.lowStockThreshold
-                                ? "bg-amber-100 text-amber-700"
-                                : "bg-green-100 text-green-700"
-                          }`}
-                        >
-                          {product.stockQty - cartQuantity} left
-                        </span>
-                      ) : (
-                        <span className="rounded-full bg-muted px-3 py-1 text-xs font-semibold text-muted-foreground">
-                          Service
-                        </span>
-                      )}
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          )}
-        </section>
+          <div className="mt-6">
+            {loading ? (
+              <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                {Array.from({ length: 6 }).map((_, index) => (
+                  <div
+                    key={index}
+                    className="h-48 rounded-[1.7rem] border border-border bg-white/70 animate-pulse"
+                  />
+                ))}
+              </div>
+            ) : filteredProducts.length === 0 ? (
+              <EmptyState
+                title="No products match this filter"
+                description="Try a different category or search term. The catalog only shows active products, so unavailable items remain hidden from checkout until they are reactivated."
+              />
+            ) : (
+              <div className="grid gap-4 sm:grid-cols-2 2xl:grid-cols-3">
+                {filteredProducts.map((product) => {
+                  const cartQuantity =
+                    cart.items.find((item) => item.product.id === product.id)?.quantity ?? 0;
+                  const isOutOfStock = product.trackStock && product.stockQty <= cartQuantity;
 
-        <aside className="rounded-3xl border border-border bg-white p-5">
-          <div className="mb-4 flex items-center justify-between">
-            <div>
-              <h2 className="text-xl font-black">Cart</h2>
-              <p className="text-sm text-muted-foreground">
-                {cart.items.length} line item{cart.items.length !== 1 ? "s" : ""}
-              </p>
-            </div>
-            {cart.items.length > 0 && (
-              <button
-                onClick={() => dispatch({ type: "CLEAR_CART" })}
-                className="text-xs font-semibold text-muted-foreground hover:text-foreground"
-              >
-                Clear
-              </button>
+                  return (
+                    <motion.button
+                      key={product.id}
+                      whileHover={isOutOfStock ? undefined : { y: -4 }}
+                      whileTap={isOutOfStock ? undefined : { scale: 0.985 }}
+                      onClick={() => dispatch({ type: "ADD_ITEM", product })}
+                      disabled={isOutOfStock}
+                      className={`group relative rounded-[1.8rem] border p-5 text-left transition-all ${
+                        isOutOfStock
+                          ? "cursor-not-allowed border-border bg-muted/30 opacity-60"
+                          : "border-primary/8 bg-white/85 hover:border-primary/18 hover:shadow-[0_22px_34px_rgb(23_48_13_/10%)]"
+                      }`}
+                    >
+                      <p className="admin-kicker">
+                        {product.categoryName ?? "Uncategorized"}
+                      </p>
+                      <h2 className="mt-3 text-xl font-black tracking-tight text-foreground">
+                        {product.name}
+                      </h2>
+                      <p className="mt-2 min-h-12 text-sm leading-6 text-muted-foreground">
+                        {product.description || "No internal note provided for this item."}
+                      </p>
+
+                      <div className="mt-5 flex items-center justify-between gap-3">
+                        <span className="text-xl font-black text-primary">
+                          {formatGYD(product.priceGyd)}
+                        </span>
+
+                        {product.trackStock ? (
+                          <InfoPill tone={product.stockQty === 0 ? "red" : product.stockQty <= product.lowStockThreshold ? "amber" : "green"}>
+                            {Math.max(product.stockQty - cartQuantity, 0)} left
+                          </InfoPill>
+                        ) : (
+                          <InfoPill>Non-stock item</InfoPill>
+                        )}
+                      </div>
+
+                      {product.sku ? (
+                        <p className="mt-3 text-xs font-medium text-muted-foreground">
+                          SKU {product.sku}
+                        </p>
+                      ) : null}
+                    </motion.button>
+                  );
+                })}
+              </div>
             )}
           </div>
+        </PageSection>
+
+        <PageSection className="p-6 xl:sticky xl:top-6 xl:self-start">
+          <SectionTitle
+            title="Checkout"
+            description={`${cart.items.length} line item${cart.items.length === 1 ? "" : "s"} · ${cartUnits} unit${cartUnits === 1 ? "" : "s"} in cart`}
+            action={
+              cart.items.length > 0 ? (
+                <button
+                  onClick={() => dispatch({ type: "CLEAR_CART" })}
+                  className="text-sm font-bold text-muted-foreground hover:text-foreground"
+                >
+                  Clear cart
+                </button>
+              ) : null
+            }
+          />
 
           <div className="space-y-3">
             {cart.items.length === 0 ? (
-              <div className="rounded-2xl border border-dashed border-border bg-muted/10 p-8 text-center text-sm text-muted-foreground">
-                Select products from the catalog to start a sale.
-              </div>
+              <EmptyState
+                title="Cart is empty"
+                description="Select products from the catalog to start the sale. Out-of-stock items remain visible but cannot be added."
+              />
             ) : (
               cart.items.map((item) => (
                 <div
                   key={item.product.id}
-                  className="rounded-2xl border border-border bg-muted/10 p-4"
+                  className="rounded-[1.4rem] border border-primary/8 bg-primary/4 p-4"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <p className="font-semibold">{item.product.name}</p>
-                      <p className="text-xs text-muted-foreground">
+                      <p className="font-semibold text-foreground">{item.product.name}</p>
+                      <p className="mt-1 text-xs text-muted-foreground">
                         {formatGYD(item.product.priceGyd)} each
                       </p>
                     </div>
                     <button
                       onClick={() =>
-                        dispatch({
-                          type: "REMOVE_ITEM",
-                          productId: item.product.id,
-                        })
+                        dispatch({ type: "REMOVE_ITEM", productId: item.product.id })
                       }
-                      className="text-xs font-semibold text-red-600 hover:underline"
+                      className="text-xs font-bold text-red-600 hover:underline"
                     >
                       Remove
                     </button>
                   </div>
-                  <div className="mt-3 flex items-center justify-between">
+
+                  <div className="mt-4 flex items-center justify-between gap-3">
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() =>
@@ -373,11 +454,13 @@ function PosPage() {
                             quantity: item.quantity - 1,
                           })
                         }
-                        className="h-8 w-8 rounded-full border border-border text-sm font-bold transition-colors hover:bg-white"
+                        className="admin-button-secondary flex h-9 w-9 items-center justify-center rounded-full text-base font-bold"
                       >
-                        −
+                        -
                       </button>
-                      <span className="w-8 text-center text-sm font-bold">{item.quantity}</span>
+                      <span className="w-8 text-center text-sm font-bold text-foreground">
+                        {item.quantity}
+                      </span>
                       <button
                         onClick={() =>
                           dispatch({
@@ -387,12 +470,12 @@ function PosPage() {
                           })
                         }
                         disabled={item.product.trackStock && item.quantity >= item.product.stockQty}
-                        className="h-8 w-8 rounded-full border border-border text-sm font-bold transition-colors hover:bg-white disabled:opacity-40"
+                        className="admin-button-secondary flex h-9 w-9 items-center justify-center rounded-full text-base font-bold disabled:cursor-not-allowed disabled:opacity-40"
                       >
                         +
                       </button>
                     </div>
-                    <p className="font-semibold">
+                    <p className="font-black text-primary">
                       {formatGYD(item.product.priceGyd * item.quantity)}
                     </p>
                   </div>
@@ -401,10 +484,10 @@ function PosPage() {
             )}
           </div>
 
-          <div className="mt-5 space-y-4 rounded-2xl border border-border bg-muted/10 p-4">
+          <div className="mt-5 space-y-4 rounded-[1.7rem] border border-primary/8 bg-white/76 p-4">
             <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-1">
               <label className="block">
-                <span className="mb-1.5 block text-xs font-bold tracking-wide text-muted-foreground uppercase">
+                <span className="mb-2 block text-xs font-bold tracking-[0.16em] text-muted-foreground uppercase">
                   Discount (GYD)
                 </span>
                 <input
@@ -417,12 +500,12 @@ function PosPage() {
                       discountGyd: Number(event.target.value),
                     })
                   }
-                  className="w-full rounded-xl border border-border bg-white px-4 py-3 text-sm outline-none transition-colors focus:border-[#2D5016]"
+                  className="admin-input w-full rounded-[1.2rem] px-4 py-3 text-sm outline-none"
                 />
               </label>
 
               <label className="block">
-                <span className="mb-1.5 block text-xs font-bold tracking-wide text-muted-foreground uppercase">
+                <span className="mb-2 block text-xs font-bold tracking-[0.16em] text-muted-foreground uppercase">
                   Tax (GYD)
                 </span>
                 <input
@@ -435,80 +518,71 @@ function PosPage() {
                       taxGyd: Number(event.target.value),
                     })
                   }
-                  className="w-full rounded-xl border border-border bg-white px-4 py-3 text-sm outline-none transition-colors focus:border-[#2D5016]"
+                  className="admin-input w-full rounded-[1.2rem] px-4 py-3 text-sm outline-none"
                 />
               </label>
             </div>
 
             <div>
-              <p className="mb-2 text-xs font-bold tracking-wide text-muted-foreground uppercase">
+              <p className="mb-2 text-xs font-bold tracking-[0.16em] text-muted-foreground uppercase">
                 Payment Method
               </p>
               <div className="flex flex-wrap gap-2">
                 {paymentMethods.map((method) => (
-                  <button
+                  <FilterChip
                     key={method.value}
+                    active={paymentMethod === method.value}
                     onClick={() => setPaymentMethod(method.value)}
-                    className={`rounded-full px-4 py-2 text-sm font-semibold transition-colors ${
-                      paymentMethod === method.value
-                        ? "text-white"
-                        : "bg-white text-muted-foreground hover:text-foreground"
-                    }`}
-                    style={
-                      paymentMethod === method.value
-                        ? { backgroundColor: "#2D5016" }
-                        : undefined
-                    }
                   >
                     {method.label}
-                  </button>
+                  </FilterChip>
                 ))}
               </div>
             </div>
 
-            {(paymentMethod === "card" || paymentMethod === "transfer") && (
+            {(paymentMethod === "card" || paymentMethod === "transfer") ? (
               <label className="block">
-                <span className="mb-1.5 block text-xs font-bold tracking-wide text-muted-foreground uppercase">
+                <span className="mb-2 block text-xs font-bold tracking-[0.16em] text-muted-foreground uppercase">
                   Reference
                 </span>
                 <input
                   value={paymentReference}
                   onChange={(event) => setPaymentReference(event.target.value)}
-                  className="w-full rounded-xl border border-border bg-white px-4 py-3 text-sm outline-none transition-colors focus:border-[#2D5016]"
+                  className="admin-input w-full rounded-[1.2rem] px-4 py-3 text-sm outline-none"
                   placeholder="Card auth or transfer reference"
                 />
               </label>
-            )}
+            ) : null}
 
             <label className="block">
-              <span className="mb-1.5 block text-xs font-bold tracking-wide text-muted-foreground uppercase">
-                Notes
+              <span className="mb-2 block text-xs font-bold tracking-[0.16em] text-muted-foreground uppercase">
+                Internal Note
               </span>
               <textarea
                 rows={3}
                 value={notes}
                 onChange={(event) => setNotes(event.target.value)}
-                className="w-full rounded-2xl border border-border bg-white px-4 py-3 text-sm outline-none transition-colors focus:border-[#2D5016]"
-                placeholder="Optional internal note"
+                className="admin-input w-full rounded-[1.2rem] px-4 py-3 text-sm outline-none"
+                placeholder="Optional shift or transaction note"
               />
             </label>
 
-            <div className="space-y-2 border-t border-border pt-4 text-sm">
+            <div className="space-y-2 rounded-[1.3rem] border border-primary/8 bg-primary/4 p-4 text-sm">
               <div className="flex items-center justify-between">
                 <span className="text-muted-foreground">Subtotal</span>
-                <span className="font-semibold">{formatGYD(subtotalGyd)}</span>
+                <span className="font-semibold text-foreground">{formatGYD(subtotalGyd)}</span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-muted-foreground">Discount</span>
-                <span className="font-semibold">{formatGYD(cart.discountGyd)}</span>
+                <span className="font-semibold text-foreground">{formatGYD(cart.discountGyd)}</span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-muted-foreground">Tax</span>
-                <span className="font-semibold">{formatGYD(cart.taxGyd)}</span>
+                <span className="font-semibold text-foreground">{formatGYD(cart.taxGyd)}</span>
               </div>
-              <div className="flex items-center justify-between border-t border-border pt-2 text-base">
-                <span className="font-bold">Total</span>
-                <span className="font-black" style={{ color: "#2D5016" }}>
+              <div className="flex items-center justify-between border-t border-primary/10 pt-3 text-base">
+                <span className="font-bold text-foreground">Total</span>
+                <span className="text-xl font-black text-primary">
                   {formatGYD(totalGyd)}
                 </span>
               </div>
@@ -517,90 +591,103 @@ function PosPage() {
             <button
               onClick={handleCompleteSale}
               disabled={submitting || cart.items.length === 0 || totalGyd < 0}
-              className="w-full rounded-full px-5 py-3 text-sm font-bold text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
-              style={{ backgroundColor: "#2D5016" }}
+              className="admin-button-primary w-full rounded-[1.2rem] px-5 py-3.5 text-sm font-bold disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {submitting ? "Completing Sale..." : "Complete Sale"}
+              {submitting ? "Completing sale..." : "Complete Sale"}
             </button>
           </div>
-        </aside>
+        </PageSection>
       </div>
 
-      {receipt && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-          <div className="w-full max-w-2xl rounded-3xl bg-white p-6 shadow-2xl">
-            <div className="mb-4 flex items-start justify-between gap-4">
-              <div>
-                <p className="text-xs font-bold tracking-wide text-muted-foreground uppercase">
-                  Sale Complete
-                </p>
-                <h2 className="text-2xl font-black">{receipt.sale.saleNumber}</h2>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  {new Date(receipt.sale.createdAt).toLocaleString()}
-                </p>
+      <AnimatePresence>
+        {receipt ? (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-[#071003]/46 p-4 backdrop-blur-sm"
+          >
+            <motion.div
+              initial={{ opacity: 0, y: 24, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 24, scale: 0.98 }}
+              transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+              className="admin-surface w-full max-w-2xl rounded-[2rem] p-6 sm:p-7"
+            >
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <p className="admin-kicker">Sale complete</p>
+                  <h2 className="mt-2 text-3xl font-black tracking-tight text-foreground">
+                    {receipt.sale.saleNumber}
+                  </h2>
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    {new Date(receipt.sale.createdAt).toLocaleString()}
+                  </p>
+                </div>
+                <button
+                  onClick={() => setReceipt(null)}
+                  className="text-sm font-bold text-muted-foreground hover:text-foreground"
+                >
+                  Close
+                </button>
               </div>
-              <button
-                onClick={() => setReceipt(null)}
-                className="text-sm font-semibold text-muted-foreground hover:text-foreground"
-              >
-                Close
-              </button>
-            </div>
 
-            <div className="rounded-2xl border border-border bg-muted/10 p-4">
-              <div className="space-y-2">
-                {receipt.items.map((item) => (
-                  <div key={item.id} className="flex items-center justify-between text-sm">
-                    <span>
-                      {item.productName} × {item.quantity}
-                    </span>
-                    <span className="font-semibold">{formatGYD(item.lineTotalGyd)}</span>
+              <div className="mt-5 rounded-[1.5rem] border border-primary/8 bg-primary/4 p-4">
+                <div className="space-y-2">
+                  {receipt.items.map((item) => (
+                    <div key={item.id} className="flex items-center justify-between gap-3 text-sm">
+                      <span className="text-foreground">
+                        {item.productName} x {item.quantity}
+                      </span>
+                      <span className="font-semibold text-foreground">
+                        {formatGYD(item.lineTotalGyd)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="mt-4 space-y-2 border-t border-primary/10 pt-4 text-sm">
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground">Subtotal</span>
+                    <span>{formatGYD(receipt.sale.subtotalGyd)}</span>
                   </div>
-                ))}
-              </div>
-              <div className="mt-4 space-y-1 border-t border-border pt-4 text-sm">
-                <div className="flex items-center justify-between">
-                  <span>Subtotal</span>
-                  <span>{formatGYD(receipt.sale.subtotalGyd)}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span>Discount</span>
-                  <span>{formatGYD(receipt.sale.discountGyd)}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span>Tax</span>
-                  <span>{formatGYD(receipt.sale.taxGyd)}</span>
-                </div>
-                <div className="flex items-center justify-between border-t border-border pt-2 font-bold">
-                  <span>Total</span>
-                  <span>{formatGYD(receipt.sale.totalGyd)}</span>
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground">Discount</span>
+                    <span>{formatGYD(receipt.sale.discountGyd)}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground">Tax</span>
+                    <span>{formatGYD(receipt.sale.taxGyd)}</span>
+                  </div>
+                  <div className="flex items-center justify-between border-t border-primary/10 pt-3 text-base font-bold">
+                    <span>Total</span>
+                    <span className="text-primary">{formatGYD(receipt.sale.totalGyd)}</span>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <div className="mt-5 flex flex-wrap gap-3">
-              <button
-                onClick={printReceipt}
-                className="rounded-full border border-border px-4 py-2 text-sm font-bold transition-colors hover:bg-muted"
-              >
-                Print Receipt
-              </button>
-              <a
-                href={`https://wa.me/?text=${encodeURIComponent(
-                  `Receipt for sale ${receipt.sale.saleNumber} — Total: ${formatGYD(
-                    receipt.sale.totalGyd
-                  )}. Thank you!`
-                )}`}
-                target="_blank"
-                rel="noreferrer"
-                className="rounded-full bg-[#25D366] px-4 py-2 text-sm font-bold text-white transition-opacity hover:opacity-90"
-              >
-                Share on WhatsApp
-              </a>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
+              <div className="mt-5 flex flex-wrap gap-3">
+                <button
+                  onClick={printReceipt}
+                  className="admin-button-secondary rounded-2xl px-4 py-3 text-sm font-bold"
+                >
+                  Print Receipt
+                </button>
+                <a
+                  href={`https://wa.me/?text=${encodeURIComponent(
+                    `Receipt for sale ${receipt.sale.saleNumber}. Total: ${formatGYD(receipt.sale.totalGyd)}.`
+                  )}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="rounded-2xl bg-[#25D366] px-4 py-3 text-sm font-bold text-white transition-opacity hover:opacity-90"
+                >
+                  Share on WhatsApp
+                </a>
+              </div>
+            </motion.div>
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
+    </AdminPage>
   );
 }
