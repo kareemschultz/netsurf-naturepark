@@ -16,6 +16,13 @@ export const API_BASE = import.meta.env.VITE_API_URL
   ? `${import.meta.env.VITE_API_URL}`
   : "/api";
 export const ADMIN_BASE_PATH = "/admin";
+export const AUTH_BASE_URL =
+  typeof window !== "undefined"
+    ? new URL(
+        `${API_BASE.replace(/\/$/, "")}/auth`,
+        window.location.origin
+      ).toString()
+    : `${API_BASE.replace(/\/$/, "")}/auth`;
 
 const authAccessControl = createAccessControl(adminPermissionStatements);
 type BetterAuthRoleDefinition = Parameters<typeof authAccessControl.newRole>[0];
@@ -27,7 +34,7 @@ const authRoles = Object.fromEntries(
 ) as Record<AdminRoleSlug, ReturnType<typeof authAccessControl.newRole>>;
 
 export const authClient = createAuthClient({
-  baseURL: `${API_BASE}/auth`,
+  baseURL: AUTH_BASE_URL,
   fetchOptions: {
     credentials: "include",
   },
