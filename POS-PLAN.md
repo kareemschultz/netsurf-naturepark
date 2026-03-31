@@ -33,7 +33,27 @@ Netsurf Nature Park is an eco-lodge on the Soesdyke-Linden Highway, Guyana. The 
 
 ## Phase 1: Products + Categories (Foundation)
 
-### Database -- 7 new tables in `packages/db/src/schema.ts`
+### Schema migration — existing `netsurf_bookings` table
+
+Add `stay_type` column to the **existing** `netsurf_bookings` table:
+
+| Column | Type | Notes |
+|--------|------|-------|
+| stay_type | varchar(20) | `overnight` (default) / `day_use` |
+
+**Why explicit rather than inferring from dates:** The current schema uses `date`-only fields (no time). Relying on `checkIn == checkOut` to mean "day use" is fragile — an overnight booking always has `checkOut > checkIn`, but a day-use guest may or may not follow that convention. An explicit column makes intent clear in every query.
+
+**Migration file:** `packages/db/migrations/0001_add_stay_type.sql`
+```sql
+ALTER TABLE netsurf_bookings
+  ADD COLUMN stay_type varchar(20) NOT NULL DEFAULT 'overnight';
+```
+
+**Booking wizard update** (web app, not POS): add a "Stay Type" selector as an early step — "I want to stay overnight" vs "Day visit only". Day-use bookings set `checkOut = checkIn` by convention. This is a web app task tracked separately from the POS build.
+
+---
+
+### Database -- 7 new POS tables in `packages/db/src/schema.ts`
 
 **`netsurf_product_categories`**
 
@@ -247,25 +267,38 @@ No receipt printer required for MVP — browser print covers paper receipts.
 
 ### Cabin Availability View (Phase 2 deliverable)
 
-POS staff often need to check if a cabin is free before selling a Day Pass or advising a walk-in guest.
+POS staff need to check cabin status before selling a Day Pass or advising a walk-in guest. Critically, a cabin can have **two types of bookings on the same day** — an overnight guest checking out in the morning and a day-use visitor arriving later.
 
-**API endpoint** (reads existing `netsurf_bookings`, no new table needed):
-- `GET /admin/cabins/availability?from=YYYY-MM-DD&to=YYYY-MM-DD` — returns each cabin with its booked ranges and current status
+**API endpoint** (reads `netsurf_bookings` + `netsurf_blocked_dates`, no new table):
+- `GET /admin/cabins/availability?date=YYYY-MM-DD` — for a given date, returns each cabin with:
+  - `overnight`: confirmed booking occupying that night (checkIn ≤ date < checkOut, stay_type=overnight)
+  - `day_use`: confirmed day-use booking on that date (checkIn = checkOut = date, stay_type=day_use)
+  - `blocked`: date falls within a blocked range for that cabin
+  - `capacity`: maxGuests (from shared cabin data, not DB)
+  - `status`: `available` | `overnight` | `day_use` | `both` | `blocked`
 
 **Admin page** — `routes/cabins.tsx`:
-- Grid of the 4 cabins (Camping Site, Nature Cabin, Medium Cabin, Hansel & Gretel)
-- Each cabin card shows: **capacity** (guests), **tonight's status** (Available / Occupied / Blocked), upcoming check-ins within 7 days
-- Date picker at top — staff can check any date range
-- Taps through to booking detail in existing booking system (links to `/admin/bookings/:id`)
-- Read-only — no booking creation from POS (that stays on the public site)
 
-Cabin capacity data comes from `packages/shared/src/data.ts` (already in codebase — no duplication).
+*Top:* Date picker (defaults to today). "Tonight" / "Today" quick buttons.
+
+*Cabin grid (4 cards — one per cabin):*
+- Cabin name + capacity badge (`max X guests`)
+- **Overnight status** row: green Available / red Occupied (shows guest name + check-out date) / grey Blocked
+- **Day use status** row: green Available / amber Booked (shows guest name) / grey Blocked
+- A cabin can show overnight=Occupied + day_use=Available simultaneously (overnight guest is present but day visitors can still come)
+- Upcoming check-ins panel: next 3 overnight arrivals for that cabin
+- Link to booking detail → `/admin/bookings/:id` (existing admin booking pages)
+
+*Read-only* — no booking creation here. Booking stays on the public site.
+
+Cabin `maxGuests` + names come from `packages/shared/src/data.ts` — no DB duplication.
 
 ### Files (Phase 2 additions)
 
 | Action | File |
 |--------|------|
 | Create | `apps/api/src/routes/admin-pos.ts` |
+| Create | `apps/api/src/routes/admin-cabins.ts` |
 | Modify | `apps/api/src/routes/admin.ts` (mount pos + cabins routes) |
 | Modify | `apps/admin/src/lib/api.ts` (POS + cabin functions) |
 | Create | `apps/admin/src/routes/pos.tsx` |
@@ -273,13 +306,15 @@ Cabin capacity data comes from `packages/shared/src/data.ts` (already in codebas
 
 ### Verify
 
-- Add Day Pass x2 + Bottled Water x3 to cart -> total GYD $11,500
-- Complete sale -> sale number appears, cart clears
-- Bottled Water stock: 50 -> 47
-- Void the sale -> stock returns to 50
-- Try selling 51 Bottled Waters -> error: insufficient stock
-- `/admin/cabins` shows all 4 cabins with correct capacity + tonight's status
-- Date picker → check a future date with a known booking → shows Occupied
+- Add Day Pass x2 + Bottled Water x3 to cart → total GYD $11,500
+- Complete sale → sale number appears, cart clears, stock updates
+- Void sale → stock returns, audit log entry created
+- `/admin/cabins` shows all 4 cabins with correct capacity badges
+- Cabin with confirmed overnight booking → overnight row = Occupied, day_use row = Available
+- Cabin with day-use booking on same date → day_use row = Booked
+- Cabin with both types on same date → status = `both`, both rows show bookings
+- Blocked date → both rows greyed out regardless of bookings
+- Date picker → future date with no bookings → all rows = Available
 
 ---
 
