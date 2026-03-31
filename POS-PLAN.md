@@ -33,7 +33,7 @@ Netsurf Nature Park is an eco-lodge on the Soesdyke-Linden Highway, Guyana. The 
 
 ## Phase 1: Products + Categories (Foundation)
 
-### Database -- 5 new tables in `packages/db/src/schema.ts`
+### Database -- 7 new tables in `packages/db/src/schema.ts`
 
 **`netsurf_product_categories`**
 
@@ -112,11 +112,41 @@ Netsurf Nature Park is an eco-lodge on the Soesdyke-Linden Highway, Guyana. The 
 |--------|------|-------|
 | id | serial PK | |
 | product_id | integer FK | -> products.id |
-| type | varchar(20) | restock / sale / adjustment / void_reversal |
+| type | varchar(20) | restock / sale / adjustment / void_reversal / **transfer_in** |
 | quantity_change | integer | positive = in, negative = out |
-| reference_id | integer | nullable (sale_id for sale/void movements) |
+| reference_id | integer | nullable (sale_id, transfer_item_id) |
 | notes | text | default '' |
 | created_at | timestamp | defaultNow() |
+
+**`netsurf_stock_transfers`** *(Georgetown → Park dispatch workflow)*
+
+| Column | Type | Notes |
+|--------|------|-------|
+| id | serial PK | |
+| transfer_number | varchar(20) | UNIQUE, format: TXF-YYYYMMDD-NNN |
+| status | varchar(20) | draft / dispatched / received / partial / cancelled |
+| dispatched_by | varchar(200) | name of Georgetown staff member |
+| dispatched_at | timestamp | nullable — set when marked dispatched |
+| notes | text | default '' (packing notes, vehicle info, etc.) |
+| received_by | varchar(200) | nullable — park staff who verified receipt |
+| received_at | timestamp | nullable — set when park verifies |
+| created_at | timestamp | defaultNow() |
+
+**`netsurf_stock_transfer_items`**
+
+| Column | Type | Notes |
+|--------|------|-------|
+| id | serial PK | |
+| transfer_id | integer FK | -> stock_transfers.id |
+| product_id | integer FK | -> products.id |
+| product_name_snapshot | varchar(200) | copied at dispatch time |
+| qty_dispatched | integer | NOT NULL — what Georgetown packed |
+| qty_received | integer | nullable — filled by park staff on verification |
+| discrepancy_notes | text | default '' (e.g. "2 bottles broken") |
+
+> **Stock only increases at the park when the park verifies receipt** — not at dispatch time.
+> On verification: each item with `qty_received > 0` creates a `transfer_in` stock movement.
+> If `qty_received != qty_dispatched` on any item → transfer status = `partial`.
 
 ### API endpoints (Phase 1)
 
@@ -140,7 +170,7 @@ Mount in `admin.ts` after existing middleware:
 - `routes/products/index.tsx` -- product list table with category filter tabs, search, pagination
 - `routes/products/new.tsx` -- create product form
 - `routes/products/$id.tsx` -- edit product form
-- Update `Sidebar.tsx` -- add POS section separator + 4 nav items (POS, Products, Inventory, Sales)
+- Update `Sidebar.tsx` -- add POS section separator + nav items: POS, Products, Inventory, Stock Transfers, Sales, Cabins
 
 ### Shared code (Phase 1)
 
@@ -215,6 +245,32 @@ No receipt printer required for MVP — browser print covers paper receipts.
 | Modify | `apps/admin/src/lib/api.ts` (POS functions) |
 | Create | `apps/admin/src/routes/pos.tsx` |
 
+### Cabin Availability View (Phase 2 deliverable)
+
+POS staff often need to check if a cabin is free before selling a Day Pass or advising a walk-in guest.
+
+**API endpoint** (reads existing `netsurf_bookings`, no new table needed):
+- `GET /admin/cabins/availability?from=YYYY-MM-DD&to=YYYY-MM-DD` — returns each cabin with its booked ranges and current status
+
+**Admin page** — `routes/cabins.tsx`:
+- Grid of the 4 cabins (Camping Site, Nature Cabin, Medium Cabin, Hansel & Gretel)
+- Each cabin card shows: **capacity** (guests), **tonight's status** (Available / Occupied / Blocked), upcoming check-ins within 7 days
+- Date picker at top — staff can check any date range
+- Taps through to booking detail in existing booking system (links to `/admin/bookings/:id`)
+- Read-only — no booking creation from POS (that stays on the public site)
+
+Cabin capacity data comes from `packages/shared/src/data.ts` (already in codebase — no duplication).
+
+### Files (Phase 2 additions)
+
+| Action | File |
+|--------|------|
+| Create | `apps/api/src/routes/admin-pos.ts` |
+| Modify | `apps/api/src/routes/admin.ts` (mount pos + cabins routes) |
+| Modify | `apps/admin/src/lib/api.ts` (POS + cabin functions) |
+| Create | `apps/admin/src/routes/pos.tsx` |
+| Create | `apps/admin/src/routes/cabins.tsx` |
+
 ### Verify
 
 - Add Day Pass x2 + Bottled Water x3 to cart -> total GYD $11,500
@@ -222,6 +278,8 @@ No receipt printer required for MVP — browser print covers paper receipts.
 - Bottled Water stock: 50 -> 47
 - Void the sale -> stock returns to 50
 - Try selling 51 Bottled Waters -> error: insufficient stock
+- `/admin/cabins` shows all 4 cabins with correct capacity + tonight's status
+- Date picker → check a future date with a known booking → shows Occupied
 
 ---
 
@@ -246,22 +304,58 @@ No receipt printer required for MVP — browser print covers paper receipts.
   - Adjust button for manual corrections
   - Stock movement history (expandable or sheet)
 
-### Files
+### Stock Transfer Workflow (Georgetown → Park)
+
+**API endpoints** (`/admin/stock-transfers` -> `admin-stock-transfers.ts`):
+- `GET /` -- list transfers `?status=&page=&limit=` (both locations use same view, filtered by status)
+- `GET /:id` -- transfer detail with all items + dispatched/received qtys
+- `POST /` -- create draft transfer `{dispatchedBy, notes?, items: [{productId, qtyDispatched}]}`
+- `PATCH /:id` -- update draft (add/remove items, change qtys)
+- `POST /:id/dispatch` -- mark as dispatched, record `dispatchedAt` timestamp
+- `POST /:id/receive` -- **transactional**: accepts `{receivedBy, items: [{id, qtyReceived, discrepancyNotes?}]}`, creates `transfer_in` stock movements for each item, sets status = `received` or `partial`, updates `stock_qty` on products
+
+**Admin pages**:
+- `routes/stock-transfers/index.tsx`:
+  - Two tabs: **Outgoing** (Georgetown view — drafts + dispatched) | **Incoming** (Park view — dispatched + received)
+  - Status badges: Draft (grey), Dispatched (amber, "in transit"), Received (green), Partial (orange), Cancelled (red)
+  - "New Transfer" button → create form
+- `routes/stock-transfers/new.tsx`:
+  - Georgetown staff selects products + quantities from product list
+  - Adds dispatcher name + notes (vehicle, driver, etc.)
+  - Save as Draft or Dispatch immediately
+- `routes/stock-transfers/$id.tsx` — two modes depending on status:
+  - **Dispatch mode** (status=draft): edit items, mark as dispatched
+  - **Receive mode** (status=dispatched): checklist — each item shows expected qty, input for received qty, discrepancy notes field. "Verify Receipt" button submits all at once.
+  - **View mode** (status=received/partial): read-only summary showing dispatched vs received, any discrepancies highlighted
+
+`★ Insight ─────────────────────────────────────`
+The receive endpoint uses a database transaction — it checks each product still exists, creates all stock movements, and updates `stock_qty` atomically. If any step fails the entire receipt is rolled back. This is the same pattern as `POST /sale`.
+`─────────────────────────────────────────────────`
+
+### Files (Phase 3)
 
 | Action | File |
 |--------|------|
 | Create | `apps/api/src/routes/admin-inventory.ts` |
-| Modify | `apps/api/src/routes/admin.ts` (mount) |
-| Modify | `apps/admin/src/lib/api.ts` (inventory functions) |
+| Create | `apps/api/src/routes/admin-stock-transfers.ts` |
+| Modify | `apps/api/src/routes/admin.ts` (mount both) |
+| Modify | `apps/admin/src/lib/api.ts` (inventory + transfer functions) |
 | Create | `apps/admin/src/routes/inventory.tsx` |
+| Create | `apps/admin/src/routes/stock-transfers/index.tsx` |
+| Create | `apps/admin/src/routes/stock-transfers/new.tsx` |
+| Create | `apps/admin/src/routes/stock-transfers/$id.tsx` |
 
 ### Verify
 
-- Only trackStock=true products appear
-- Sell items via POS -> stock decreases
+- Only trackStock=true products appear in inventory
+- Sell items via POS -> stock decreases, movement logged
 - Restock +100 -> stock increases, movement logged
-- Adjust to 5 -> movement logged
-- Set threshold=10 -> "Low Stock" badge appears
+- Georgetown creates transfer: Water x24, Sodas x48 -> status: Draft
+- Mark dispatched -> status: Dispatched, `dispatchedAt` set
+- Park opens transfer, enters received qtys (Water x24, Sodas x45 — 3 broken) -> status: Partial
+- `stock_qty` for Sodas increased by 45 (not 48), movement type = `transfer_in`
+- Discrepancy note on Sodas: "3 bottles broken in transit"
+- Full receipt (no discrepancies) -> status: Received
 
 ---
 
@@ -355,10 +449,27 @@ For eco-lodge use with unreliable internet:
 
 ## Totals (Phases 1–4)
 
-- **7 modified files**, **12 new files**
-- **6 new DB tables** (added `netsurf_sale_payments` + `netsurf_pos_audit_log`), **~30 API endpoints**, **7 new admin pages**
+- **7 modified files**, **18 new files**
+- **8 new DB tables**: `netsurf_product_categories`, `netsurf_products`, `netsurf_sales`, `netsurf_sale_payments`, `netsurf_sale_items`, `netsurf_stock_movements`, `netsurf_stock_transfers`, `netsurf_stock_transfer_items` + audit log in Phase 4
+- **~40 API endpoints**, **11 new admin pages**
 - **No new npm packages**, **no Docker/nginx changes**
 - All behind existing JWT auth
+
+### New admin pages summary
+
+| Page | Phase | Purpose |
+|------|-------|---------|
+| `products/index` | 1 | Product list + category tabs |
+| `products/new` | 1 | Create product |
+| `products/$id` | 1 | Edit product |
+| `pos` | 2 | POS terminal (selling) |
+| `cabins` | 2 | Cabin availability + capacity view |
+| `inventory` | 3 | Stock levels, restock, adjust |
+| `stock-transfers/index` | 3 | Outgoing/Incoming transfer list |
+| `stock-transfers/new` | 3 | Create dispatch (Georgetown) |
+| `stock-transfers/$id` | 3 | Dispatch / Receive / View transfer |
+| `sales/index` | 4 | Sales history + daily summary |
+| `sales/$id` | 4 | Sale detail + void |
 
 ## Suggested seed categories
 
