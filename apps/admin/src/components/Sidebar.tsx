@@ -201,7 +201,7 @@ function SidebarBody({
   );
 
   return (
-    <div className="admin-surface flex h-full flex-col rounded-[2rem] border border-white/12 bg-[#17300d]/95 text-white shadow-[0_24px_80px_rgb(18_34_9_/38%)]">
+    <div className="admin-surface admin-surface-dark flex h-full flex-col rounded-[2rem] text-white">
       <div className="border-b border-white/10 px-5 py-5">
         <div className="flex items-center gap-3">
           <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-white/8 shadow-[inset_0_1px_0_rgb(255_255_255_/10%)]">

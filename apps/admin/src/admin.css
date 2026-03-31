@@ -40,6 +40,22 @@
   background: linear-gradient(135deg, rgb(255 255 255 / 16%), transparent 38%);
 }
 
+.admin-surface-dark {
+  border-color: rgb(255 255 255 / 10%);
+  background:
+    radial-gradient(circle at top right, rgb(83 125 46 / 24%), transparent 30%),
+    linear-gradient(180deg, rgb(23 48 13 / 96%), rgb(15 34 8 / 96%));
+  box-shadow:
+    0 28px 80px rgb(18 34 9 / 38%),
+    inset 0 1px 0 rgb(255 255 255 / 8%);
+}
+
+.admin-surface-dark::after {
+  background:
+    linear-gradient(135deg, rgb(255 255 255 / 6%), transparent 32%),
+    linear-gradient(180deg, transparent 68%, rgb(0 0 0 / 16%));
+}
+
 .admin-input {
   border: 1px solid rgb(45 80 22 / 12%);
   background: rgb(255 255 255 / 82%);
