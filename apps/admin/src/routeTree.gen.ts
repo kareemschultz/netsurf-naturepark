@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as UsersRouteImport } from './routes/users'
 import { Route as ReportsRouteImport } from './routes/reports'
 import { Route as PosRouteImport } from './routes/pos'
+import { Route as AttendanceRouteImport } from './routes/attendance'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as InventoryRouteImport } from './routes/inventory'
 import { Route as CalendarRouteImport } from './routes/calendar'
@@ -43,6 +44,11 @@ const ReportsRoute = ReportsRouteImport.update({
 const PosRoute = PosRouteImport.update({
   id: '/pos',
   path: '/pos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AttendanceRoute = AttendanceRouteImport.update({
+  id: '/attendance',
+  path: '/attendance',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -134,6 +140,7 @@ const BookingsIdRoute = BookingsIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/access': typeof AccessRoute
+  '/attendance': typeof AttendanceRoute
   '/blocked': typeof BlockedRoute
   '/cabins': typeof CabinsRoute
   '/calendar': typeof CalendarRoute
@@ -156,6 +163,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/access': typeof AccessRoute
+  '/attendance': typeof AttendanceRoute
   '/blocked': typeof BlockedRoute
   '/cabins': typeof CabinsRoute
   '/calendar': typeof CalendarRoute
@@ -179,6 +187,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/access': typeof AccessRoute
+  '/attendance': typeof AttendanceRoute
   '/blocked': typeof BlockedRoute
   '/cabins': typeof CabinsRoute
   '/calendar': typeof CalendarRoute
@@ -203,6 +212,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/access'
+    | '/attendance'
     | '/blocked'
     | '/cabins'
     | '/calendar'
@@ -225,6 +235,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/access'
+    | '/attendance'
     | '/blocked'
     | '/cabins'
     | '/calendar'
@@ -247,6 +258,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/access'
+    | '/attendance'
     | '/blocked'
     | '/cabins'
     | '/calendar'
@@ -270,6 +282,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AccessRoute: typeof AccessRoute
+  AttendanceRoute: typeof AttendanceRoute
   BlockedRoute: typeof BlockedRoute
   CabinsRoute: typeof CabinsRoute
   CalendarRoute: typeof CalendarRoute
@@ -355,6 +368,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AccessRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/attendance': {
+      id: '/attendance'
+      path: '/attendance'
+      fullPath: '/attendance'
+      preLoaderRoute: typeof AttendanceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -438,6 +458,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AccessRoute: AccessRoute,
+  AttendanceRoute: AttendanceRoute,
   BlockedRoute: BlockedRoute,
   CabinsRoute: CabinsRoute,
   CalendarRoute: CalendarRoute,

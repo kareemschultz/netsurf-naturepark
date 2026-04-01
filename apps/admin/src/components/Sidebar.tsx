@@ -19,6 +19,7 @@ type NavItem = {
     | "/calendar"
     | "/blocked"
     | "/pos"
+    | "/attendance"
     | "/products"
     | "/inventory"
     | "/stock-transfers"
@@ -119,6 +120,19 @@ const operationsItems: NavItem[] = [
         <path d="M21 8a2 2 0 0 0-1-1.73L13 2.27a2 2 0 0 0-2 0L4 6.27A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z" />
         <path d="m3.3 7 8.7 5 8.7-5" />
         <path d="M12 22V12" />
+      </svg>
+    ),
+  },
+  {
+    to: "/attendance",
+    label: "Attendance",
+    description: "Staff sign-ins, clock-outs, and backend logs",
+    icon: (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="8" r="4" />
+        <path d="M4 21a8 8 0 0 1 16 0" />
+        <path d="M17 11h5" />
+        <path d="M19.5 8.5v5" />
       </svg>
     ),
   },

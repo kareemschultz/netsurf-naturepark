@@ -192,6 +192,18 @@ export interface CompletedSaleResponse {
   payments: SalePayment[];
 }
 
+export interface AttendanceEntry {
+  id: number;
+  staffName: string;
+  location: string;
+  eventType: "clock_in" | "clock_out";
+  eventAt: string;
+  source: "pos" | "manual";
+  notes: string;
+  recordedBy: string;
+  createdAt: string;
+}
+
 export interface CabinAvailabilityBooking {
   id: number;
   guestName: string;
@@ -805,6 +817,29 @@ export async function createSale(data: {
 
 export async function voidSale(id: number, reason: string): Promise<SaleRecord> {
   return request<SaleRecord>("POST", `/admin/pos/sale/${id}/void`, { reason });
+}
+
+export async function getAttendanceEntries(params?: {
+  from?: string;
+  to?: string;
+  staffName?: string;
+  limit?: number;
+}): Promise<AttendanceEntry[]> {
+  return request<AttendanceEntry[]>(
+    "GET",
+    `/admin/pos/attendance${buildQuery(params ?? {})}`
+  );
+}
+
+export async function createAttendanceEntry(data: {
+  staffName: string;
+  location?: string;
+  eventType: "clock_in" | "clock_out";
+  eventAt: string;
+  source?: "pos" | "manual";
+  notes?: string;
+}): Promise<AttendanceEntry> {
+  return request<AttendanceEntry>("POST", "/admin/pos/attendance", data);
 }
 
 export async function getCabinAvailability(date: string): Promise<CabinAvailabilityResponse> {

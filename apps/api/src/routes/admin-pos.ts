@@ -1,6 +1,6 @@
 import { Hono } from "hono"
 import { zValidator } from "@hono/zod-validator"
-import { and, asc, desc, eq, inArray, sql } from "drizzle-orm"
+import { and, asc, desc, eq, gte, inArray, lte, sql } from "drizzle-orm"
 import { z } from "zod"
 import { db } from "../db.js"
 import { authorizeAdminRequest, getAdminSubject } from "../auth.js"
@@ -11,6 +11,7 @@ import {
   saleItems,
   salePayments,
   sales,
+  staffAttendanceEntries,
   stockMovements,
 } from "@workspace/db"
 import {
@@ -49,6 +50,15 @@ const saleSchema = z.object({
 
 const voidSaleSchema = z.object({
   reason: z.string().min(2).max(500),
+})
+
+const attendanceEntrySchema = z.object({
+  staffName: z.string().trim().min(2).max(200),
+  location: z.string().trim().min(2).max(120).default("Tonga"),
+  eventType: z.enum(["clock_in", "clock_out"]),
+  eventAt: z.coerce.date(),
+  source: z.enum(["pos", "manual"]).default("manual"),
+  notes: z.string().trim().max(1000).default(""),
 })
 
 async function generateSaleNumber(
@@ -94,6 +104,59 @@ adminPosRoute.get("/products", async (c) => {
 
   return c.json(rows)
 })
+
+adminPosRoute.get("/attendance", async (c) => {
+  const denied = authorizeAdminRequest(c, { pos: ["view"] })
+  if (denied) return denied
+
+  const from = c.req.query("from")
+  const to = c.req.query("to")
+  const staffName = c.req.query("staffName")
+  const limit = Math.min(250, Math.max(1, Number.parseInt(c.req.query("limit") ?? "100", 10)))
+
+  const conditions = []
+  if (from) conditions.push(gte(staffAttendanceEntries.eventAt, new Date(from)))
+  if (to) conditions.push(lte(staffAttendanceEntries.eventAt, new Date(to)))
+  if (staffName?.trim()) {
+    conditions.push(
+      sql`lower(${staffAttendanceEntries.staffName}) like ${`%${staffName.trim().toLowerCase()}%`}`
+    )
+  }
+
+  const rows = await db
+    .select()
+    .from(staffAttendanceEntries)
+    .where(conditions.length ? and(...conditions) : undefined)
+    .orderBy(desc(staffAttendanceEntries.eventAt))
+    .limit(limit)
+
+  return c.json(rows)
+})
+
+adminPosRoute.post(
+  "/attendance",
+  zValidator("json", attendanceEntrySchema),
+  async (c) => {
+    const denied = authorizeAdminRequest(c, { pos: ["checkout"] })
+    if (denied) return denied
+
+    const payload = c.req.valid("json")
+    const [created] = await db
+      .insert(staffAttendanceEntries)
+      .values({
+        staffName: payload.staffName,
+        location: payload.location,
+        eventType: payload.eventType,
+        eventAt: payload.eventAt,
+        source: payload.source,
+        notes: payload.notes,
+        recordedBy: getAdminSubject(c),
+      })
+      .returning()
+
+    return c.json(created, 201)
+  }
+)
 
 adminPosRoute.post("/sale", zValidator("json", saleSchema), async (c) => {
   try {

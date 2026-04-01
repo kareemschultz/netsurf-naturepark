@@ -160,6 +160,7 @@ export const adminRouteAccessRules: readonly RouteAccessRule[] = [
   { path: "/calendar", permissions: { calendar: ["view"] } },
   { path: "/blocked", permissions: { blockedDates: ["view"] } },
   { path: "/pos", permissions: { pos: ["view"] } },
+  { path: "/attendance", permissions: { pos: ["view"] } },
   { path: "/products", permissions: { catalog: ["view"] } },
   { path: "/inventory", permissions: { inventory: ["view"] } },
   { path: "/stock-transfers", permissions: { transfers: ["view"] } },

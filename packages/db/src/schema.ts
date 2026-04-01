@@ -250,6 +250,28 @@ export const posAuditLog = pgTable("netsurf_pos_audit_log", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
+export const staffAttendanceEntries = pgTable(
+  "netsurf_staff_attendance_entries",
+  {
+    id: serial("id").primaryKey(),
+    staffName: varchar("staff_name", { length: 200 }).notNull(),
+    location: varchar("location", { length: 120 }).notNull().default("Tonga"),
+    eventType: varchar("event_type", { length: 20 }).notNull(),
+    eventAt: timestamp("event_at").notNull(),
+    source: varchar("source", { length: 20 }).notNull().default("pos"),
+    notes: text("notes").notNull().default(""),
+    recordedBy: varchar("recorded_by", { length: 200 }).notNull(),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (table) => ({
+    eventAtIdx: index("staff_attendance_event_at_idx").on(table.eventAt),
+    staffEventIdx: index("staff_attendance_staff_event_idx").on(
+      table.staffName,
+      table.eventAt
+    ),
+  })
+);
+
 export type Booking = typeof bookings.$inferSelect;
 export type NewBooking = typeof bookings.$inferInsert;
 export type BlockedDate = typeof blockedDates.$inferSelect;
@@ -280,3 +302,5 @@ export type StockTransferItem = typeof stockTransferItems.$inferSelect;
 export type NewStockTransferItem = typeof stockTransferItems.$inferInsert;
 export type PosAuditLog = typeof posAuditLog.$inferSelect;
 export type NewPosAuditLog = typeof posAuditLog.$inferInsert;
+export type StaffAttendanceEntry = typeof staffAttendanceEntries.$inferSelect;
+export type NewStaffAttendanceEntry = typeof staffAttendanceEntries.$inferInsert;
