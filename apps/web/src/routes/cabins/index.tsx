@@ -1,3 +1,5 @@
+import { useState } from "react"
+
 import { createFileRoute, Link } from "@tanstack/react-router"
 
 import {
@@ -11,6 +13,7 @@ import { Badge } from "@workspace/ui/components/badge"
 import { AnimatedPageHero } from "../../components/AnimatedHeroBg"
 import { NatureArtwork } from "../../components/NatureArtwork"
 import { getCabinArtworkVariant } from "../../components/natureArtworkData"
+import { getCabinPrimaryPhoto } from "../../components/cabinPhotos"
 
 export const Route = createFileRoute("/cabins/")({
   component: CabinsPage,
@@ -34,12 +37,9 @@ function CabinsPage() {
                 className="overflow-hidden rounded-[1.75rem] border border-border bg-white shadow-sm"
               >
                 <div className="grid md:grid-cols-[minmax(0,22rem)_1fr]">
-                  <NatureArtwork
-                    alt={`${cabin.name} illustrated accommodation at Netsurf Nature Park`}
-                    variant={getCabinArtworkVariant(cabin)}
-                    className={`aspect-[5/4] rounded-none border-0 md:aspect-auto ${
-                      index % 2 === 1 ? "md:order-2" : ""
-                    }`}
+                  <CabinCardPhoto
+                    cabin={cabin}
+                    flip={index % 2 === 1}
                   />
 
                   <div className="flex flex-col justify-between p-7">
@@ -132,5 +132,38 @@ function CabinsPage() {
         </div>
       </div>
     </>
+  )
+}
+
+function CabinCardPhoto({
+  cabin,
+  flip,
+}: {
+  cabin: Parameters<typeof getCabinArtworkVariant>[0]
+  flip: boolean
+}) {
+  const [imgFailed, setImgFailed] = useState(false)
+  const photo = getCabinPrimaryPhoto(cabin.slug)
+  const className = `aspect-[5/4] rounded-none border-0 md:aspect-auto w-full h-full object-cover${flip ? " md:order-2" : ""}`
+
+  if (photo && !imgFailed) {
+    return (
+      <img
+        src={photo}
+        alt={`${cabin.name} at Netsurf Nature Park`}
+        loading="lazy"
+        decoding="async"
+        onError={() => setImgFailed(true)}
+        className={className}
+      />
+    )
+  }
+
+  return (
+    <NatureArtwork
+      alt={`${cabin.name} at Netsurf Nature Park`}
+      variant={getCabinArtworkVariant(cabin)}
+      className={`aspect-[5/4] rounded-none border-0 md:aspect-auto${flip ? " md:order-2" : ""}`}
+    />
   )
 }

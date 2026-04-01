@@ -1,3 +1,5 @@
+import { useState } from "react"
+
 import { createFileRoute, Link, notFound } from "@tanstack/react-router"
 
 import { cabins, formatGYD, whatsappBookingLink } from "@workspace/shared"
@@ -8,6 +10,7 @@ import {
   type NatureArtworkVariant,
 } from "../../components/NatureArtwork"
 import { getCabinArtworkVariant } from "../../components/natureArtworkData"
+import { getCabinGalleryPhotos, getCabinPrimaryPhoto } from "../../components/cabinPhotos"
 import { WhatsAppIcon } from "../../components/WhatsAppIcon"
 
 export const Route = createFileRoute("/cabins/$slug")({
@@ -26,6 +29,8 @@ function CabinDetailPage() {
   const { cabin } = Route.useLoaderData()
   const baseVariant = getCabinArtworkVariant(cabin)
   const supportingVariants = buildSupportingVariants(baseVariant)
+  const primaryPhoto = getCabinPrimaryPhoto(cabin.slug)
+  const galleryPhotos = getCabinGalleryPhotos(cabin.slug)
 
   return (
     <div className="min-h-screen px-4 py-16">
@@ -48,12 +53,22 @@ function CabinDetailPage() {
           <span className="font-medium text-foreground">{cabin.name}</span>
         </nav>
 
-        <NatureArtwork
-          alt={`${cabin.name} hero illustration at Netsurf Nature Park`}
-          variant={baseVariant}
-          priority
-          className="aspect-[16/9] rounded-[2rem] border-[#C4941A22] bg-[#17330E]"
-        />
+        {primaryPhoto ? (
+          <img
+            src={primaryPhoto}
+            alt={`${cabin.name} at Netsurf Nature Park`}
+            loading="eager"
+            decoding="async"
+            className="aspect-[16/9] w-full rounded-[2rem] object-cover"
+          />
+        ) : (
+          <NatureArtwork
+            alt={`${cabin.name} at Netsurf Nature Park`}
+            variant={baseVariant}
+            priority
+            className="aspect-[16/9] rounded-[2rem] border-[#C4941A22] bg-[#17330E]"
+          />
+        )}
 
         <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-3">
           <div className="lg:col-span-2">
@@ -123,14 +138,23 @@ function CabinDetailPage() {
 
             <h2 className="mt-10 text-lg font-bold">A Feel for This Stay</h2>
             <div className="mt-4 grid grid-cols-2 gap-3">
-              {supportingVariants.map((variant, index) => (
-                <NatureArtwork
-                  key={`${variant}-${index}`}
-                  alt={`${cabin.name} atmosphere scene ${index + 1}`}
-                  variant={variant}
-                  className="aspect-[4/3] rounded-[1.25rem] border-[#C4941A18]"
-                />
-              ))}
+              {galleryPhotos.length > 0
+                ? galleryPhotos.map((src, index) => (
+                    <CabinGalleryPhoto
+                      key={src}
+                      src={src}
+                      alt={`${cabin.name} photo ${index + 1}`}
+                      fallbackVariant={supportingVariants[index] ?? baseVariant}
+                    />
+                  ))
+                : supportingVariants.map((variant, index) => (
+                    <NatureArtwork
+                      key={`${variant}-${index}`}
+                      alt={`${cabin.name} atmosphere scene ${index + 1}`}
+                      variant={variant}
+                      className="aspect-[4/3] rounded-[1.25rem] border-[#C4941A18]"
+                    />
+                  ))}
             </div>
           </div>
 
@@ -198,6 +222,39 @@ function CabinDetailPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+function CabinGalleryPhoto({
+  src,
+  alt,
+  fallbackVariant,
+}: {
+  src: string
+  alt: string
+  fallbackVariant: NatureArtworkVariant
+}) {
+  const [failed, setFailed] = useState(false)
+
+  if (failed) {
+    return (
+      <NatureArtwork
+        alt={alt}
+        variant={fallbackVariant}
+        className="aspect-[4/3] rounded-[1.25rem] border-[#C4941A18]"
+      />
+    )
+  }
+
+  return (
+    <img
+      src={src}
+      alt={alt}
+      loading="lazy"
+      decoding="async"
+      onError={() => setFailed(true)}
+      className="aspect-[4/3] w-full rounded-[1.25rem] object-cover"
+    />
   )
 }
 

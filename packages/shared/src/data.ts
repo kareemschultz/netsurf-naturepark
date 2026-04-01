@@ -27,13 +27,14 @@ export const cabins: Cabin[] = [
   {
     slug: "camping-site",
     name: "Camping Site",
-    priceGYD: 8000,
+    priceGYD: 5000,
     maxGuests: 4,
     category: "camping",
     tagline: "Sleep under a canopy of stars",
     description:
       "Fall asleep to the sounds of the blackwater creek and wake up to the chorus of tropical birds. Our camping sites are tucked within the rainforest, offering a true back-to-nature experience with shared facilities and fire pits.",
     features: [
+      "Per tent pricing",
       "Shared bathroom facilities",
       "Fire pit area",
       "Hammock hooks",
@@ -41,17 +42,17 @@ export const cabins: Cabin[] = [
       "100% solar-powered site lighting",
     ],
     whatsappText:
-      "Hi! I'd like to book the Camping Site at Netsurf Nature Park. Could you help me with availability?",
+      "Hi! I'd like to book a Camping Site at Netsurf Nature Park. Could you help me with availability?",
   },
   {
-    slug: "nature-cabin",
-    name: "Nature Cabin",
-    priceGYD: 15000,
-    maxGuests: 2,
+    slug: "couples-cabin",
+    name: "Couples Cabin",
+    priceGYD: 25000,
+    maxGuests: 3,
     category: "cabin",
     tagline: "Your private rainforest retreat",
     description:
-      "A cozy, solar-powered cabin perfectly suited for couples or solo travellers seeking peace in the rainforest. Step outside to the sound of the creek and the rustle of the canopy above.",
+      "A cozy, solar-powered cabin perfectly suited for couples seeking peace in the rainforest. Step outside to the sound of the creek and the rustle of the canopy above.",
     features: [
       "Private en-suite bathroom",
       "Solar power",
@@ -60,46 +61,108 @@ export const cabins: Cabin[] = [
       "Ideal for couples",
     ],
     whatsappText:
-      "Hi! I'd like to book the Nature Cabin at Netsurf Nature Park. Could you help me with availability?",
+      "Hi! I'd like to book the Couples Cabin at Netsurf Nature Park. Could you help me with availability?",
   },
   {
-    slug: "medium-cabin",
-    name: "Medium Cabin",
-    priceGYD: 18000,
-    maxGuests: 4,
+    slug: "couples-cabin-1",
+    name: "Couples Cabin No. 1",
+    priceGYD: 29800,
+    maxGuests: 3,
+    category: "cabin",
+    tagline: "Premium couples retreat in the rainforest",
+    description:
+      "Our premium couples cabin with enhanced finishes and a more secluded position on the property. Ideal for a special occasion or honeymoon-style getaway.",
+    features: [
+      "Private en-suite bathroom",
+      "Solar power",
+      "Premium interior finishes",
+      "Secluded creek-side position",
+      "Nature views",
+      "Pool access",
+    ],
+    whatsappText:
+      "Hi! I'd like to book Couples Cabin No. 1 at Netsurf Nature Park. Could you help me with availability?",
+  },
+  {
+    slug: "family-cabin",
+    name: "Family Cabin",
+    priceGYD: 39800,
+    maxGuests: 9,
     category: "cabin",
     tagline: "Space and comfort in the wild",
     description:
-      "The perfect family or small-group getaway. The Medium Cabin offers more space to spread out while staying immersed in the sights and sounds of the Guyanese rainforest.",
+      "The perfect family or small-group getaway. The Family Cabin offers more space to spread out while staying immersed in the sights and sounds of the Guyanese rainforest.",
     features: [
       "Private en-suite bathroom",
       "Solar power",
       "Kitchenette",
-      "Sleeping for up to 4 guests",
+      "Sleeping for up to 6 guests",
       "Creek access",
     ],
     whatsappText:
-      "Hi! I'd like to book the Medium Cabin at Netsurf Nature Park. Could you help me with availability?",
+      "Hi! I'd like to book the Family Cabin at Netsurf Nature Park. Could you help me with availability?",
+  },
+  {
+    slug: "family-cabin-full",
+    name: "Family Cabin (Full)",
+    priceGYD: 60000,
+    maxGuests: 12,
+    category: "cabin",
+    tagline: "The whole cabin, all to yourselves",
+    description:
+      "Book the full Family Cabin complex for larger groups — ideal for family reunions, group retreats, or an extended weekend deep in the Guyanese rainforest.",
+    features: [
+      "Full exclusive use",
+      "Private en-suite bathroom",
+      "Solar power",
+      "Kitchenette",
+      "Sleeping for up to 10 guests",
+      "Creek access",
+    ],
+    whatsappText:
+      "Hi! I'd like to book the Family Cabin (Full) at Netsurf Nature Park. Could you help me with availability?",
   },
   {
     slug: "hansel-and-gretel-cabin",
     name: "Hansel & Gretel Cabin",
-    priceGYD: 30000,
-    maxGuests: 6,
+    priceGYD: 55000,
+    maxGuests: 10,
     category: "cabin",
     tagline: "A fairytale deep in the rainforest",
     description:
       "Our signature cabin. The Hansel & Gretel is a storybook retreat with the most space and premium amenities on the property — ideal for larger families or groups who want to do it in style.",
     features: [
       "Full private kitchen",
+      "BBQ grill and coal pot included",
       "Multiple bedrooms",
       "Solar power",
       "Outdoor deck with rainforest views",
       "Creek access",
-      "Sleeps up to 6 guests",
+      "Sleeps up to 10 guests",
     ],
     whatsappText:
       "Hi! I'd like to book the Hansel & Gretel Cabin at Netsurf Nature Park. Could you help me with availability?",
+  },
+  {
+    slug: "ranch-building",
+    name: "Ranch Building",
+    priceGYD: 60000,
+    maxGuests: 18,
+    category: "cabin",
+    tagline: "Large-group venue in the rainforest",
+    description:
+      "Our largest accommodation — perfect for corporate retreats, large family gatherings, or group events. The Ranch Building offers generous shared space with full solar power and direct creek access.",
+    features: [
+      "Capacity for up to 18 guests",
+      "Individual pool access",
+      "Large shared common areas",
+      "Fully equipped kitchen",
+      "Solar power",
+      "Creek access",
+      "Ideal for group events",
+    ],
+    whatsappText:
+      "Hi! I'd like to enquire about the Ranch Building at Netsurf Nature Park. Could you help me with availability?",
   },
 ]
 
@@ -107,10 +170,10 @@ export const addOns: AddOn[] = [
   {
     slug: "day-pass",
     name: "Day Pass",
-    priceGYD: 5000,
+    priceGYD: 2000,
     category: "access",
     description:
-      "Spend the day exploring the park, swimming in the creek, and enjoying the rainforest.",
+      "Access to the park for the day. Adult $2,000 · Teen $1,500 · Child $1,000 · Under 5 free.",
     icon: "sun",
   },
   {
@@ -134,10 +197,19 @@ export const addOns: AddOn[] = [
   {
     slug: "bbq-package",
     name: "BBQ Package",
-    priceGYD: 8000,
+    priceGYD: 4500,
     category: "meal",
     description:
       "A full BBQ spread for your group — perfect for evenings by the fire.",
+    icon: "flame",
+  },
+  {
+    slug: "coal-pot",
+    name: "Coal Pot Rental",
+    priceGYD: 3500,
+    category: "meal",
+    description:
+      "Rent a traditional coal pot for your stay — great for slow-cooking a Guyanese meal at the campfire.",
     icon: "flame",
   },
   {
@@ -215,22 +287,25 @@ export const testimonials = [
 
 export const galleryImages = [
   {
-    src: "/images/gallery-1.jpg",
-    alt: "Blackwater creek at Netsurf Nature Park",
+    src: "/images/social/facebook-creek-deck.jpg",
+    alt: "Blackwater creek deck at Netsurf Nature Park",
   },
   {
-    src: "/images/gallery-2.jpg",
-    alt: "Rainforest canopy view from the cabins",
+    src: "/images/cabins/couples-night.jpg",
+    alt: "Couples Cabin at night — solar-lit exterior at Netsurf Nature Park",
   },
   {
-    src: "/images/gallery-3.jpg",
-    alt: "Nature cabin surrounded by tropical foliage",
+    src: "/images/cabins/family-exterior.jpg",
+    alt: "Family Cabin exterior surrounded by rainforest",
   },
   {
-    src: "/images/gallery-4.jpg",
-    alt: "Sunset over the Soesdyke-Linden Highway wetlands",
+    src: "/images/cabins/couples-interior.jpg",
+    alt: "Inside the Couples Cabin at Netsurf Nature Park",
   },
-  { src: "/images/gallery-5.jpg", alt: "Kayaking on the blackwater creek" },
+  {
+    src: "/images/cabins/ranch-exterior.jpg",
+    alt: "The Ranch Building — large group cabin at Netsurf Nature Park",
+  },
   { src: "/images/gallery-6.jpg", alt: "Campfire under the rainforest canopy" },
   {
     src: "/images/gallery-7.jpg",

@@ -6,9 +6,11 @@ export function getCabinArtworkVariant(cabin: Cabin): NatureArtworkVariant {
   switch (cabin.slug) {
     case "camping-site":
       return "camp"
-    case "nature-cabin":
+    case "couples-cabin":
+    case "couples-cabin-1":
       return "hideaway"
-    case "medium-cabin":
+    case "family-cabin":
+    case "family-cabin-full":
       return "family"
     case "hansel-and-gretel-cabin":
       return "signature"

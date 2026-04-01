@@ -65,7 +65,7 @@ export const adminRoleDefinitions: Record<AdminRoleSlug, AdminRoleDefinition> = 
     cabins: adminPermissionStatements.cabins,
   },
   manager: {
-    user: ["list", "get"],
+    user: ["list", "get", "create", "set-password"],
     session: ["list", "revoke"],
     dashboard: ["view"],
     bookings: ["view", "manage"],
@@ -83,7 +83,7 @@ export const adminRoleDefinitions: Record<AdminRoleSlug, AdminRoleDefinition> = 
     dashboard: ["view"],
     bookings: ["view", "manage"],
     calendar: ["view"],
-    blockedDates: ["view"],
+    blockedDates: ["view", "manage"],
     pos: ["view", "checkout"],
     sales: ["view"],
     cabins: ["view"],
@@ -123,11 +123,11 @@ export const adminRoleMeta: Record<
   },
   manager: {
     label: "Manager",
-    description: "Runs operations day to day with visibility into staff sessions.",
+    description: "Runs all operations day to day. Can create and manage staff accounts, bookings, POS, stock, and reporting. Cannot change user roles or ban accounts.",
   },
   front_desk: {
     label: "Front Desk",
-    description: "Handles reservations, guest changes, and walk-in checkout.",
+    description: "Handles reservations, cabin board, walk-in checkout, and can block dates for guests.",
   },
   pos_operator: {
     label: "POS Operator",
