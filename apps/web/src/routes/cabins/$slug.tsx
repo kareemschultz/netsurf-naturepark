@@ -5,6 +5,7 @@ import { createFileRoute, Link, notFound } from "@tanstack/react-router"
 import { cabins, formatGYD, whatsappBookingLink } from "@workspace/shared"
 import { Badge } from "@workspace/ui/components/badge"
 
+import { BlurFade } from "../../components/BlurFade"
 import {
   NatureArtwork,
   type NatureArtworkVariant,
@@ -120,9 +121,9 @@ function CabinDetailPage() {
 
             <h2 className="mt-10 text-lg font-bold">What's Included</h2>
             <ul className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
-              {cabin.features.map((feature) => (
+              {cabin.features.map((feature, i) => (
+                <BlurFade key={feature} delay={i * 0.07} inView>
                 <li
-                  key={feature}
                   className="flex items-center gap-3 rounded-2xl border border-border bg-white px-4 py-3 text-sm"
                 >
                   <span
@@ -133,6 +134,7 @@ function CabinDetailPage() {
                   </span>
                   {feature}
                 </li>
+                </BlurFade>
               ))}
             </ul>
 
@@ -140,25 +142,28 @@ function CabinDetailPage() {
             <div className="mt-4 grid grid-cols-2 gap-3">
               {galleryPhotos.length > 0
                 ? galleryPhotos.map((src, index) => (
+                    <BlurFade key={src} delay={index * 0.1} inView>
                     <CabinGalleryPhoto
-                      key={src}
                       src={src}
                       alt={`${cabin.name} photo ${index + 1}`}
                       fallbackVariant={supportingVariants[index] ?? baseVariant}
                     />
+                    </BlurFade>
                   ))
                 : supportingVariants.map((variant, index) => (
+                    <BlurFade key={`${variant}-${index}`} delay={index * 0.1} inView>
                     <NatureArtwork
-                      key={`${variant}-${index}`}
                       alt={`${cabin.name} atmosphere scene ${index + 1}`}
                       variant={variant}
                       className="aspect-[4/3] rounded-[1.25rem] border-[#C4941A18]"
                     />
+                    </BlurFade>
                   ))}
             </div>
           </div>
 
-          <aside className="lg:col-span-1">
+          <BlurFade delay={0.2} inView className="lg:col-span-1">
+          <aside>
             <div className="sticky top-24 rounded-[1.75rem] border border-border bg-white p-6 shadow-sm">
               <div className="mb-5 text-center">
                 <div
@@ -208,6 +213,7 @@ function CabinDetailPage() {
               </div>
             </div>
           </aside>
+          </BlurFade>
         </div>
 
         <div className="mt-12">

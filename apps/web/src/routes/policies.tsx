@@ -10,6 +10,7 @@ import {
 } from "@workspace/ui/components/tabs"
 
 import { AnimatedPageHero } from "../components/AnimatedHeroBg"
+import { BlurFade } from "../components/BlurFade"
 
 export const Route = createFileRoute("/policies")({
   component: PoliciesPage,
@@ -25,6 +26,7 @@ function PoliciesPage() {
       />
       <div className="min-h-screen px-4 py-12">
         <div className="mx-auto max-w-3xl">
+          <BlurFade inView>
           <Tabs defaultValue="policies" aria-label="Policies and terms tabs">
             <TabsList className="mb-6 grid h-auto w-full grid-cols-1 gap-2 bg-transparent p-0 sm:grid-cols-3">
               <TabsTrigger value="policies" className="w-full">
@@ -178,6 +180,7 @@ function PoliciesPage() {
               </PolicySection>
             </TabsContent>
           </Tabs>
+          </BlurFade>
         </div>
       </div>
     </>

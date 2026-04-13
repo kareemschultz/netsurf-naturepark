@@ -12,10 +12,12 @@ const navLinks = [
   { href: "/", label: "Home" },
   { href: "/cabins", label: "Cabins" },
   { href: "/activities", label: "Activities" },
+  { href: "/gallery", label: "Gallery" },
   { href: "/dining", label: "Dining" },
   { href: "/about", label: "About" },
   { href: "/contact", label: "Contact" },
   { href: "/policies", label: "Policies" },
+  { href: "/faq", label: "FAQ" },
 ]
 
 export function Navbar() {

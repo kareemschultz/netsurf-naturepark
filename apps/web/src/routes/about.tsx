@@ -3,6 +3,7 @@ import { createFileRoute, Link } from "@tanstack/react-router"
 import { contacts } from "@workspace/shared"
 
 import { AnimatedPageHero } from "../components/AnimatedHeroBg"
+import { BlurFade } from "../components/BlurFade"
 
 export const Route = createFileRoute("/about")({
   component: AboutPage,
@@ -27,6 +28,7 @@ function AboutPage() {
       <div className="min-h-screen px-4 py-12">
         <div className="mx-auto max-w-3xl">
           <div className="prose prose-sm max-w-none space-y-5 leading-relaxed text-foreground/80">
+            <BlurFade inView>
             <p>
               Netsurf Nature Park was born from a simple idea: that the most
               restorative thing you can do is step into a rainforest and stay
@@ -41,7 +43,9 @@ function AboutPage() {
               We chose this location deliberately. The rainforest here is intact,
               the creek is clean, and the night sky is genuinely dark.
             </p>
+            </BlurFade>
 
+            <BlurFade delay={0.2} inView>
             <figure
               className="my-8 rounded-2xl border-l-4 p-6"
               style={{ backgroundColor: "#FAF6F0", borderColor: "#2D5016" }}
@@ -55,7 +59,9 @@ function AboutPage() {
                 — Stephen Thompson, Founder
               </figcaption>
             </figure>
+            </BlurFade>
 
+            <BlurFade delay={0.1} inView>
             <p>
               Every unit on the property — the cabins, the camping areas, the
               outdoor kitchen, the lights along the creek path — runs on 100%
@@ -103,6 +109,7 @@ function AboutPage() {
               self-catering or on-request. The experience is what you make it.
               We&apos;re here to facilitate, not perform.
             </p>
+            </BlurFade>
           </div>
 
           <div

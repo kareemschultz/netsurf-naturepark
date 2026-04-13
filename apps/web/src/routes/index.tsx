@@ -16,7 +16,11 @@ import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar"
 import { Badge } from "@workspace/ui/components/badge"
 
 import { AnimateIn, StaggerItem, StaggerList } from "../components/AnimateIn"
+import { AnimatedCounter } from "../components/AnimatedCounter"
 import { AnimatedHeroBg } from "../components/AnimatedHeroBg"
+import { BlurFade } from "../components/BlurFade"
+import { Marquee } from "../components/Marquee"
+import { ShimmerButton } from "../components/ShimmerButton"
 import {
   NatureArtwork,
   type NatureArtworkVariant,
@@ -62,6 +66,7 @@ function HomePage() {
       <HeroSection />
       <BookingCTABar />
       <CabinsSection />
+      <StatsSection />
       <FeaturesSection />
       <GallerySection />
       <TestimonialsSection />
@@ -140,14 +145,16 @@ function HeroSection() {
             }}
             className="mt-8 flex flex-col justify-center gap-3 sm:flex-row lg:justify-start"
           >
-            <Link
-              to="/book"
-              search={{ cabin: undefined }}
-              className="inline-flex items-center justify-center gap-2 rounded-full px-7 py-3.5 font-bold text-white shadow-xl transition-transform hover:-translate-y-0.5"
-              style={{ backgroundColor: "#C4941A" }}
-            >
-              Reserve Your Stay
-              <ArrowRight />
+            <Link to="/book" search={{ cabin: undefined }}>
+              <ShimmerButton
+                shimmerColor="#fbbf24"
+                background="rgba(196, 148, 26, 1)"
+                borderRadius="9999px"
+                className="gap-2 px-7 py-3.5 font-bold shadow-xl"
+              >
+                Reserve Your Stay
+                <ArrowRight />
+              </ShimmerButton>
             </Link>
             <Link
               to="/cabins"
@@ -354,6 +361,42 @@ function CabinsSection() {
   )
 }
 
+const statsData = [
+  { value: 100, suffix: "% Solar", prefix: "", description: "Fully off-grid solar powered" },
+  { value: 7, suffix: " Cabins & Sites", prefix: "", description: "Accommodation options" },
+  { value: 8, suffix: " Experiences", prefix: "", description: "Activities & add-ons" },
+  { value: 2019, suffix: "", prefix: "Est. ", description: "Years of rainforest hosting" },
+] as const
+
+function StatsSection() {
+  return (
+    <section className="px-4 py-16" style={{ backgroundColor: "#2D5016" }}>
+      <div className="mx-auto max-w-5xl">
+        <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
+          {statsData.map((stat, i) => (
+            <BlurFade key={stat.suffix || stat.prefix} delay={i * 0.08} inView>
+              <div className="text-center">
+                <p className="text-3xl font-black text-white sm:text-4xl">
+                  <AnimatedCounter
+                    value={stat.value}
+                    suffix={stat.suffix}
+                    prefix={stat.prefix}
+                    delay={i * 0.08}
+                    className="text-white"
+                  />
+                </p>
+                <p className="mt-2 text-xs leading-snug text-white/60">
+                  {stat.description}
+                </p>
+              </div>
+            </BlurFade>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
 function FeaturesSection() {
   const iconMap: Record<string, string> = {
     solar: "Solar",
@@ -513,52 +556,49 @@ function SocialPhoto({
 
 function TestimonialsSection() {
   return (
-    <section className="px-4 py-20" style={{ backgroundColor: "#FAF6F0" }}>
-      <div className="mx-auto max-w-5xl">
+    <section className="overflow-hidden py-20" style={{ backgroundColor: "#FAF6F0" }}>
+      <div className="mx-auto max-w-5xl px-4">
         <SectionHeader
           label="Stories from the Creek"
           title="Guests Who Found Their Peace"
         />
-
-        <StaggerList className="mt-12 grid grid-cols-1 gap-6 md:grid-cols-3">
-          {testimonials.map((testimonial) => (
-            <StaggerItem key={testimonial.id}>
-              <motion.blockquote
-                className="flex h-full flex-col rounded-[1.75rem] border border-border bg-white p-6 shadow-sm"
-                whileHover={{ y: -4 }}
-                transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
-              >
-                <div className="mb-4 flex gap-0.5">
-                  {Array.from({ length: testimonial.rating }).map(
-                    (_, index) => (
-                      <StarIcon key={index} />
-                    )
-                  )}
-                </div>
-                <p className="flex-1 text-sm leading-relaxed text-foreground/80">
-                  "{testimonial.text}"
-                </p>
-                <footer className="mt-5 flex items-center gap-3">
-                  <Avatar className="h-9 w-9">
-                    <AvatarFallback
-                      className="text-xs font-bold text-white"
-                      style={{ backgroundColor: "#2D5016" }}
-                    >
-                      {testimonial.name.charAt(0)}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <p className="text-sm font-bold">{testimonial.name}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {testimonial.location}
-                    </p>
-                  </div>
-                </footer>
-              </motion.blockquote>
-            </StaggerItem>
-          ))}
-        </StaggerList>
       </div>
+
+      <Marquee pauseOnHover repeat={3} className="mt-12 [--duration:50s]">
+        {testimonials.map((testimonial) => (
+          <motion.blockquote
+            key={testimonial.id}
+            className="flex w-72 shrink-0 flex-col rounded-[1.75rem] border border-border bg-white p-6 shadow-sm"
+            whileHover={{ y: -4 }}
+            transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] }}
+          >
+            <div className="mb-4 flex gap-0.5">
+              {Array.from({ length: testimonial.rating }).map((_, index) => (
+                <StarIcon key={index} />
+              ))}
+            </div>
+            <p className="flex-1 text-sm leading-relaxed text-foreground/80">
+              &ldquo;{testimonial.text}&rdquo;
+            </p>
+            <footer className="mt-5 flex items-center gap-3">
+              <Avatar className="h-9 w-9">
+                <AvatarFallback
+                  className="text-xs font-bold text-white"
+                  style={{ backgroundColor: "#2D5016" }}
+                >
+                  {testimonial.name.charAt(0)}
+                </AvatarFallback>
+              </Avatar>
+              <div>
+                <p className="text-sm font-bold">{testimonial.name}</p>
+                <p className="text-xs text-muted-foreground">
+                  {testimonial.location}
+                </p>
+              </div>
+            </footer>
+          </motion.blockquote>
+        ))}
+      </Marquee>
     </section>
   )
 }
@@ -692,13 +732,15 @@ function SectionHeader({
           {label}
         </span>
       )}
-      <h2
-        className={`mt-2 text-3xl leading-tight font-black text-balance sm:text-4xl ${
-          light ? "text-white" : "text-foreground"
-        }`}
-      >
-        {title}
-      </h2>
+      <BlurFade delay={0.1} inView>
+        <h2
+          className={`mt-2 text-3xl leading-tight font-black text-balance sm:text-4xl ${
+            light ? "text-white" : "text-foreground"
+          }`}
+        >
+          {title}
+        </h2>
+      </BlurFade>
       {subtitle && (
         <p
           className={`mt-3 text-sm leading-relaxed text-pretty ${

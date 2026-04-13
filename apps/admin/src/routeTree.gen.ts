@@ -22,6 +22,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as StockTransfersIndexRouteImport } from './routes/stock-transfers/index'
 import { Route as SalesIndexRouteImport } from './routes/sales/index'
 import { Route as ProductsIndexRouteImport } from './routes/products/index'
+import { Route as GalleryIndexRouteImport } from './routes/gallery/index'
 import { Route as BookingsIndexRouteImport } from './routes/bookings/index'
 import { Route as StockTransfersNewRouteImport } from './routes/stock-transfers/new'
 import { Route as StockTransfersIdRouteImport } from './routes/stock-transfers/$id'
@@ -95,6 +96,11 @@ const ProductsIndexRoute = ProductsIndexRouteImport.update({
   path: '/products/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const GalleryIndexRoute = GalleryIndexRouteImport.update({
+  id: '/gallery/',
+  path: '/gallery/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const BookingsIndexRoute = BookingsIndexRouteImport.update({
   id: '/bookings/',
   path: '/bookings/',
@@ -149,6 +155,7 @@ export interface FileRoutesByFullPath {
   '/stock-transfers/$id': typeof StockTransfersIdRoute
   '/stock-transfers/new': typeof StockTransfersNewRoute
   '/bookings/': typeof BookingsIndexRoute
+  '/gallery/': typeof GalleryIndexRoute
   '/products/': typeof ProductsIndexRoute
   '/sales/': typeof SalesIndexRoute
   '/stock-transfers/': typeof StockTransfersIndexRoute
@@ -171,6 +178,7 @@ export interface FileRoutesByTo {
   '/stock-transfers/$id': typeof StockTransfersIdRoute
   '/stock-transfers/new': typeof StockTransfersNewRoute
   '/bookings': typeof BookingsIndexRoute
+  '/gallery': typeof GalleryIndexRoute
   '/products': typeof ProductsIndexRoute
   '/sales': typeof SalesIndexRoute
   '/stock-transfers': typeof StockTransfersIndexRoute
@@ -194,6 +202,7 @@ export interface FileRoutesById {
   '/stock-transfers/$id': typeof StockTransfersIdRoute
   '/stock-transfers/new': typeof StockTransfersNewRoute
   '/bookings/': typeof BookingsIndexRoute
+  '/gallery/': typeof GalleryIndexRoute
   '/products/': typeof ProductsIndexRoute
   '/sales/': typeof SalesIndexRoute
   '/stock-transfers/': typeof StockTransfersIndexRoute
@@ -218,6 +227,7 @@ export interface FileRouteTypes {
     | '/stock-transfers/$id'
     | '/stock-transfers/new'
     | '/bookings/'
+    | '/gallery/'
     | '/products/'
     | '/sales/'
     | '/stock-transfers/'
@@ -240,6 +250,7 @@ export interface FileRouteTypes {
     | '/stock-transfers/$id'
     | '/stock-transfers/new'
     | '/bookings'
+    | '/gallery'
     | '/products'
     | '/sales'
     | '/stock-transfers'
@@ -262,6 +273,7 @@ export interface FileRouteTypes {
     | '/stock-transfers/$id'
     | '/stock-transfers/new'
     | '/bookings/'
+    | '/gallery/'
     | '/products/'
     | '/sales/'
     | '/stock-transfers/'
@@ -285,6 +297,7 @@ export interface RootRouteChildren {
   StockTransfersIdRoute: typeof StockTransfersIdRoute
   StockTransfersNewRoute: typeof StockTransfersNewRoute
   BookingsIndexRoute: typeof BookingsIndexRoute
+  GalleryIndexRoute: typeof GalleryIndexRoute
   ProductsIndexRoute: typeof ProductsIndexRoute
   SalesIndexRoute: typeof SalesIndexRoute
   StockTransfersIndexRoute: typeof StockTransfersIndexRoute
@@ -383,6 +396,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProductsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/gallery/': {
+      id: '/gallery/'
+      path: '/gallery'
+      fullPath: '/gallery/'
+      preLoaderRoute: typeof GalleryIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/bookings/': {
       id: '/bookings/'
       path: '/bookings'
@@ -453,6 +473,7 @@ const rootRouteChildren: RootRouteChildren = {
   StockTransfersIdRoute: StockTransfersIdRoute,
   StockTransfersNewRoute: StockTransfersNewRoute,
   BookingsIndexRoute: BookingsIndexRoute,
+  GalleryIndexRoute: GalleryIndexRoute,
   ProductsIndexRoute: ProductsIndexRoute,
   SalesIndexRoute: SalesIndexRoute,
   StockTransfersIndexRoute: StockTransfersIndexRoute,

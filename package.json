@@ -28,7 +28,7 @@
     "@fontsource-variable/nunito": "^5.2.7",
     "@tanstack/react-router": "^1.168.7",
     "@tanstack/router-vite-plugin": "^1.166.23",
-    "@workspace/ui": "workspace:*",
+    "class-variance-authority": "^0.7.1",
     "date-fns": "^4.1.0",
     "framer-motion": "^12.38.0",
     "react-day-picker": "^9.14.0"

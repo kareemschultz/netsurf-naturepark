@@ -2,6 +2,7 @@ import type { ChangeEvent, FormEvent, ReactNode } from "react";
 import { useDeferredValue, useEffect, useMemo, useState, useTransition } from "react";
 import { format } from "date-fns";
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { type ColumnDef } from "@tanstack/react-table";
 import {
   banStaffUser,
   createStaffUser,
@@ -30,9 +31,9 @@ import {
   MetricCard,
   PageHeader,
   PageSection,
-  SearchField,
   SectionTitle,
 } from "@/components/AdminUI";
+import { DataTable } from "@/components/data-table";
 import {
   adminRoleMeta,
   defaultAdminRole,
@@ -474,6 +475,72 @@ function UsersPage() {
     }
   }
 
+  // Direct-action handlers for DataTable row actions (operate on an explicit user, not selectedUser)
+  async function handleBanUser(user: AdminUserRecord) {
+    if (!canBanUsers || user.id === session?.user.id) return;
+
+    setBusyAction("ban");
+    setNotice(null);
+
+    try {
+      await banStaffUser(user.id, "Access removed");
+      setNotice({ tone: "amber", message: `${user.name} has been suspended.` });
+      await refreshUsers(selectedUserId);
+    } catch (error) {
+      setNotice({
+        tone: "red",
+        message: (error as Error).message || "Unable to suspend account.",
+      });
+    } finally {
+      setBusyAction(null);
+    }
+  }
+
+  async function handleUnbanUser(user: AdminUserRecord) {
+    if (!canBanUsers || user.id === session?.user.id) return;
+
+    setBusyAction("ban");
+    setNotice(null);
+
+    try {
+      await unbanStaffUser(user.id);
+      setNotice({ tone: "green", message: `${user.name} can sign in again.` });
+      await refreshUsers(selectedUserId);
+    } catch (error) {
+      setNotice({
+        tone: "red",
+        message: (error as Error).message || "Unable to restore account.",
+      });
+    } finally {
+      setBusyAction(null);
+    }
+  }
+
+  async function handleDeleteUserDirect(user: AdminUserRecord) {
+    if (!canDeleteUsers || user.id === session?.user.id) return;
+
+    const confirmed = window.confirm(
+      `Delete ${user.name}? This removes the user record and their sessions.`
+    );
+    if (!confirmed) return;
+
+    setBusyAction("delete");
+    setNotice(null);
+
+    try {
+      await removeStaffUser(user.id);
+      setNotice({ tone: "amber", message: `${user.name} was deleted.` });
+      await refreshUsers(null);
+    } catch (error) {
+      setNotice({
+        tone: "red",
+        message: (error as Error).message || "Unable to delete user.",
+      });
+    } finally {
+      setBusyAction(null);
+    }
+  }
+
   return (
     <AdminPage className="max-w-[1580px]">
       <PageHeader
@@ -632,96 +699,38 @@ function UsersPage() {
               description="Search by name or email, then narrow the list by role to find the right account quickly."
             />
 
-            <div className="space-y-4">
-              <SearchField
-                value={search}
-                onChange={(event) => setSearch(event.target.value)}
-                placeholder="Search staff name or email"
-                label="Search staff"
-              />
-
-              <div className="admin-scrollbar flex gap-2 overflow-x-auto pb-1">
+            <div className="admin-scrollbar flex flex-wrap gap-2 overflow-x-auto pb-1">
+              <FilterChip
+                active={roleFilter === "all"}
+                onClick={() => setRoleFilter("all")}
+              >
+                All roles
+              </FilterChip>
+              {roleOptions.map(([role, meta]) => (
                 <FilterChip
-                  active={roleFilter === "all"}
-                  onClick={() => setRoleFilter("all")}
+                  key={role}
+                  active={roleFilter === role}
+                  onClick={() => setRoleFilter(role)}
                 >
-                  All roles
+                  {meta.label}
                 </FilterChip>
-                {roleOptions.map(([role, meta]) => (
-                  <FilterChip
-                    key={role}
-                    active={roleFilter === role}
-                    onClick={() => setRoleFilter(role)}
-                  >
-                    {meta.label}
-                  </FilterChip>
-                ))}
-              </div>
+              ))}
             </div>
 
-            <div className="admin-scrollbar mt-5 max-h-[720px] space-y-3 overflow-y-auto pr-1">
-              {loadingUsers ? (
-                Array.from({ length: 5 }).map((_, index) => (
-                  <div
-                    key={index}
-                    className="h-24 animate-pulse rounded-[1.5rem] border border-border bg-white/70"
-                  />
-                ))
-              ) : users.length === 0 ? (
-                <EmptyState
-                  title="No staff users match this view"
-                  description="Change the role filter or search term to widen the result set."
-                />
-              ) : (
-                users.map((user) => {
-                  const role = toRoleSlug(user.role);
-                  const active = user.id === selectedUserId;
-                  const isViewer = user.id === session?.user.id;
-
-                  return (
-                    <button
-                      key={user.id}
-                      type="button"
-                      onClick={() => setSelectedUserId(user.id)}
-                      className={cn(
-                        "w-full rounded-[1.5rem] border p-4 text-left transition-[border-color,background-color,transform,box-shadow]",
-                        active
-                          ? "border-primary/22 bg-primary/8 shadow-[0_20px_35px_rgb(22_43_12_/10%)]"
-                          : "border-primary/10 bg-white/74 hover:-translate-y-0.5 hover:border-primary/16 hover:bg-white"
-                      )}
-                    >
-                      <div className="flex items-start gap-3">
-                        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-primary/12 bg-primary/8 text-sm font-black text-primary">
-                          {getInitials(user)}
-                        </div>
-
-                        <div className="min-w-0 flex-1">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <p className="truncate text-base font-bold text-foreground">
-                              {user.name}
-                            </p>
-                            <InfoPill tone="neutral">
-                              {adminRoleMeta[role].label}
-                            </InfoPill>
-                            {user.banned ? (
-                              <InfoPill tone="red">Suspended</InfoPill>
-                            ) : null}
-                            {isViewer ? <InfoPill tone="green">You</InfoPill> : null}
-                          </div>
-
-                          <p className="mt-2 truncate text-sm text-muted-foreground">
-                            {user.email}
-                          </p>
-                          <p className="mt-1 text-sm text-muted-foreground">
-                            @{user.username || "username pending"} · Added{" "}
-                            {formatTimestamp(user.createdAt)}
-                          </p>
-                        </div>
-                      </div>
-                    </button>
-                  );
-                })
-              )}
+            <div className="mt-5">
+              <UsersTable
+                users={users}
+                isLoading={loadingUsers}
+                selectedUserId={selectedUserId}
+                sessionUserId={session?.user.id}
+                canBanUsers={canBanUsers}
+                canDeleteUsers={canDeleteUsers}
+                busyAction={busyAction}
+                onSelect={setSelectedUserId}
+                onBanUser={handleBanUser}
+                onUnbanUser={handleUnbanUser}
+                onDeleteUser={handleDeleteUserDirect}
+              />
             </div>
           </PageSection>
         </div>
@@ -1088,6 +1097,196 @@ function UsersPage() {
         </div>
       ) : null}
     </AdminPage>
+  );
+}
+
+function UsersTable({
+  users,
+  isLoading,
+  selectedUserId,
+  sessionUserId,
+  canBanUsers,
+  canDeleteUsers,
+  busyAction,
+  onSelect,
+  onBanUser,
+  onUnbanUser,
+  onDeleteUser,
+}: {
+  users: AdminUserRecord[];
+  isLoading: boolean;
+  selectedUserId: string | null;
+  sessionUserId?: string;
+  canBanUsers: boolean;
+  canDeleteUsers: boolean;
+  busyAction: string | null;
+  onSelect: (id: string) => void;
+  onBanUser: (user: AdminUserRecord) => void;
+  onUnbanUser: (user: AdminUserRecord) => void;
+  onDeleteUser: (user: AdminUserRecord) => void;
+}) {
+  const columns = useMemo<ColumnDef<AdminUserRecord>[]>(
+    () => [
+      {
+        id: "user",
+        accessorFn: (row) => `${row.name} ${row.email}`,
+        header: "User",
+        cell: ({ row }) => {
+          const user = row.original;
+          const isCurrentSession = user.id === sessionUserId;
+          return (
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-1.5">
+                <span className="font-semibold text-foreground">{user.name}</span>
+                {user.banned && (
+                  <span className="rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-bold text-red-700">
+                    Suspended
+                  </span>
+                )}
+                {isCurrentSession && (
+                  <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold text-primary">
+                    You
+                  </span>
+                )}
+              </div>
+              <p className="mt-0.5 truncate text-xs text-muted-foreground">
+                {user.email}
+              </p>
+            </div>
+          );
+        },
+      },
+      {
+        id: "username",
+        accessorKey: "username",
+        header: "Username",
+        cell: ({ row }) => (
+          <span className="font-mono text-sm text-muted-foreground">
+            @{row.original.username || "—"}
+          </span>
+        ),
+      },
+      {
+        id: "role",
+        accessorKey: "role",
+        header: "Role",
+        cell: ({ row }) => {
+          const role = isAdminRoleSlug(row.original.role)
+            ? row.original.role
+            : defaultAdminRole;
+          return (
+            <span className="rounded-full bg-primary/6 px-2.5 py-1 text-xs font-semibold text-foreground">
+              {adminRoleMeta[role].label}
+            </span>
+          );
+        },
+      },
+      {
+        id: "status",
+        accessorFn: (row) => (row.banned ? "Suspended" : "Active"),
+        header: "Status",
+        cell: ({ row }) =>
+          row.original.banned ? (
+            <span className="rounded-full bg-red-100 px-2.5 py-1 text-xs font-bold text-red-700">
+              Suspended
+            </span>
+          ) : (
+            <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-bold text-emerald-700">
+              Active
+            </span>
+          ),
+      },
+      {
+        id: "created",
+        accessorKey: "createdAt",
+        header: "Created",
+        cell: ({ row }) => (
+          <span className="text-xs text-muted-foreground">
+            {format(new Date(row.original.createdAt), "d MMM yyyy")}
+          </span>
+        ),
+      },
+      {
+        id: "actions",
+        header: "Actions",
+        enableHiding: false,
+        cell: ({ row }) => {
+          const user = row.original;
+          const isCurrentSession = user.id === sessionUserId;
+          const isSelected = user.id === selectedUserId;
+
+          return (
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onSelect(user.id);
+                }}
+                className={cn(
+                  "rounded-full px-3 py-1.5 text-xs font-bold transition-colors",
+                  isSelected
+                    ? "bg-primary text-white"
+                    : "admin-button-secondary"
+                )}
+              >
+                {isSelected ? "Selected" : "Edit"}
+              </button>
+
+              {canBanUsers && !isCurrentSession && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (user.banned) {
+                      onUnbanUser(user);
+                    } else {
+                      onBanUser(user);
+                    }
+                  }}
+                  disabled={busyAction === "ban"}
+                  className={cn(
+                    "rounded-full px-3 py-1.5 text-xs font-bold disabled:cursor-not-allowed disabled:opacity-50",
+                    user.banned
+                      ? "bg-emerald-100 text-emerald-700"
+                      : "bg-amber-100 text-amber-700"
+                  )}
+                >
+                  {user.banned ? "Unban" : "Ban"}
+                </button>
+              )}
+
+              {canDeleteUsers && !isCurrentSession && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDeleteUser(user);
+                  }}
+                  disabled={busyAction === "delete"}
+                  className="rounded-full bg-red-100 px-3 py-1.5 text-xs font-bold text-red-700 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  Delete
+                </button>
+              )}
+            </div>
+          );
+        },
+      },
+    ],
+    [selectedUserId, sessionUserId, canBanUsers, canDeleteUsers, busyAction, onSelect, onBanUser, onUnbanUser, onDeleteUser]
+  );
+
+  return (
+    <DataTable
+      columns={columns}
+      data={users}
+      isLoading={isLoading}
+      searchKey="user"
+      searchPlaceholder="Search by name or email…"
+      onRowClick={(user) => onSelect(user.id)}
+      pageSize={25}
+    />
   );
 }
 

@@ -75,10 +75,12 @@ export function Footer() {
               {[
                 { href: "/cabins", label: "Cabins & Camping" },
                 { href: "/activities", label: "Activities" },
+                { href: "/gallery", label: "Gallery" },
                 { href: "/dining", label: "Dining" },
                 { href: "/about", label: "About Us" },
                 { href: "/contact", label: "Getting There" },
                 { href: "/policies", label: "Policies" },
+                { href: "/faq", label: "FAQ" },
               ].map((link) => (
                 <li key={link.href}>
                   <Link

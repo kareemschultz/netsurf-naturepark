@@ -5,7 +5,7 @@ interface AnimateInProps {
   children: ReactNode
   delay?: number
   className?: string
-  from?: "bottom" | "left" | "right" | "top" | "scale"
+  from?: "bottom" | "left" | "right" | "top" | "scale" | "blur" | "blur-up"
 }
 
 const variants = {
@@ -16,6 +16,14 @@ const variants = {
   scale: {
     hidden: { opacity: 0, scale: 0.92 },
     show: { opacity: 1, scale: 1 },
+  },
+  blur: {
+    hidden: { opacity: 0, filter: "blur(8px)", y: 8 },
+    show: { opacity: 1, filter: "blur(0px)", y: 0 },
+  },
+  "blur-up": {
+    hidden: { opacity: 0, filter: "blur(12px)", y: 24 },
+    show: { opacity: 1, filter: "blur(0px)", y: 0 },
   },
 }
 

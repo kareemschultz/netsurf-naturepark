@@ -1,6 +1,8 @@
 import type { ReactNode } from "react";
 import { useEffect, useMemo, useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { type ColumnDef } from "@tanstack/react-table";
+import { format } from "date-fns";
 import {
   getDailySalesSummary,
   getSales,
@@ -18,6 +20,7 @@ import {
   PageSection,
   SectionTitle,
 } from "@/components/AdminUI";
+import { DataTable } from "@/components/data-table";
 import { downloadCsv, exportPrintableReport } from "@/lib/export";
 import { formatGYD } from "@workspace/shared";
 
@@ -352,92 +355,116 @@ function SalesPage() {
         />
       </div>
 
-      <PageSection className="p-0">
-        <div className="px-6 pb-0 pt-6 sm:px-7 sm:pt-7">
-          <SectionTitle
-            title="Sales Ledger"
-            description="Open any transaction for full line-item detail, payment history, or void review."
-          />
-        </div>
+      <PageSection className="p-6 sm:p-7">
+        <SectionTitle
+          title="Sales Ledger"
+          description="Open any transaction for full line-item detail, payment history, or void review."
+        />
 
-        {loading ? (
-          <div className="px-6 pb-7 pt-4 text-center text-sm text-muted-foreground sm:px-7">
-            Loading sales…
-          </div>
-        ) : sales.length === 0 ? (
-          <div className="px-6 pb-7 pt-2 sm:px-7">
-            <EmptyState
-              title="No sales found"
-              description="Try another date window or toggle the ledger filter to expand the current view."
-            />
-          </div>
+        {!loading && sales.length === 0 ? (
+          <EmptyState
+            title="No sales found"
+            description="Try another date window or toggle the ledger filter to expand the current view."
+          />
         ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-full text-sm">
-              <thead>
-                <tr className="border-y border-primary/8 bg-primary/4">
-                  <th className="px-5 py-4 text-left text-[11px] font-bold tracking-[0.18em] text-muted-foreground uppercase">
-                    Sale #
-                  </th>
-                  <th className="px-5 py-4 text-left text-[11px] font-bold tracking-[0.18em] text-muted-foreground uppercase">
-                    Time
-                  </th>
-                  <th className="px-5 py-4 text-left text-[11px] font-bold tracking-[0.18em] text-muted-foreground uppercase">
-                    Items
-                  </th>
-                  <th className="px-5 py-4 text-left text-[11px] font-bold tracking-[0.18em] text-muted-foreground uppercase">
-                    Total
-                  </th>
-                  <th className="px-5 py-4 text-left text-[11px] font-bold tracking-[0.18em] text-muted-foreground uppercase">
-                    Payment
-                  </th>
-                  <th className="px-5 py-4 text-left text-[11px] font-bold tracking-[0.18em] text-muted-foreground uppercase">
-                    Status
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-primary/8">
-                {sales.map((sale) => (
-                  <tr
-                    key={sale.id}
-                    onClick={() =>
-                      navigate({
-                        to: "/sales/$id",
-                        params: { id: String(sale.id) },
-                      })
-                    }
-                    className={`cursor-pointer transition-[background-color] hover:bg-primary/3 ${
-                      sale.voided ? "bg-red-50/50" : ""
-                    }`}
-                  >
-                    <td className="px-5 py-4 font-semibold text-foreground">
-                      {sale.saleNumber}
-                    </td>
-                    <td className="px-5 py-4 text-muted-foreground">
-                      {new Date(sale.createdAt).toLocaleString()}
-                    </td>
-                    <td className="px-5 py-4 tabular-nums text-foreground">
-                      {sale.itemsCount}
-                    </td>
-                    <td className="px-5 py-4 font-semibold tabular-nums text-foreground">
-                      {formatGYD(sale.totalGyd)}
-                    </td>
-                    <td className="px-5 py-4 text-muted-foreground">
-                      {sale.paymentMethod ?? "Split"}
-                    </td>
-                    <td className="px-5 py-4">
-                      <InfoPill tone={sale.voided ? "red" : "green"}>
-                        {sale.voided ? "Voided" : "Completed"}
-                      </InfoPill>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <SalesLedgerTable
+            sales={sales}
+            isLoading={loading}
+            onRowClick={(sale) =>
+              navigate({ to: "/sales/$id", params: { id: String(sale.id) } })
+            }
+          />
         )}
       </PageSection>
     </AdminPage>
+  );
+}
+
+function SalesLedgerTable({
+  sales,
+  isLoading,
+  onRowClick,
+}: {
+  sales: SaleRecord[];
+  isLoading: boolean;
+  onRowClick: (sale: SaleRecord) => void;
+}) {
+  const columns = useMemo<ColumnDef<SaleRecord>[]>(
+    () => [
+      {
+        id: "saleNumber",
+        accessorKey: "saleNumber",
+        header: "Sale #",
+        cell: ({ row }) => (
+          <span className="font-semibold text-foreground">
+            {row.original.saleNumber}
+          </span>
+        ),
+      },
+      {
+        id: "date",
+        accessorKey: "createdAt",
+        header: "Date",
+        cell: ({ row }) => (
+          <span className="text-muted-foreground">
+            {format(new Date(row.original.createdAt), "d MMM yyyy, h:mm a")}
+          </span>
+        ),
+      },
+      {
+        id: "items",
+        accessorKey: "itemsCount",
+        header: "Items",
+        cell: ({ row }) => (
+          <span className="tabular-nums text-foreground">
+            {row.original.itemsCount}
+          </span>
+        ),
+      },
+      {
+        id: "total",
+        accessorKey: "totalGyd",
+        header: "Total",
+        cell: ({ row }) => (
+          <span className="font-semibold tabular-nums text-foreground">
+            {formatGYD(row.original.totalGyd)}
+          </span>
+        ),
+      },
+      {
+        id: "payment",
+        accessorKey: "paymentMethod",
+        header: "Payment",
+        cell: ({ row }) => (
+          <span className="rounded-full bg-primary/6 px-2.5 py-1 text-xs font-semibold text-foreground">
+            {row.original.paymentMethod ?? "Split"}
+          </span>
+        ),
+      },
+      {
+        id: "status",
+        accessorKey: "voided",
+        header: "Status",
+        cell: ({ row }) => (
+          <InfoPill tone={row.original.voided ? "red" : "green"}>
+            {row.original.voided ? "Voided" : "Completed"}
+          </InfoPill>
+        ),
+      },
+    ],
+    []
+  );
+
+  return (
+    <DataTable
+      columns={columns}
+      data={sales}
+      isLoading={isLoading}
+      searchKey="saleNumber"
+      searchPlaceholder="Search by sale number…"
+      onRowClick={onRowClick}
+      pageSize={25}
+    />
   );
 }
 
