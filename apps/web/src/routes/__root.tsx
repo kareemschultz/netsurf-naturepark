@@ -4,9 +4,36 @@ import { MotionConfig } from "framer-motion"
 import { Navbar } from "@/components/Navbar"
 import { Footer } from "@/components/Footer"
 import { WhatsAppFAB } from "@/components/WhatsAppFAB"
+import { ErrorPage } from "@/components/ErrorPage"
+
+function NotFoundPage() {
+  return (
+    <div className="flex min-h-screen flex-col">
+      <Navbar />
+      <main className="flex-1">
+        <ErrorPage code={404} />
+      </main>
+      <Footer />
+    </div>
+  )
+}
+
+function RootErrorPage() {
+  return (
+    <div className="flex min-h-screen flex-col">
+      <Navbar />
+      <main className="flex-1">
+        <ErrorPage code={500} />
+      </main>
+      <Footer />
+    </div>
+  )
+}
 
 export const Route = createRootRoute({
   component: RootLayout,
+  notFoundComponent: NotFoundPage,
+  errorComponent: RootErrorPage,
 })
 
 function RootLayout() {

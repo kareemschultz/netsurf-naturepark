@@ -10,6 +10,8 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as PoliciesRouteImport } from './routes/policies'
+import { Route as GalleryRouteImport } from './routes/gallery'
+import { Route as FaqRouteImport } from './routes/faq'
 import { Route as DiningRouteImport } from './routes/dining'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as BookRouteImport } from './routes/book'
@@ -22,6 +24,16 @@ import { Route as CabinsSlugRouteImport } from './routes/cabins/$slug'
 const PoliciesRoute = PoliciesRouteImport.update({
   id: '/policies',
   path: '/policies',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GalleryRoute = GalleryRouteImport.update({
+  id: '/gallery',
+  path: '/gallery',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FaqRoute = FaqRouteImport.update({
+  id: '/faq',
+  path: '/faq',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DiningRoute = DiningRouteImport.update({
@@ -72,6 +84,8 @@ export interface FileRoutesByFullPath {
   '/book': typeof BookRoute
   '/contact': typeof ContactRoute
   '/dining': typeof DiningRoute
+  '/faq': typeof FaqRoute
+  '/gallery': typeof GalleryRoute
   '/policies': typeof PoliciesRoute
   '/cabins/$slug': typeof CabinsSlugRoute
   '/cabins/': typeof CabinsIndexRoute
@@ -83,6 +97,8 @@ export interface FileRoutesByTo {
   '/book': typeof BookRoute
   '/contact': typeof ContactRoute
   '/dining': typeof DiningRoute
+  '/faq': typeof FaqRoute
+  '/gallery': typeof GalleryRoute
   '/policies': typeof PoliciesRoute
   '/cabins/$slug': typeof CabinsSlugRoute
   '/cabins': typeof CabinsIndexRoute
@@ -95,6 +111,8 @@ export interface FileRoutesById {
   '/book': typeof BookRoute
   '/contact': typeof ContactRoute
   '/dining': typeof DiningRoute
+  '/faq': typeof FaqRoute
+  '/gallery': typeof GalleryRoute
   '/policies': typeof PoliciesRoute
   '/cabins/$slug': typeof CabinsSlugRoute
   '/cabins/': typeof CabinsIndexRoute
@@ -108,6 +126,8 @@ export interface FileRouteTypes {
     | '/book'
     | '/contact'
     | '/dining'
+    | '/faq'
+    | '/gallery'
     | '/policies'
     | '/cabins/$slug'
     | '/cabins/'
@@ -119,6 +139,8 @@ export interface FileRouteTypes {
     | '/book'
     | '/contact'
     | '/dining'
+    | '/faq'
+    | '/gallery'
     | '/policies'
     | '/cabins/$slug'
     | '/cabins'
@@ -130,6 +152,8 @@ export interface FileRouteTypes {
     | '/book'
     | '/contact'
     | '/dining'
+    | '/faq'
+    | '/gallery'
     | '/policies'
     | '/cabins/$slug'
     | '/cabins/'
@@ -142,6 +166,8 @@ export interface RootRouteChildren {
   BookRoute: typeof BookRoute
   ContactRoute: typeof ContactRoute
   DiningRoute: typeof DiningRoute
+  FaqRoute: typeof FaqRoute
+  GalleryRoute: typeof GalleryRoute
   PoliciesRoute: typeof PoliciesRoute
   CabinsSlugRoute: typeof CabinsSlugRoute
   CabinsIndexRoute: typeof CabinsIndexRoute
@@ -154,6 +180,20 @@ declare module '@tanstack/react-router' {
       path: '/policies'
       fullPath: '/policies'
       preLoaderRoute: typeof PoliciesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/gallery': {
+      id: '/gallery'
+      path: '/gallery'
+      fullPath: '/gallery'
+      preLoaderRoute: typeof GalleryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/faq': {
+      id: '/faq'
+      path: '/faq'
+      fullPath: '/faq'
+      preLoaderRoute: typeof FaqRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dining': {
@@ -222,6 +262,8 @@ const rootRouteChildren: RootRouteChildren = {
   BookRoute: BookRoute,
   ContactRoute: ContactRoute,
   DiningRoute: DiningRoute,
+  FaqRoute: FaqRoute,
+  GalleryRoute: GalleryRoute,
   PoliciesRoute: PoliciesRoute,
   CabinsSlugRoute: CabinsSlugRoute,
   CabinsIndexRoute: CabinsIndexRoute,

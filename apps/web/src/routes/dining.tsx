@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router"
 import { addOns, buildWhatsAppTextLink, formatGYD } from "@workspace/shared"
 import { Badge } from "@workspace/ui/components/badge"
 import { AnimatedPageHero } from "../components/AnimatedHeroBg"
+import { BlurFade } from "../components/BlurFade"
 
 export const Route = createFileRoute("/dining")({
   component: DiningPage,
@@ -27,9 +28,9 @@ function DiningPage() {
         <div className="mx-auto max-w-4xl">
           {/* Meal options */}
           <div className="mb-10 grid grid-cols-1 gap-5 md:grid-cols-3">
-            {meals.map((meal) => (
+            {meals.map((meal, i) => (
+              <BlurFade key={meal.slug} delay={i * 0.1} inView>
               <article
-                key={meal.slug}
                 className="flex flex-col rounded-2xl border border-border bg-white p-6"
               >
                 <div className="mb-3 text-4xl" aria-hidden="true">
@@ -60,6 +61,7 @@ function DiningPage() {
                   Add to Booking
                 </a>
               </article>
+              </BlurFade>
             ))}
           </div>
 

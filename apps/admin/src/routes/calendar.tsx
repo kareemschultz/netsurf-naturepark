@@ -144,10 +144,23 @@ function CalendarPage() {
           title="Occupancy Grid"
           description="Select any confirmed or pending booking from the calendar to open the full reservation record."
           action={
-            <div className="flex flex-wrap gap-2">
-              <InfoPill tone="green">Confirmed</InfoPill>
-              <InfoPill tone="amber">Pending</InfoPill>
-              <InfoPill tone="red">Blocked</InfoPill>
+            <div className="flex flex-wrap items-center gap-2.5">
+              <span className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
+                <span className="h-3 w-3 rounded-sm bg-emerald-500/80" />
+                Confirmed
+              </span>
+              <span className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
+                <span className="h-3 w-3 rounded-sm bg-amber-400/80" />
+                Pending
+              </span>
+              <span className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
+                <span className="h-3 w-3 rounded-sm bg-red-400/80" />
+                Blocked
+              </span>
+              <span className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
+                <span className="h-3 w-3 rounded-sm bg-slate-300/80" />
+                Available
+              </span>
             </div>
           }
         />
@@ -175,11 +188,15 @@ function CalendarPage() {
                     return (
                       <div
                         key={day}
-                        className={`flex items-center justify-center border-r border-primary/8 px-2 py-4 text-xs font-bold last:border-r-0 ${
-                          isToday ? "bg-primary text-white" : "text-muted-foreground"
-                        }`}
+                        className={`flex items-center justify-center border-r border-primary/8 px-1 py-3.5 text-xs font-bold last:border-r-0 text-muted-foreground`}
                       >
-                        {day}
+                        {isToday ? (
+                          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-white text-xs font-bold">
+                            {day}
+                          </span>
+                        ) : (
+                          day
+                        )}
                       </div>
                     );
                   })}
@@ -261,9 +278,9 @@ function CalendarRow({
       className="grid border-b border-primary/8 last:border-b-0"
       style={{ gridTemplateColumns: columnTemplate }}
     >
-      <div className="border-r border-primary/8 bg-primary/3 px-5 py-4">
-        <p className="font-semibold text-foreground">{cabin.name}</p>
-        <p className="mt-1 text-xs text-muted-foreground">Monthly occupancy row</p>
+      <div className="border-r border-primary/8 bg-primary/4 px-5 py-4">
+        <p className="text-sm font-bold text-foreground">{cabin.name}</p>
+        <p className="mt-0.5 text-[10px] font-medium tracking-wide text-muted-foreground uppercase">Occupancy</p>
       </div>
 
       {days.map((day) => {
@@ -288,44 +305,53 @@ function CalendarRow({
             <div
               key={dateStr}
               title={`Blocked: ${blocked.reason || "No reason provided"}`}
-              className={`border-r border-primary/8 bg-red-200/85 px-1 py-2 last:border-r-0 ${
-                isToday ? "ring-1 ring-inset ring-primary/30" : ""
-              }`}
-            />
+              className={`flex items-center justify-center border-r border-primary/8 px-1 py-2 last:border-r-0`}
+            >
+              <span
+                className={`block h-7 w-full rounded-md bg-red-400/75 ${isToday ? "ring-2 ring-red-500 ring-offset-1" : ""}`}
+                title={blocked.reason || "Blocked"}
+              />
+            </div>
           );
         }
 
         if (booking) {
-          const toneClass =
+          const cellClass =
             booking.status === "confirmed"
-              ? "bg-emerald-200/90 hover:bg-emerald-300/90"
-              : "bg-amber-200/90 hover:bg-amber-300/90";
+              ? "bg-emerald-500/80 hover:bg-emerald-600/80"
+              : "bg-amber-400/80 hover:bg-amber-500/80";
 
           return (
-            <Link
+            <div
               key={dateStr}
-              to="/bookings/$id"
-              params={{ id: String(booking.id) }}
-              title={`${booking.name} · ${booking.status}`}
-              className={`block border-r border-primary/8 px-1 py-2 transition-[background-color] last:border-r-0 ${toneClass} ${
-                isToday ? "ring-1 ring-inset ring-primary/30" : ""
-              }`}
-              aria-label={`Open booking ${booking.id} for ${booking.name}`}
+              className="flex items-center justify-center border-r border-primary/8 px-1 py-2 last:border-r-0"
             >
-              <span className="sr-only">
-                {booking.name} {booking.status}
-              </span>
-            </Link>
+              <Link
+                to="/bookings/$id"
+                params={{ id: String(booking.id) }}
+                title={`${booking.name} · ${booking.status}`}
+                className={`block h-7 w-full rounded-md transition-[background-color] ${cellClass} ${
+                  isToday ? "ring-2 ring-primary ring-offset-1" : ""
+                }`}
+                aria-label={`Open booking ${booking.id} for ${booking.name}`}
+              >
+                <span className="sr-only">
+                  {booking.name} {booking.status}
+                </span>
+              </Link>
+            </div>
           );
         }
 
         return (
           <div
             key={dateStr}
-            className={`border-r border-primary/8 px-1 py-2 last:border-r-0 ${
-              isToday ? "bg-primary/5 ring-1 ring-inset ring-primary/30" : ""
-            }`}
-          />
+            className={`flex items-center justify-center border-r border-primary/8 px-1 py-2 last:border-r-0`}
+          >
+            {isToday ? (
+              <span className="block h-7 w-full rounded-md bg-primary/10 ring-2 ring-primary/40 ring-offset-1" />
+            ) : null}
+          </div>
         );
       })}
     </div>

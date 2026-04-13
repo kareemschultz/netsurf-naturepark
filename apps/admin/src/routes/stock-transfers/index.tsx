@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { type ColumnDef } from "@tanstack/react-table";
+import { format } from "date-fns";
 import { getStockTransfers, type StockTransferListItem } from "@/lib/api";
 import {
   AdminPage,
@@ -11,6 +13,7 @@ import {
   PageSection,
   SectionTitle,
 } from "@/components/AdminUI";
+import { DataTable } from "@/components/data-table";
 
 export const Route = createFileRoute("/stock-transfers/")({
   component: StockTransfersPage,
@@ -119,11 +122,7 @@ function StockTransfersPage() {
           ))}
         </div>
 
-        {loading ? (
-          <div className="mt-6 rounded-[1.7rem] border border-dashed border-primary/14 bg-primary/4 px-6 py-12 text-center text-sm text-muted-foreground">
-            Loading transfers…
-          </div>
-        ) : filteredTransfers.length === 0 ? (
+        {!loading && filteredTransfers.length === 0 ? (
           <div className="mt-6">
             <EmptyState
               title="No transfers in this view"
@@ -131,51 +130,8 @@ function StockTransfersPage() {
             />
           </div>
         ) : (
-          <div className="mt-6 grid gap-4 lg:grid-cols-2">
-            {filteredTransfers.map((transfer) => (
-              <Link
-                key={transfer.id}
-                to="/stock-transfers/$id"
-                params={{ id: String(transfer.id) }}
-                className="rounded-[1.7rem] border border-primary/10 bg-white/78 p-5 shadow-[0_18px_40px_rgb(22_36_12_/6%)] transition-[border-color,box-shadow,transform] hover:-translate-y-0.5 hover:border-primary/18 hover:shadow-[0_24px_50px_rgb(22_36_12_/10%)]"
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <p className="text-lg font-black tracking-tight text-foreground">
-                      {transfer.transferNumber}
-                    </p>
-                    <p className="mt-1 truncate text-sm text-muted-foreground">
-                      {transfer.dispatchedBy}
-                    </p>
-                  </div>
-                  <StatusPill status={transfer.status} />
-                </div>
-
-                <div className="mt-4 grid gap-3 rounded-[1.4rem] border border-primary/8 bg-primary/4 p-4 sm:grid-cols-3">
-                  <TransferMeta label="Items" value={String(transfer.itemCount)} />
-                  <TransferMeta
-                    label="Units"
-                    value={String(transfer.totalDispatchedQty)}
-                  />
-                  <TransferMeta
-                    label="Updated"
-                    value={new Date(
-                      transfer.receivedAt ?? transfer.dispatchedAt ?? transfer.createdAt
-                    ).toLocaleDateString()}
-                  />
-                </div>
-
-                {transfer.notes ? (
-                  <p className="mt-4 line-clamp-2 text-sm leading-6 text-muted-foreground">
-                    {transfer.notes}
-                  </p>
-                ) : (
-                  <p className="mt-4 text-sm leading-6 text-muted-foreground">
-                    No dispatch notes recorded.
-                  </p>
-                )}
-              </Link>
-            ))}
+          <div className="mt-6">
+            <TransfersTable transfers={filteredTransfers} isLoading={loading} />
           </div>
         )}
       </PageSection>
@@ -183,20 +139,79 @@ function StockTransfersPage() {
   );
 }
 
-function TransferMeta({
-  label,
-  value,
+function TransfersTable({
+  transfers,
+  isLoading,
 }: {
-  label: string;
-  value: string;
+  transfers: StockTransferListItem[];
+  isLoading: boolean;
 }) {
+  const columns = useMemo<ColumnDef<StockTransferListItem>[]>(
+    () => [
+      {
+        id: "transferNumber",
+        accessorKey: "transferNumber",
+        header: "Transfer #",
+        cell: ({ row }) => (
+          <span className="font-semibold text-foreground">
+            {row.original.transferNumber}
+          </span>
+        ),
+      },
+      {
+        id: "status",
+        accessorKey: "status",
+        header: "Status",
+        cell: ({ row }) => <StatusPill status={row.original.status} />,
+      },
+      {
+        id: "from",
+        accessorKey: "dispatchedBy",
+        header: "From",
+        cell: ({ row }) => (
+          <span className="text-muted-foreground">
+            {row.original.dispatchedBy}
+          </span>
+        ),
+      },
+      {
+        id: "date",
+        accessorKey: "createdAt",
+        header: "Date",
+        cell: ({ row }) => (
+          <span className="text-muted-foreground">
+            {format(new Date(row.original.createdAt), "d MMM yyyy")}
+          </span>
+        ),
+      },
+      {
+        id: "action",
+        header: "Action",
+        enableHiding: false,
+        cell: ({ row }) => (
+          <Link
+            to="/stock-transfers/$id"
+            params={{ id: String(row.original.id) }}
+            className="admin-button-secondary inline-flex rounded-full px-4 py-2 text-sm font-semibold"
+            onClick={(e) => e.stopPropagation()}
+          >
+            View
+          </Link>
+        ),
+      },
+    ],
+    []
+  );
+
   return (
-    <div>
-      <p className="text-[11px] font-bold tracking-[0.18em] text-muted-foreground uppercase">
-        {label}
-      </p>
-      <p className="mt-1 font-semibold text-foreground">{value}</p>
-    </div>
+    <DataTable
+      columns={columns}
+      data={transfers}
+      isLoading={isLoading}
+      searchKey="transferNumber"
+      searchPlaceholder="Search by transfer number…"
+      pageSize={25}
+    />
   );
 }
 

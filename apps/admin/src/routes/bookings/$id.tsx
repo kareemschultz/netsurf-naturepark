@@ -241,10 +241,29 @@ function BookingDetailPage() {
                 type="button"
                 onClick={() => handleStatus("confirmed")}
                 disabled={saving}
-                className="admin-button-primary w-full rounded-full px-5 py-3 text-sm font-bold disabled:cursor-not-allowed disabled:opacity-40"
+                className="group admin-button-primary flex w-full items-center justify-center gap-2 rounded-2xl px-5 py-4 text-sm font-bold disabled:cursor-not-allowed disabled:opacity-40"
               >
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M20 6 9 17l-5-5" />
+                </svg>
                 Confirm Booking
               </button>
+            ) : null}
+
+            {booking.status === "confirmed" ? (
+              <div className="flex items-center gap-2 rounded-2xl border border-primary/12 bg-primary/8 px-4 py-3">
+                <span className="h-2 w-2 rounded-full bg-primary" />
+                <span className="text-sm font-semibold text-primary">Booking confirmed</span>
+              </div>
             ) : null}
 
             {booking.status !== "declined" ? (
@@ -252,8 +271,21 @@ function BookingDetailPage() {
                 type="button"
                 onClick={() => handleStatus("declined")}
                 disabled={saving}
-                className="w-full rounded-full bg-red-600 px-5 py-3 text-sm font-bold text-white transition-[opacity,transform] hover:-translate-y-0.5 hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-40"
+                className="flex w-full items-center justify-center gap-2 rounded-2xl bg-red-600 px-5 py-3.5 text-sm font-bold text-white transition-[opacity,transform] hover:-translate-y-0.5 hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-40"
               >
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M18 6 6 18" />
+                  <path d="m6 6 12 12" />
+                </svg>
                 Mark Declined
               </button>
             ) : null}
@@ -263,12 +295,29 @@ function BookingDetailPage() {
                 type="button"
                 onClick={() => handleStatus("cancelled")}
                 disabled={saving}
-                className="admin-button-secondary w-full rounded-full px-5 py-3 text-sm font-bold disabled:cursor-not-allowed disabled:opacity-40"
+                className="admin-button-secondary flex w-full items-center justify-center gap-2 rounded-2xl px-5 py-3.5 text-sm font-bold disabled:cursor-not-allowed disabled:opacity-40"
               >
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <circle cx="12" cy="12" r="9" />
+                  <path d="M9 12h6" />
+                </svg>
                 Cancel Booking
               </button>
             ) : null}
           </div>
+
+          {saving ? (
+            <p className="mt-3 text-center text-xs text-muted-foreground">Saving…</p>
+          ) : null}
         </PageSection>
       </div>
     </AdminPage>
@@ -283,11 +332,11 @@ function DetailCard({
   value: string;
 }) {
   return (
-    <div className="rounded-[1.5rem] border border-primary/10 bg-white/78 p-4">
-      <p className="text-xs font-bold tracking-[0.18em] text-muted-foreground uppercase">
+    <div className="rounded-2xl border border-primary/10 bg-white/78 p-4 dark:bg-white/4">
+      <p className="text-[10px] font-bold tracking-[0.2em] text-muted-foreground uppercase">
         {label}
       </p>
-      <p className="mt-2 text-sm leading-6 text-foreground">{value}</p>
+      <p className="mt-2 text-sm font-medium leading-6 text-foreground">{value}</p>
     </div>
   );
 }

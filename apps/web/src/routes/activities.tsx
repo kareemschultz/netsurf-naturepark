@@ -8,6 +8,7 @@ import {
 import { Badge } from "@workspace/ui/components/badge"
 
 import { AnimatedPageHero } from "../components/AnimatedHeroBg"
+import { BlurFade } from "../components/BlurFade"
 import { WhatsAppIcon } from "../components/WhatsAppIcon"
 
 export const Route = createFileRoute("/activities")({
@@ -33,9 +34,9 @@ function ActivitiesPage() {
         <div className="mx-auto max-w-4xl">
           {/* Activities */}
           <div className="mb-12 grid grid-cols-1 gap-6 md:grid-cols-2">
-            {activities.map((act) => (
+            {activities.map((act, i) => (
+              <BlurFade key={act.slug} delay={i * 0.1} inView>
               <article
-                key={act.slug}
                 className="flex flex-col gap-4 rounded-2xl border border-border bg-white p-7"
               >
                 <div className="text-4xl" aria-hidden="true">
@@ -68,6 +69,7 @@ function ActivitiesPage() {
                   Book Activity
                 </a>
               </article>
+              </BlurFade>
             ))}
           </div>
 

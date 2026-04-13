@@ -11,6 +11,7 @@ import {
 import { Badge } from "@workspace/ui/components/badge"
 
 import { AnimatedPageHero } from "../../components/AnimatedHeroBg"
+import { BlurFade } from "../../components/BlurFade"
 import { NatureArtwork } from "../../components/NatureArtwork"
 import { getCabinArtworkVariant } from "../../components/natureArtworkData"
 import { getCabinPrimaryPhoto } from "../../components/cabinPhotos"
@@ -32,8 +33,8 @@ function CabinsPage() {
         <div className="mx-auto max-w-6xl">
           <div className="space-y-8">
             {cabins.map((cabin, index) => (
+              <BlurFade key={cabin.slug} delay={index * 0.1} inView>
               <article
-                key={cabin.slug}
                 className="overflow-hidden rounded-[1.75rem] border border-border bg-white shadow-sm"
               >
                 <div className="grid md:grid-cols-[minmax(0,22rem)_1fr]">
@@ -100,9 +101,11 @@ function CabinsPage() {
                   </div>
                 </div>
               </article>
+              </BlurFade>
             ))}
           </div>
 
+          <BlurFade delay={0.2} inView>
           <div
             className="mt-10 flex flex-col items-start justify-between gap-4 rounded-[1.75rem] border p-6 sm:flex-row sm:items-center"
             style={{ backgroundColor: "#FAF6F0", borderColor: "#C4941A33" }}
@@ -129,6 +132,7 @@ function CabinsPage() {
               Book Day Pass
             </a>
           </div>
+          </BlurFade>
         </div>
       </div>
     </>

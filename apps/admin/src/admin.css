@@ -267,10 +267,200 @@
   box-shadow: inset 0 1px 0 rgb(255 255 255 / 7%);
 }
 
+/* ─── POS terminal dark mode ─────────────────────────────────────────────── */
+
+.pos-terminal-catalog {
+  background:
+    radial-gradient(circle at top right, rgb(196 148 26 / 14%), transparent 24%),
+    radial-gradient(circle at bottom left, rgb(83 125 46 / 16%), transparent 26%),
+    linear-gradient(180deg, rgb(17 37 10 / 98%), rgb(12 24 7 / 98%));
+}
+
+.pos-terminal-checkout {
+  background:
+    radial-gradient(circle at top right, rgb(196 148 26 / 10%), transparent 24%),
+    linear-gradient(180deg, rgb(255 255 255 / 98%), rgb(248 244 235 / 96%));
+}
+
+.pos-terminal-hero {
+  background:
+    radial-gradient(circle at top left, rgb(196 148 26 / 18%), transparent 20%),
+    radial-gradient(circle at 82% 18%, rgb(83 125 46 / 18%), transparent 24%),
+    linear-gradient(135deg, rgb(16 34 8 / 98%), rgb(12 24 7 / 98%));
+}
+
+/* Amber shimmer keyframe for checkout button */
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(200%); }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .admin-button-primary,
   .admin-button-secondary,
   .admin-input {
     transition: none;
   }
+}
+
+/* ─── Dark mode overrides ─────────────────────────────────────────────────── */
+
+.dark .admin-shell {
+  background:
+    radial-gradient(circle at top left, rgb(45 80 22 / 10%), transparent 28%),
+    radial-gradient(circle at 84% 14%, rgb(196 148 26 / 6%), transparent 24%),
+    linear-gradient(180deg, #0d1f08 0%, #0a1a06 36%, #0d1f08 100%);
+}
+
+.dark .admin-shell::before {
+  background-image:
+    linear-gradient(rgb(255 255 255 / 3%) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(255 255 255 / 3%) 1px, transparent 1px);
+}
+
+.dark .admin-surface {
+  border-color: rgb(255 255 255 / 8%);
+  background:
+    linear-gradient(180deg, rgb(255 255 255 / 7%), rgb(255 255 255 / 3%)),
+    rgb(255 255 255 / 4%);
+  box-shadow:
+    0 20px 50px rgb(0 0 0 / 30%),
+    inset 0 1px 0 rgb(255 255 255 / 6%);
+  backdrop-filter: blur(18px);
+}
+
+.dark .admin-surface::after {
+  background: linear-gradient(135deg, rgb(255 255 255 / 5%), transparent 38%);
+}
+
+.dark .admin-input {
+  border-color: rgb(255 255 255 / 10%);
+  background: rgb(255 255 255 / 5%);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 5%);
+}
+
+.dark .admin-input:is(:focus, :focus-within) {
+  border-color: rgb(45 80 22 / 55%);
+  box-shadow:
+    0 0 0 4px rgb(45 80 22 / 14%),
+    inset 0 1px 0 rgb(255 255 255 / 5%);
+  background: rgb(255 255 255 / 8%);
+}
+
+.dark .admin-button-secondary {
+  border-color: rgb(255 255 255 / 10%);
+  background: rgb(255 255 255 / 6%);
+  color: rgb(255 255 255 / 80%);
+}
+
+.dark .admin-button-secondary:hover {
+  border-color: rgb(255 255 255 / 20%);
+  background: rgb(255 255 255 / 10%);
+  color: rgb(255 255 255);
+}
+
+.dark .admin-kicker {
+  color: rgb(130 185 85 / 56%);
+}
+
+.dark .admin-dotted {
+  background-image: radial-gradient(rgb(255 255 255 / 6%) 0.9px, transparent 0.9px);
+}
+
+/* ─── Dark mode: metric card glow ─────────────────────────────────────────── */
+
+.dark .admin-metric-glow::before {
+  background: radial-gradient(circle, var(--metric-glow, rgb(80 160 40 / 28%)) 0%, transparent 72%);
+}
+
+/* ─── Dark mode: table elements ─────────────────────────────────────────── */
+
+.dark .admin-table-container {
+  background: rgb(0 0 0 / 20%);
+  border-color: rgb(255 255 255 / 8%);
+}
+
+.dark .admin-table-header {
+  background: rgb(45 80 22 / 12%);
+  border-bottom-color: rgb(255 255 255 / 8%);
+}
+
+.dark .admin-table-row {
+  border-bottom-color: rgb(255 255 255 / 5%);
+}
+
+.dark .admin-table-row:hover {
+  background: rgb(45 80 22 / 8%);
+}
+
+/* ─── Dark mode: scrollbar override ──────────────────────────────────────── */
+
+.dark .admin-scrollbar {
+  scrollbar-color: rgb(45 80 22 / 40%) rgb(255 255 255 / 4%);
+}
+
+.dark .admin-scrollbar::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, rgb(80 130 40 / 42%), rgb(45 80 22 / 28%));
+  background-clip: padding-box;
+}
+
+.dark .admin-scrollbar::-webkit-scrollbar-track {
+  background: linear-gradient(180deg, rgb(255 255 255 / 5%), rgb(255 255 255 / 2%));
+}
+
+/* ─── Dark mode: login panel ─────────────────────────────────────────────── */
+
+.dark .admin-login-panel {
+  border-color: rgb(255 255 255 / 10%);
+  background:
+    radial-gradient(circle at top right, rgb(196 148 26 / 8%), transparent 28%),
+    linear-gradient(180deg, rgb(20 40 12 / 97%), rgb(14 28 8 / 96%));
+  box-shadow:
+    0 28px 80px rgb(0 0 0 / 42%),
+    inset 0 1px 0 rgb(255 255 255 / 6%);
+}
+
+.dark .admin-login-panel::before {
+  border-color: rgb(255 255 255 / 8%);
+}
+
+.dark .admin-login-pill {
+  border-color: rgb(80 130 40 / 20%);
+  background: rgb(255 255 255 / 6%);
+  color: rgb(130 185 85 / 68%);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 6%);
+}
+
+/* ─── Dark mode: POS terminal grid overlay ───────────────────────────────── */
+
+.dark .pos-terminal-catalog::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgb(255 255 255 / 3%) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(255 255 255 / 3%) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: linear-gradient(180deg, rgb(0 0 0 / 60%), transparent 88%);
+}
+
+/* ─── Dark mode: buttons ─────────────────────────────────────────────────── */
+
+.dark .admin-button-primary {
+  background: linear-gradient(135deg, #3a6b22, #2d5016);
+  box-shadow: 0 16px 30px rgb(0 0 0 / 32%);
+}
+
+.dark .admin-button-primary:hover {
+  box-shadow: 0 18px 34px rgb(0 0 0 / 40%);
+}
+
+/* ─── Dark mode: input focus ─────────────────────────────────────────────── */
+
+.dark .admin-button-primary:focus-visible,
+.dark .admin-button-secondary:focus-visible {
+  box-shadow:
+    0 0 0 4px rgb(80 130 40 / 18%),
+    0 16px 30px rgb(0 0 0 / 28%);
 }

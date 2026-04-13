@@ -8,6 +8,7 @@ import {
 } from "@workspace/shared"
 
 import { AnimatedPageHero } from "../components/AnimatedHeroBg"
+import { BlurFade } from "../components/BlurFade"
 import { WhatsAppIcon } from "../components/WhatsAppIcon"
 
 export const Route = createFileRoute("/contact")({
@@ -30,6 +31,7 @@ function ContactPage() {
             {/* Left: contact info */}
             <div className="space-y-6">
               {/* Phone */}
+              <BlurFade inView>
               <div className="rounded-2xl border border-border bg-white p-6">
                 <h2 className="mb-4 text-lg font-bold">Call or WhatsApp</h2>
                 <div className="space-y-3">
@@ -85,8 +87,10 @@ function ContactPage() {
                   Message on WhatsApp
                 </a>
               </div>
+              </BlurFade>
 
               {/* Location */}
+              <BlurFade delay={0.1} inView>
               <div className="rounded-2xl border border-border bg-white p-6">
                 <h2 className="mb-4 text-lg font-bold">Location</h2>
                 <p className="mb-1 text-sm leading-relaxed text-muted-foreground">
@@ -105,9 +109,11 @@ function ContactPage() {
                   Open in Google Maps →
                 </a>
               </div>
+              </BlurFade>
 
               {/* Transport */}
               {transport && (
+                <BlurFade delay={0.15} inView>
                 <div
                   className="rounded-2xl border p-6"
                   style={{
@@ -136,9 +142,11 @@ function ContactPage() {
                     Arrange Transport
                   </a>
                 </div>
+                </BlurFade>
               )}
 
               {/* Social */}
+              <BlurFade delay={0.2} inView>
               <div className="rounded-2xl border border-border bg-white p-6">
                 <h2 className="mb-4 text-lg font-bold">Follow Us</h2>
                 <div className="flex flex-wrap gap-3">
@@ -165,11 +173,13 @@ function ContactPage() {
                   </a>
                 </div>
               </div>
+              </BlurFade>
             </div>
 
             {/* Right: map */}
+            <BlurFade delay={0.3} inView className="min-h-[360px] md:min-h-[480px]">
             <div
-              className="min-h-[360px] overflow-hidden rounded-2xl border border-border shadow-sm md:min-h-[480px]"
+              className="h-full min-h-[360px] overflow-hidden rounded-2xl border border-border shadow-sm md:min-h-[480px]"
             >
               <iframe
                 title="Netsurf Nature Park on Google Maps"
@@ -181,6 +191,7 @@ function ContactPage() {
                 referrerPolicy="no-referrer-when-downgrade"
               />
             </div>
+            </BlurFade>
           </div>
         </div>
       </div>

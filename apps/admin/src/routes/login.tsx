@@ -151,7 +151,7 @@ function LoginPage() {
           initial={reduceMotion ? false : { opacity: 0, y: 24 }}
           animate={reduceMotion ? undefined : { opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-          className="admin-surface admin-surface-dark admin-login-hero hidden min-h-[calc(100vh-2rem)] flex-col rounded-[2.7rem] p-8 text-white xl:flex xl:p-9 2xl:p-10"
+          className="admin-surface admin-surface-dark admin-login-hero hidden min-h-[calc(100vh-2rem)] flex-col rounded-3xl p-8 text-white xl:flex xl:p-9 2xl:p-10"
         >
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
@@ -325,7 +325,7 @@ function LoginPage() {
             initial={reduceMotion ? false : { opacity: 0, y: 24 }}
             animate={reduceMotion ? undefined : { opacity: 1, y: 0 }}
             transition={{ duration: 0.56, delay: 0.06, ease: [0.22, 1, 0.36, 1] }}
-            className="admin-surface admin-login-panel flex min-h-[calc(100vh-2rem)] rounded-[2.6rem] p-6 sm:p-8 lg:p-10"
+            className="admin-surface admin-login-panel flex min-h-[calc(100vh-2rem)] rounded-3xl p-6 sm:p-8 lg:p-10"
           >
             <div className="relative z-10 mx-auto flex w-full max-w-md flex-col justify-center">
               <div className="xl:hidden">
@@ -365,12 +365,15 @@ function LoginPage() {
               </div>
 
               <form onSubmit={handleSubmit} className="mt-8 space-y-4">
-                <label className="block">
-                  <span className="mb-2.5 block text-sm font-bold text-foreground">
+                <div className="block">
+                  <label
+                    htmlFor="login-username"
+                    className="mb-2.5 block text-sm font-bold text-foreground"
+                  >
                     Username
-                  </span>
-                  <div className="admin-input flex items-center gap-3 rounded-[1.35rem] px-4 py-3.5">
-                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-primary/10 bg-primary/6 text-primary">
+                  </label>
+                  <div className="admin-input flex items-center gap-3 rounded-2xl px-4 py-3.5">
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-primary/10 bg-primary/6 text-primary" aria-hidden="true">
                       <svg
                         width="16"
                         height="16"
@@ -386,6 +389,7 @@ function LoginPage() {
                       </svg>
                     </span>
                     <input
+                      id="login-username"
                       name="username"
                       autoComplete="username"
                       value={username}
@@ -395,14 +399,17 @@ function LoginPage() {
                       className="w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground/70"
                     />
                   </div>
-                </label>
+                </div>
 
-                <label className="block">
-                  <span className="mb-2.5 block text-sm font-bold text-foreground">
+                <div className="block">
+                  <label
+                    htmlFor="login-password"
+                    className="mb-2.5 block text-sm font-bold text-foreground"
+                  >
                     Password
-                  </span>
-                  <div className="admin-input flex items-center gap-3 rounded-[1.35rem] px-4 py-3.5">
-                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-primary/10 bg-primary/6 text-primary">
+                  </label>
+                  <div className="admin-input flex items-center gap-3 rounded-2xl px-4 py-3.5">
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-primary/10 bg-primary/6 text-primary" aria-hidden="true">
                       <svg
                         width="16"
                         height="16"
@@ -418,6 +425,7 @@ function LoginPage() {
                       </svg>
                     </span>
                     <input
+                      id="login-password"
                       name="password"
                       type={showPassword ? "text" : "password"}
                       autoComplete="current-password"
@@ -429,13 +437,14 @@ function LoginPage() {
                     />
                     <button
                       type="button"
+                      aria-label={showPassword ? "Hide password" : "Show password"}
                       onClick={() => setShowPassword((current) => !current)}
                       className="shrink-0 rounded-full border border-primary/10 bg-primary/6 px-3 py-1.5 text-xs font-bold text-primary transition-colors hover:bg-primary/10"
                     >
                       {showPassword ? "Hide" : "Show"}
                     </button>
                   </div>
-                </label>
+                </div>
 
                 {error ? (
                   <div

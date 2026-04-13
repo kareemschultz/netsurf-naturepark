@@ -1,5 +1,7 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useEffect, useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { type ColumnDef } from "@tanstack/react-table";
+import { format } from "date-fns";
 import { z } from "zod";
 import { getBookings, type Booking } from "@/lib/api";
 import {
@@ -13,6 +15,7 @@ import {
   SectionTitle,
 } from "@/components/AdminUI";
 import { StatusBadge } from "@/components/StatusBadge";
+import { DataTable } from "@/components/data-table";
 import { cabins, formatGYD } from "@workspace/shared";
 
 const searchSchema = z.object({
@@ -32,13 +35,15 @@ const TABS = [
   { value: "cancelled", label: "Cancelled" },
 ] as const;
 
-const fullDateTime = new Intl.DateTimeFormat("en-US", {
-  month: "short",
-  day: "numeric",
-  year: "numeric",
-  hour: "numeric",
-  minute: "2-digit",
-});
+function formatDateRange(checkIn: string, checkOut: string): string {
+  try {
+    const inDate = new Date(checkIn);
+    const outDate = new Date(checkOut);
+    return `${format(inDate, "MMM d")} – ${format(outDate, "MMM d")}`;
+  } catch {
+    return `${checkIn} – ${checkOut}`;
+  }
+}
 
 function BookingsPage() {
   const { status } = Route.useSearch();
@@ -47,7 +52,7 @@ function BookingsPage() {
   const [data, setData] = useState<{ rows: Booking[]; total: number }>({ rows: [], total: 0 });
   const [loading, setLoading] = useState(true);
 
-  const limit = 20;
+  const limit = 100;
 
   useEffect(() => {
     setPage(1);
@@ -71,6 +76,95 @@ function BookingsPage() {
     [data.rows]
   );
   const dayUseCount = data.rows.length - overnightCount;
+
+  const columns = useMemo<ColumnDef<Booking>[]>(
+    () => [
+      {
+        id: "booking",
+        accessorFn: (row) => `${row.id} ${row.name} ${row.contact}`,
+        header: "Booking",
+        cell: ({ row }) => {
+          const booking = row.original;
+          return (
+            <div className="min-w-0">
+              <p className="truncate font-semibold text-foreground">
+                #{booking.id} · {booking.name}
+              </p>
+              <p className="mt-0.5 truncate text-xs text-muted-foreground">
+                {booking.contact}
+              </p>
+            </div>
+          );
+        },
+      },
+      {
+        id: "stayType",
+        accessorKey: "stayType",
+        header: "Stay Type",
+        cell: ({ row }) => (
+          <InfoPill tone={row.original.stayType === "overnight" ? "green" : "amber"}>
+            {row.original.stayType === "overnight" ? "Overnight" : "Day Use"}
+          </InfoPill>
+        ),
+      },
+      {
+        id: "cabin",
+        accessorKey: "cabinSlug",
+        header: "Cabin",
+        cell: ({ row }) => {
+          const cabin = cabins.find((c) => c.slug === row.original.cabinSlug);
+          return (
+            <span className="text-muted-foreground">
+              {cabin?.name ?? row.original.cabinSlug}
+            </span>
+          );
+        },
+      },
+      {
+        id: "dates",
+        accessorFn: (row) => `${row.checkIn} ${row.checkOut}`,
+        header: "Dates",
+        cell: ({ row }) => (
+          <span className="font-medium text-foreground">
+            {formatDateRange(row.original.checkIn, row.original.checkOut)}
+          </span>
+        ),
+      },
+      {
+        id: "value",
+        accessorKey: "estimatedTotalGyd",
+        header: "Value",
+        cell: ({ row }) => (
+          <span className="font-semibold tabular-nums text-foreground">
+            {formatGYD(row.original.estimatedTotalGyd)}
+          </span>
+        ),
+      },
+      {
+        id: "status",
+        accessorKey: "status",
+        header: "Status",
+        cell: ({ row }) => <StatusBadge status={row.original.status} />,
+      },
+      {
+        id: "action",
+        header: "Open",
+        enableHiding: false,
+        cell: ({ row }) => (
+          <div className="text-right">
+            <Link
+              to="/bookings/$id"
+              params={{ id: String(row.original.id) }}
+              className="admin-button-secondary inline-flex rounded-full px-4 py-2 text-sm font-semibold"
+            >
+              View
+            </Link>
+          </div>
+        ),
+      },
+    ],
+    []
+  );
 
   return (
     <AdminPage className="max-w-[1500px]">
@@ -153,123 +247,49 @@ function BookingsPage() {
           ))}
         </div>
 
-        {loading ? (
-          <div className="mt-6 rounded-[1.7rem] border border-dashed border-primary/14 bg-primary/4 px-6 py-12 text-center text-sm text-muted-foreground">
-            Loading bookings…
-          </div>
-        ) : data.rows.length === 0 ? (
-          <div className="mt-6">
+        <div className="mt-6">
+          {!loading && data.rows.length === 0 ? (
             <EmptyState
               title="No bookings found"
               description="This queue is empty right now. Switch the status filter or return later when new requests arrive."
             />
-          </div>
-        ) : (
-          <div className="mt-6 overflow-hidden rounded-[1.7rem] border border-primary/10 bg-white/76">
-            <div className="overflow-x-auto">
-              <table className="min-w-full text-sm">
-                <thead>
-                  <tr className="border-b border-primary/8 bg-primary/4">
-                    <th className="px-5 py-4 text-left text-[11px] font-bold tracking-[0.18em] text-muted-foreground uppercase">
-                      Booking
-                    </th>
-                    <th className="px-5 py-4 text-left text-[11px] font-bold tracking-[0.18em] text-muted-foreground uppercase">
-                      Stay
-                    </th>
-                    <th className="px-5 py-4 text-left text-[11px] font-bold tracking-[0.18em] text-muted-foreground uppercase">
-                      Cabin
-                    </th>
-                    <th className="px-5 py-4 text-left text-[11px] font-bold tracking-[0.18em] text-muted-foreground uppercase">
-                      Dates
-                    </th>
-                    <th className="px-5 py-4 text-left text-[11px] font-bold tracking-[0.18em] text-muted-foreground uppercase">
-                      Value
-                    </th>
-                    <th className="px-5 py-4 text-left text-[11px] font-bold tracking-[0.18em] text-muted-foreground uppercase">
-                      Status
-                    </th>
-                    <th className="px-5 py-4 text-right text-[11px] font-bold tracking-[0.18em] text-muted-foreground uppercase">
-                      Open
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-primary/8">
-                  {data.rows.map((booking) => {
-                    const cabin = cabins.find((entry) => entry.slug === booking.cabinSlug);
+          ) : (
+            <DataTable
+              columns={columns}
+              data={data.rows}
+              isLoading={loading}
+              searchKey="booking"
+              searchPlaceholder="Search by name, ID, or contact…"
+              pageSize={20}
+            />
+          )}
+        </div>
 
-                    return (
-                      <tr key={booking.id} className="hover:bg-primary/3">
-                        <td className="px-5 py-4">
-                          <div className="min-w-0">
-                            <p className="truncate font-semibold text-foreground">
-                              #{booking.id} · {booking.name}
-                            </p>
-                            <p className="mt-1 truncate text-xs text-muted-foreground">
-                              {booking.contact} · submitted{" "}
-                              {fullDateTime.format(new Date(booking.createdAt))}
-                            </p>
-                          </div>
-                        </td>
-                        <td className="px-5 py-4">
-                          <InfoPill tone={booking.stayType === "overnight" ? "green" : "amber"}>
-                            {booking.stayType === "overnight" ? "Overnight" : "Day Use"}
-                          </InfoPill>
-                        </td>
-                        <td className="px-5 py-4 text-muted-foreground">
-                          {cabin?.name ?? booking.cabinSlug}
-                        </td>
-                        <td className="px-5 py-4 font-medium text-foreground">
-                          {booking.checkIn} → {booking.checkOut}
-                        </td>
-                        <td className="px-5 py-4 font-semibold tabular-nums text-foreground">
-                          {formatGYD(booking.estimatedTotalGyd)}
-                        </td>
-                        <td className="px-5 py-4">
-                          <StatusBadge status={booking.status} />
-                        </td>
-                        <td className="px-5 py-4 text-right">
-                          <Link
-                            to="/bookings/$id"
-                            params={{ id: String(booking.id) }}
-                            className="admin-button-secondary inline-flex rounded-full px-4 py-2 text-sm font-semibold"
-                          >
-                            Open
-                          </Link>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+        {totalPages > 1 && !loading ? (
+          <div className="mt-4 flex flex-col gap-3 border-t border-primary/8 pt-4 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-xs text-muted-foreground">
+              {data.total} total bookings · page {page} of {totalPages}
+            </p>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setPage((current) => Math.max(1, current - 1))}
+                disabled={page === 1}
+                className="admin-button-secondary rounded-full px-4 py-2 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                Previous
+              </button>
+              <button
+                type="button"
+                onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
+                disabled={page === totalPages}
+                className="admin-button-secondary rounded-full px-4 py-2 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                Next
+              </button>
             </div>
-
-            {totalPages > 1 ? (
-              <div className="flex flex-col gap-3 border-t border-primary/8 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
-                <p className="text-xs text-muted-foreground">
-                  {data.total} total bookings · page {page} of {totalPages}
-                </p>
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setPage((current) => Math.max(1, current - 1))}
-                    disabled={page === 1}
-                    className="admin-button-secondary rounded-full px-4 py-2 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-40"
-                  >
-                    Previous
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
-                    disabled={page === totalPages}
-                    className="admin-button-secondary rounded-full px-4 py-2 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-40"
-                  >
-                    Next
-                  </button>
-                </div>
-              </div>
-            ) : null}
           </div>
-        )}
+        ) : null}
       </PageSection>
     </AdminPage>
   );

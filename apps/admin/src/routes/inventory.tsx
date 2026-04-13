@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { useEffect, useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
+import { type ColumnDef } from "@tanstack/react-table";
 import {
   adjustInventory,
   getInventory,
@@ -22,6 +23,7 @@ import {
   SearchField,
   SectionTitle,
 } from "@/components/AdminUI";
+import { DataTable } from "@/components/data-table";
 import { downloadCsv, exportPrintableReport } from "@/lib/export";
 import { formatGYD } from "@workspace/shared";
 
@@ -327,11 +329,7 @@ function InventoryPage() {
             />
           </div>
 
-          {loading ? (
-            <div className="mt-6 rounded-[1.7rem] border border-dashed border-primary/14 bg-primary/4 px-6 py-12 text-center text-sm text-muted-foreground">
-              Loading inventory…
-            </div>
-          ) : filteredItems.length === 0 ? (
+          {!loading && filteredItems.length === 0 ? (
             <div className="mt-6">
               <EmptyState
                 title="No inventory items matched this view"
@@ -339,77 +337,12 @@ function InventoryPage() {
               />
             </div>
           ) : (
-            <div className="mt-6 overflow-hidden rounded-[1.7rem] border border-primary/10 bg-white/72">
-              <div className="overflow-x-auto">
-                <table className="min-w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-primary/8 bg-primary/4">
-                      <th className="px-5 py-4 text-left text-[11px] font-bold tracking-[0.18em] text-muted-foreground uppercase">
-                        Product
-                      </th>
-                      <th className="px-5 py-4 text-left text-[11px] font-bold tracking-[0.18em] text-muted-foreground uppercase">
-                        Category
-                      </th>
-                      <th className="px-5 py-4 text-left text-[11px] font-bold tracking-[0.18em] text-muted-foreground uppercase">
-                        Stock
-                      </th>
-                      <th className="px-5 py-4 text-left text-[11px] font-bold tracking-[0.18em] text-muted-foreground uppercase">
-                        Threshold
-                      </th>
-                      <th className="px-5 py-4 text-left text-[11px] font-bold tracking-[0.18em] text-muted-foreground uppercase">
-                        Shelf Value
-                      </th>
-                      <th className="px-5 py-4 text-right text-[11px] font-bold tracking-[0.18em] text-muted-foreground uppercase">
-                        Action
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-primary/8">
-                    {filteredItems.map((item) => {
-                      const toneClass =
-                        item.stockQty === 0
-                          ? "bg-red-50 text-red-700"
-                          : item.stockQty <= item.lowStockThreshold
-                            ? "bg-amber-50 text-amber-800"
-                            : "bg-emerald-50 text-emerald-700";
-
-                      return (
-                        <tr key={item.id} className="hover:bg-primary/3">
-                          <td className="px-5 py-4">
-                            <p className="font-semibold text-foreground">{item.name}</p>
-                            <p className="mt-1 text-xs text-muted-foreground">
-                              {item.sku ?? item.slug}
-                            </p>
-                          </td>
-                          <td className="px-5 py-4 text-muted-foreground">
-                            {item.categoryName ?? "Uncategorized"}
-                          </td>
-                          <td className="px-5 py-4">
-                            <span className={`rounded-full px-3 py-1 text-xs font-bold ${toneClass}`}>
-                              {item.stockQty}
-                            </span>
-                          </td>
-                          <td className="px-5 py-4 text-muted-foreground">
-                            {item.lowStockThreshold}
-                          </td>
-                          <td className="px-5 py-4 font-semibold tabular-nums text-foreground">
-                            {formatGYD(item.stockQty * item.priceGyd)}
-                          </td>
-                          <td className="px-5 py-4 text-right">
-                            <button
-                              type="button"
-                              onClick={() => handleSelectProduct(item)}
-                              className="admin-button-secondary rounded-full px-4 py-2 text-sm font-semibold"
-                            >
-                              Manage
-                            </button>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
+            <div className="mt-6">
+              <InventoryTable
+                items={filteredItems}
+                isLoading={loading}
+                onManage={handleSelectProduct}
+              />
             </div>
           )}
         </PageSection>
@@ -568,6 +501,133 @@ function InventoryPage() {
         </div>
       </div>
     </AdminPage>
+  );
+}
+
+function InventoryTable({
+  items,
+  isLoading,
+  onManage,
+}: {
+  items: InventoryItem[];
+  isLoading: boolean;
+  onManage: (item: InventoryItem) => void;
+}) {
+  const columns = useMemo<ColumnDef<InventoryItem>[]>(
+    () => [
+      {
+        id: "product",
+        accessorFn: (row) => `${row.name} ${row.sku ?? row.slug}`,
+        header: "Product",
+        cell: ({ row }) => (
+          <div>
+            <p className="font-semibold text-foreground">{row.original.name}</p>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              {row.original.sku ?? row.original.slug}
+            </p>
+          </div>
+        ),
+      },
+      {
+        id: "category",
+        accessorKey: "categoryName",
+        header: "Category",
+        cell: ({ row }) => (
+          <span className="rounded-full bg-primary/6 px-2.5 py-1 text-xs font-semibold text-foreground">
+            {row.original.categoryName ?? "Uncategorized"}
+          </span>
+        ),
+      },
+      {
+        id: "stock",
+        accessorKey: "stockQty",
+        header: "Stock",
+        cell: ({ row }) => {
+          const { stockQty, lowStockThreshold } = row.original;
+          const toneClass =
+            stockQty === 0
+              ? "bg-red-50 text-red-700"
+              : stockQty <= lowStockThreshold
+                ? "bg-amber-50 text-amber-800"
+                : "bg-emerald-50 text-emerald-700";
+          return (
+            <span className={`rounded-full px-3 py-1 text-xs font-bold ${toneClass}`}>
+              {stockQty}
+            </span>
+          );
+        },
+      },
+      {
+        id: "threshold",
+        accessorKey: "lowStockThreshold",
+        header: "Threshold",
+        cell: ({ row }) => (
+          <span className="text-muted-foreground">
+            {row.original.lowStockThreshold}
+          </span>
+        ),
+      },
+      {
+        id: "stockStatus",
+        accessorFn: (row) => {
+          if (row.stockQty === 0) return "Out";
+          if (row.stockQty <= row.lowStockThreshold) return "Low";
+          return "OK";
+        },
+        header: "Status",
+        cell: ({ row }) => {
+          const { stockQty, lowStockThreshold } = row.original;
+          if (stockQty === 0) {
+            return (
+              <span className="rounded-full bg-red-100 px-2.5 py-1 text-xs font-bold text-red-700">
+                Out
+              </span>
+            );
+          }
+          if (stockQty <= lowStockThreshold) {
+            return (
+              <span className="rounded-full bg-amber-100 px-2.5 py-1 text-xs font-bold text-amber-800">
+                Low
+              </span>
+            );
+          }
+          return (
+            <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-bold text-emerald-700">
+              OK
+            </span>
+          );
+        },
+      },
+      {
+        id: "actions",
+        header: "Actions",
+        enableHiding: false,
+        cell: ({ row }) => (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onManage(row.original);
+            }}
+            className="admin-button-secondary rounded-full px-4 py-2 text-sm font-semibold"
+          >
+            Manage
+          </button>
+        ),
+      },
+    ],
+    [onManage]
+  );
+
+  return (
+    <DataTable
+      columns={columns}
+      data={items}
+      isLoading={isLoading}
+      searchKey="product"
+      searchPlaceholder="Search by product, category, or SKU…"
+      pageSize={25}
+    />
   );
 }
 

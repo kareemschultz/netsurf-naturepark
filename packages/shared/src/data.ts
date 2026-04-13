@@ -285,40 +285,80 @@ export const testimonials = [
   },
 ]
 
-export const galleryImages = [
+export type GalleryCategory =
+  | "all"
+  | "cabins"
+  | "creek-nature"
+  | "experiences"
+  | "park-life"
+
+export interface GalleryImage {
+  src: string
+  alt: string
+  category: Exclude<GalleryCategory, "all">
+}
+
+export const galleryImages: GalleryImage[] = [
   {
     src: "/images/social/facebook-creek-deck.jpg",
     alt: "Blackwater creek deck at Netsurf Nature Park",
+    category: "creek-nature",
   },
   {
     src: "/images/cabins/couples-night.jpg",
     alt: "Couples Cabin at night — solar-lit exterior at Netsurf Nature Park",
+    category: "cabins",
   },
   {
     src: "/images/cabins/family-exterior.jpg",
     alt: "Family Cabin exterior surrounded by rainforest",
+    category: "cabins",
   },
   {
     src: "/images/cabins/couples-interior.jpg",
     alt: "Inside the Couples Cabin at Netsurf Nature Park",
+    category: "cabins",
   },
   {
     src: "/images/cabins/ranch-exterior.jpg",
     alt: "The Ranch Building — large group cabin at Netsurf Nature Park",
+    category: "cabins",
   },
-  { src: "/images/gallery-6.jpg", alt: "Campfire under the rainforest canopy" },
+  {
+    src: "/images/gallery-6.jpg",
+    alt: "Campfire under the rainforest canopy",
+    category: "experiences",
+  },
   {
     src: "/images/gallery-7.jpg",
     alt: "Tropical birds spotted on a guided nature walk",
+    category: "creek-nature",
   },
-  { src: "/images/gallery-8.jpg", alt: "Morning mist rising from the creek" },
-  { src: "/images/gallery-9.jpg", alt: "Hansel and Gretel cabin outdoor deck" },
+  {
+    src: "/images/gallery-8.jpg",
+    alt: "Morning mist rising from the creek",
+    category: "creek-nature",
+  },
+  {
+    src: "/images/gallery-9.jpg",
+    alt: "Hansel and Gretel cabin outdoor deck",
+    category: "cabins",
+  },
   {
     src: "/images/gallery-10.jpg",
     alt: "Solar panels powering the eco-retreat",
+    category: "park-life",
   },
-  { src: "/images/gallery-11.jpg", alt: "BBQ evening at the campfire area" },
-  { src: "/images/gallery-12.jpg", alt: "Hammocking by the creek at Netsurf" },
+  {
+    src: "/images/gallery-11.jpg",
+    alt: "BBQ evening at the campfire area",
+    category: "experiences",
+  },
+  {
+    src: "/images/gallery-12.jpg",
+    alt: "Hammocking by the creek at Netsurf",
+    category: "park-life",
+  },
 ]
 
 export const features = [
@@ -360,6 +400,87 @@ export const features = [
   },
 ]
 
+
+export interface FaqItem {
+  question: string
+  answer: string
+  category: "booking" | "stay" | "activities" | "getting-there" | "policies"
+}
+
+export const faqs: FaqItem[] = [
+  {
+    category: "booking",
+    question: "How do I make a booking?",
+    answer:
+      "Contact us via WhatsApp at +592 611-9443 or use our online booking form. We'll confirm availability and send you details within 24 hours.",
+  },
+  {
+    category: "booking",
+    question: "What is the cancellation policy?",
+    answer:
+      "Cancellations made 7 or more days before check-in receive a full refund. Cancellations within 7 days are non-refundable but may be rescheduled subject to availability.",
+  },
+  {
+    category: "stay",
+    question: "Is Netsurf Nature Park 100% solar powered?",
+    answer:
+      "Yes! All our facilities run entirely on solar power provided by Netsurf Power, ensuring a sustainable and eco-friendly experience without compromising comfort.",
+  },
+  {
+    category: "stay",
+    question: "What is included in my stay?",
+    answer:
+      "Your stay includes accommodation, access to the creek and nature trails, and basic kitchen facilities. Meals, guided activities, and transport are available as add-ons.",
+  },
+  {
+    category: "stay",
+    question: "Is there Wi-Fi available?",
+    answer:
+      "We intentionally provide limited connectivity to encourage a full nature experience. Basic Wi-Fi is available in the common areas for essential use.",
+  },
+  {
+    category: "activities",
+    question: "What activities are available?",
+    answer:
+      "We offer guided nature walks, kayaking on Soesdyke Creek, BBQ packages, birdwatching, and swimming. Day passes are available for visitors not staying overnight.",
+  },
+  {
+    category: "activities",
+    question: "Can I bring my own kayak or equipment?",
+    answer:
+      "Absolutely! You're welcome to bring your own gear. We also have kayaks available for rental if you'd prefer not to transport your own.",
+  },
+  {
+    category: "getting-there",
+    question: "How do I get to Netsurf Nature Park?",
+    answer:
+      "We're located on the Soesdyke-Linden Highway, about 45 minutes from Georgetown. We offer transport from Georgetown for GYD $5,000. GPS coordinates: 6.0870307, -58.2677041.",
+  },
+  {
+    category: "getting-there",
+    question: "Is there parking available?",
+    answer:
+      "Yes, there is ample secure parking on site for guests who drive themselves.",
+  },
+  {
+    category: "policies",
+    question: "Are pets allowed?",
+    answer:
+      "We love animals but to protect the local wildlife, pets are not permitted at Netsurf Nature Park.",
+  },
+  {
+    category: "policies",
+    question: "Is Netsurf Nature Park suitable for children?",
+    answer:
+      "Absolutely! We're a family-friendly destination. Children must be supervised near the creek at all times. Please note that some activities have age/weight restrictions.",
+  },
+  {
+    category: "policies",
+    question: "What payment methods do you accept?",
+    answer:
+      "We accept cash (GYD), bank transfers, and card payments. Full payment is required at check-in. Deposits may be required for bookings during peak periods.",
+  },
+]
 
 export const dayPassPriceGYD =
   addOns.find((item) => item.slug === "day-pass")?.priceGYD ?? 5000

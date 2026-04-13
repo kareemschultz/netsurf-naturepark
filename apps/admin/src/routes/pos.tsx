@@ -188,12 +188,6 @@ function PosPage() {
     "!border-white/10 !bg-white/[0.06] !text-white/72 !shadow-none hover:!bg-white/[0.1] hover:!text-white";
   const terminalActiveChipClass =
     "!border-amber-300/30 !bg-amber-300/14 !text-amber-100 !shadow-none hover:!bg-amber-300/18 hover:!text-amber-50";
-  const terminalHeroBackground =
-    "radial-gradient(circle at top left, rgba(196,148,26,0.18), transparent 20%), radial-gradient(circle at 82% 18%, rgba(83,125,46,0.18), transparent 24%), linear-gradient(135deg, rgba(16,34,8,0.98), rgba(12,24,7,0.98))";
-  const terminalCatalogBackground =
-    "radial-gradient(circle at top right, rgba(196,148,26,0.14), transparent 24%), radial-gradient(circle at bottom left, rgba(83,125,46,0.16), transparent 26%), linear-gradient(180deg, rgba(17,37,10,0.98), rgba(12,24,7,0.98))";
-  const terminalCheckoutBackground =
-    "radial-gradient(circle at top right, rgba(196,148,26,0.1), transparent 24%), linear-gradient(180deg, rgba(255,255,255,0.98), rgba(248,244,235,0.96))";
 
   async function handleCompleteSale() {
     if (cart.items.length === 0 || totalGyd < 0) return;
@@ -305,8 +299,7 @@ function PosPage() {
             initial={reduceMotion ? false : { opacity: 0, y: 18 }}
             animate={reduceMotion ? undefined : { opacity: 1, y: 0 }}
             transition={{ duration: 0.52, ease: [0.22, 1, 0.36, 1] }}
-            className="admin-surface relative overflow-hidden rounded-[2.2rem] border border-white/10 p-6 text-white shadow-[0_28px_80px_rgb(7_15_4_/32%)] sm:p-8"
-            style={{ background: terminalHeroBackground }}
+            className="pos-terminal-hero admin-surface relative overflow-hidden rounded-[2.2rem] border border-white/10 p-6 text-white shadow-[0_28px_80px_rgb(7_15_4_/32%)] sm:p-8"
           >
             <div className="pointer-events-none absolute inset-0">
               <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.05)_1px,transparent_1px)] bg-[size:54px_54px] opacity-20 [mask-image:linear-gradient(180deg,rgba(0,0,0,0.88),transparent_96%)]" />
@@ -472,10 +465,9 @@ function PosPage() {
             className={cn(
               "relative overflow-hidden p-6",
               isTerminalView
-                ? "border-white/10 text-white shadow-[0_26px_70px_rgb(8_16_4_/28%)]"
+                ? "pos-terminal-catalog border-white/10 text-white shadow-[0_26px_70px_rgb(8_16_4_/28%)]"
                 : undefined
             )}
-            style={isTerminalView ? { background: terminalCatalogBackground } : undefined}
           >
             {isTerminalView ? (
               <div className="pointer-events-none absolute inset-0">
@@ -738,10 +730,9 @@ function PosPage() {
             className={cn(
               "relative overflow-hidden p-6 xl:sticky xl:top-6 xl:self-start",
               isTerminalView
-                ? "border-primary/16 shadow-[0_26px_60px_rgb(27_42_15_/12%)]"
+                ? "pos-terminal-checkout border-primary/16 shadow-[0_26px_60px_rgb(27_42_15_/12%)]"
                 : undefined
             )}
-            style={isTerminalView ? { background: terminalCheckoutBackground } : undefined}
           >
             {isTerminalView ? (
               <div className="pointer-events-none absolute inset-0">
@@ -968,12 +959,15 @@ function PosPage() {
                   onClick={handleCompleteSale}
                   disabled={submitting || cart.items.length === 0 || totalGyd < 0}
                   className={cn(
-                    "w-full rounded-[1.2rem] px-5 py-3.5 text-sm font-bold disabled:cursor-not-allowed disabled:opacity-50",
+                    "relative w-full overflow-hidden rounded-2xl px-5 py-4 text-sm font-bold disabled:cursor-not-allowed disabled:opacity-50",
                     isTerminalView
-                      ? "border border-primary/12 bg-[linear-gradient(135deg,#2d5016,#203c10)] text-white shadow-[0_18px_30px_rgb(32_60_16_/18%)]"
+                      ? "border border-amber-300/28 bg-[linear-gradient(135deg,#c4941a,#a87c15)] text-white shadow-[0_18px_30px_rgb(196_148_26_/22%)] hover:shadow-[0_22px_36px_rgb(196_148_26_/28%)]"
                       : "admin-button-primary"
                   )}
                 >
+                  {isTerminalView ? (
+                    <span className="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,transparent_0%,rgba(255,255,255,0.1)_50%,transparent_100%)] translate-x-[-100%] group-hover:animate-[shimmer_1.5s_infinite]" />
+                  ) : null}
                   {submitting ? "Completing sale…" : "Complete Sale"}
                 </button>
               </div>
@@ -995,7 +989,7 @@ function PosPage() {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 24, scale: 0.98 }}
               transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-              className="admin-surface w-full max-w-2xl rounded-[2rem] p-6 sm:p-7"
+              className="admin-surface w-full max-w-2xl rounded-3xl p-6 sm:p-8"
             >
               <div className="flex items-start justify-between gap-4">
                 <div>
