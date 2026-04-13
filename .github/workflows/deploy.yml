@@ -1,0 +1,55 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Build & Deploy
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Deploy to production server
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.NETSURF_DEPLOY_KEY }}
+          port: 22
+          script: bash /opt/infrastructure/docker/netsurf-naturepark/deploy.sh
+          script_stop: true
+          timeout: 15m
+
+      - name: Notify success
+        if: success()
+        env:
+          COMMIT_SHA: ${{ github.sha }}
+          ACTOR: ${{ github.actor }}
+        run: |
+          curl -s -X POST "https://ntfy.karetechsolutions.com/infrastructure" \
+            -H "Title: Netsurf Deployed" \
+            -H "Tags: white_check_mark,seedling" \
+            -d "Netsurf Nature Park deployed from ${COMMIT_SHA:0:7} by ${ACTOR}" || true
+
+      - name: Notify failure
+        if: failure()
+        env:
+          COMMIT_SHA: ${{ github.sha }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          curl -s -X POST "https://ntfy.karetechsolutions.com/infrastructure-critical" \
+            -H "Title: Netsurf Deploy FAILED" \
+            -H "Priority: high" \
+            -H "Tags: rotating_light,seedling" \
+            -d "Deploy failed for ${COMMIT_SHA:0:7}. Actions: ${RUN_URL}" || true
