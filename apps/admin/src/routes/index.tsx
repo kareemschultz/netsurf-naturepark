@@ -12,17 +12,28 @@ import {
   type SalesSummary,
   type Stats,
 } from "@/lib/api";
-import {
-  AdminPage,
-  EmptyState,
-  InfoPill,
-  MetricCard,
-  PageHeader,
-  PageSection,
-  SectionTitle,
-} from "@/components/AdminUI";
+import { AdminPage, MetricCard, EmptyState } from "@/components/AdminUI";
 import { StatusBadge } from "@/components/StatusBadge";
 import { cabins, formatGYD } from "@workspace/shared";
+import { buttonVariants } from "@workspace/ui/components/button";
+import { Badge } from "@workspace/ui/components/badge";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@workspace/ui/components/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@workspace/ui/components/table";
+import { Skeleton } from "@workspace/ui/components/skeleton";
+import { cn } from "@workspace/ui/lib/utils";
 
 export const Route = createFileRoute("/")({
   component: DashboardPage,
@@ -55,11 +66,10 @@ function DashboardPage() {
         setInventoryAlerts(alerts);
 
         const active = calendarResponse.bookings.filter(
-          (booking) => booking.status === "confirmed" || booking.status === "pending"
+          (b) => b.status === "confirmed" || b.status === "pending"
         );
-
-        setArrivalsToday(active.filter((booking) => booking.checkIn === todayStr));
-        setDeparturesToday(active.filter((booking) => booking.checkOut === todayStr));
+        setArrivalsToday(active.filter((b) => b.checkIn === todayStr));
+        setDeparturesToday(active.filter((b) => b.checkOut === todayStr));
       })
       .catch(console.error)
       .finally(() => setLoading(false));
@@ -67,327 +77,281 @@ function DashboardPage() {
 
   return (
     <AdminPage className="max-w-[1450px]">
-      <PageHeader
-        eyebrow="Dashboard"
-        title="Operations control room"
-        description="Track reservations, revenue, inventory pressure, and day-of activity from one surface. This is the landing view for what needs attention now, not a dead summary page."
-        meta={
-          <>
-            <InfoPill>{format(now, "EEEE, d MMMM yyyy")}</InfoPill>
-            <InfoPill tone={inventoryAlerts.length > 0 ? "amber" : "green"}>
-              {inventoryAlerts.length} stock alerts
-            </InfoPill>
-            <InfoPill tone={(stats?.pending ?? 0) > 0 ? "amber" : "neutral"}>
-              {stats?.pending ?? 0} pending approvals
-            </InfoPill>
-          </>
-        }
-        actions={
-          <>
-            <Link
-              to="/reports"
-              className="admin-button-secondary rounded-2xl px-4 py-3 text-sm font-bold"
-            >
-              Open Reports
-            </Link>
-            <Link
-              to="/pos"
-              className="admin-button-primary rounded-2xl px-4 py-3 text-sm font-bold"
-            >
-              Open POS
-            </Link>
-          </>
-        }
-      />
+      {/* Page header */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">Dashboard</h1>
+          <p className="mt-0.5 text-sm text-muted-foreground">
+            {format(now, "EEEE, d MMMM yyyy")}
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <Link
+            to="/reports"
+            className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
+          >
+            Reports
+          </Link>
+          <Link
+            to="/pos"
+            className={cn(buttonVariants({ size: "sm" }))}
+          >
+            Open POS
+          </Link>
+        </div>
+      </div>
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      {/* KPI stat cards */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <MetricCard
           label="Pending Requests"
           value={loading ? "..." : String(stats?.pending ?? 0)}
-          note="Bookings needing review"
+          note="Requires action"
           tone="amber"
         />
         <MetricCard
           label="Confirmed Stays"
           value={loading ? "..." : String(stats?.confirmed ?? 0)}
-          note="Current confirmed reservation count"
-        />
-        <MetricCard
-          label="Today's POS Revenue"
-          value={loading ? "..." : formatGYD(salesSummary?.totalRevenueGyd ?? 0)}
-          note={loading ? "Loading sales summary" : `${salesSummary?.totalSales ?? 0} sales today`}
+          note="Active reservations"
           tone="green"
         />
         <MetricCard
-          label="Low Stock Alerts"
+          label="Today's Revenue"
+          value={loading ? "..." : formatGYD(salesSummary?.totalRevenueGyd ?? 0)}
+          note={loading ? "Loading..." : `${salesSummary?.totalSales ?? 0} sales today`}
+          tone="green"
+        />
+        <MetricCard
+          label="Stock Alerts"
           value={loading ? "..." : String(inventoryAlerts.length)}
-          note={inventoryAlerts.length > 0 ? "Restock review recommended" : "Inventory looks healthy"}
+          note={inventoryAlerts.length > 0 ? "Restock recommended" : "Inventory healthy"}
           tone={inventoryAlerts.length > 0 ? "red" : "slate"}
         />
       </div>
 
-      <div className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
-        <PageSection className="p-6">
-          <SectionTitle
-            title="Pending approvals"
-            description="Highest-priority booking requests waiting for action."
-            action={
-              <Link
-                to="/bookings"
-                search={{ status: "pending" }}
-                className="text-sm font-bold text-primary hover:underline"
-              >
-                See all
-              </Link>
-            }
-          />
-
-          {loading ? (
-            <div className="space-y-3">
-              {Array.from({ length: 4 }).map((_, index) => (
-                <div
-                  key={index}
-                  className="h-24 rounded-[1.4rem] border border-border bg-white/60 animate-pulse"
-                />
-              ))}
-            </div>
-          ) : pending.length === 0 ? (
-            <EmptyState
-              title="No pending requests"
-              description="There are no booking approvals waiting in the queue right now."
-              action={
+      {/* Main content: bookings table + today sidebar */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        {/* Recent Bookings — 2 cols */}
+        <div className="lg:col-span-2">
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Recent Bookings</CardTitle>
+                  <CardDescription>Pending requests requiring review</CardDescription>
+                </div>
                 <Link
-                  to="/calendar"
-                  className="admin-button-secondary inline-flex rounded-2xl px-4 py-3 text-sm font-bold"
+                  to="/bookings"
+                  search={{ status: "pending" }}
+                  className={cn(buttonVariants({ variant: "ghost", size: "sm" }))}
                 >
-                  Open Calendar
+                  View all
                 </Link>
-              }
-            />
-          ) : (
-            <div className="space-y-3">
-              {pending.map((booking) => (
-                <Link
-                  key={booking.id}
-                  to="/bookings/$id"
-                  params={{ id: String(booking.id) }}
-                  className="block rounded-[1.4rem] border border-primary/8 bg-white/72 p-4 transition-all hover:-translate-y-0.5 hover:border-primary/18 hover:shadow-[0_18px_30px_rgb(23_48_13_/10%)]"
-                >
-                  <div className="flex flex-wrap items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <p className="text-base font-bold text-foreground">{booking.name}</p>
-                        <StatusBadge status={booking.status} />
-                        <InfoPill>{booking.stayType === "day_use" ? "Day use" : "Overnight"}</InfoPill>
-                      </div>
-                      <p className="mt-2 text-sm text-muted-foreground">
-                        {getCabinName(booking.cabinSlug)} · {booking.contact}
-                      </p>
-                      <p className="mt-1 text-sm text-muted-foreground">
-                        {booking.checkIn} to {booking.checkOut} · {booking.guests} guest
-                        {booking.guests === 1 ? "" : "s"}
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-sm font-black text-primary">
-                        {formatGYD(booking.estimatedTotalGyd)}
-                      </p>
-                      <p className="mt-1 text-xs text-muted-foreground">
-                        Submitted {format(new Date(booking.createdAt), "d MMM, h:mm a")}
-                      </p>
-                    </div>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          )}
-        </PageSection>
-
-        <PageSection className="p-6">
-          <SectionTitle
-            title="Today on property"
-            description="Check-ins, check-outs, and stock pressure for the current day."
-          />
-
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-1">
-            <TodayListCard
-              title="Arrivals"
-              tone="green"
-              bookings={arrivalsToday}
-              emptyCopy="No arrivals scheduled today."
-            />
-            <TodayListCard
-              title="Departures"
-              tone="amber"
-              bookings={departuresToday}
-              emptyCopy="No departures scheduled today."
-            />
-          </div>
-
-          <div className="mt-5 rounded-[1.5rem] border border-primary/10 bg-primary/4 p-4">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <p className="text-sm font-bold text-foreground">Inventory watchlist</p>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  Pull the top alerts into view without leaving the dashboard.
-                </p>
               </div>
-              <Link to="/inventory" className="text-sm font-bold text-primary hover:underline">
-                View inventory
-              </Link>
-            </div>
-
-            <div className="mt-4 space-y-2">
-              {inventoryAlerts.length === 0 ? (
-                <p className="text-sm text-muted-foreground">No products are below threshold right now.</p>
+            </CardHeader>
+            <CardContent>
+              {loading ? (
+                <div className="space-y-2">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <Skeleton key={i} className="h-12 w-full rounded-lg" />
+                  ))}
+                </div>
+              ) : pending.length === 0 ? (
+                <EmptyState
+                  title="No pending requests"
+                  description="All booking requests have been reviewed."
+                  variant="bookings"
+                />
               ) : (
-                inventoryAlerts.slice(0, 4).map((alert) => (
-                  <div
-                    key={alert.id}
-                    className="flex items-center justify-between rounded-[1.1rem] border border-white/70 bg-white/80 px-3 py-2.5"
-                  >
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-semibold text-foreground">{alert.name}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {alert.categoryName ?? "Uncategorized"} · threshold {alert.lowStockThreshold}
-                      </p>
-                    </div>
-                    <InfoPill tone={alert.stockQty === 0 ? "red" : "amber"}>
-                      {alert.stockQty} left
-                    </InfoPill>
-                  </div>
-                ))
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Guest</TableHead>
+                        <TableHead>Cabin</TableHead>
+                        <TableHead>Dates</TableHead>
+                        <TableHead>Guests</TableHead>
+                        <TableHead>Revenue</TableHead>
+                        <TableHead>Status</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {pending.map((booking) => (
+                        <TableRow key={booking.id}>
+                          <TableCell>
+                            <div className="min-w-0">
+                              <Link
+                                to="/bookings/$id"
+                                params={{ id: String(booking.id) }}
+                                className="font-medium text-foreground hover:text-primary hover:underline"
+                              >
+                                {booking.name}
+                              </Link>
+                              <p className="text-xs text-muted-foreground">{booking.contact}</p>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-muted-foreground">
+                            {getCabinName(booking.cabinSlug)}
+                          </TableCell>
+                          <TableCell className="whitespace-nowrap text-sm">
+                            {booking.checkIn} – {booking.checkOut}
+                          </TableCell>
+                          <TableCell className="text-center tabular-nums">
+                            {booking.guests}
+                          </TableCell>
+                          <TableCell className="font-medium tabular-nums text-primary">
+                            {formatGYD(booking.estimatedTotalGyd)}
+                          </TableCell>
+                          <TableCell>
+                            <StatusBadge status={booking.status} />
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
               )}
-            </div>
-          </div>
-        </PageSection>
-      </div>
+            </CardContent>
+          </Card>
+        </div>
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <QuickLinkCard
-          to="/pos"
-          title="POS terminal"
-          description="Ring up walk-in sales, collect payment, and print receipts."
-          accent="green"
-        />
-        <QuickLinkCard
-          to="/products"
-          title="Catalog and menus"
-          description="Manage beverage items, categories, pricing, and stock rules."
-          accent="amber"
-        />
-        <QuickLinkCard
-          to="/inventory"
-          title="Inventory control"
-          description="Restock fast-moving items and review movement history."
-          accent="slate"
-        />
-        <QuickLinkCard
-          to="/reports"
-          title="Reports and exports"
-          description="Open charts, revenue summaries, and PDF or CSV exports."
-          accent="green"
-        />
+        {/* Right sidebar — today on property + alerts */}
+        <div className="space-y-4">
+          <TodayCard
+            title="Arrivals"
+            tone="green"
+            bookings={arrivalsToday}
+            emptyCopy="No arrivals today."
+            loading={loading}
+          />
+          <TodayCard
+            title="Departures"
+            tone="amber"
+            bookings={departuresToday}
+            emptyCopy="No departures today."
+            loading={loading}
+          />
+
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle>Inventory Alerts</CardTitle>
+                <Link
+                  to="/inventory"
+                  className={cn(buttonVariants({ variant: "ghost", size: "sm" }))}
+                >
+                  View all
+                </Link>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {loading ? (
+                <div className="space-y-2">
+                  {Array.from({ length: 3 }).map((_, i) => (
+                    <Skeleton key={i} className="h-8 w-full rounded-md" />
+                  ))}
+                </div>
+              ) : inventoryAlerts.length === 0 ? (
+                <p className="text-sm text-muted-foreground">
+                  No products below threshold.
+                </p>
+              ) : (
+                <div className="space-y-1.5">
+                  {inventoryAlerts.slice(0, 4).map((alert) => (
+                    <AlertRow key={alert.id} alert={alert} />
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </AdminPage>
   );
 }
 
-function TodayListCard({
+function TodayCard({
   title,
   bookings,
   tone,
   emptyCopy,
+  loading,
 }: {
   title: string;
   bookings: Booking[];
   tone: "green" | "amber";
   emptyCopy: string;
+  loading: boolean;
 }) {
-  const toneClass =
-    tone === "green"
-      ? {
-          badge: "bg-primary/10 text-primary border-primary/10",
-          dot: "bg-primary",
-        }
-      : {
-          badge: "bg-amber-50 text-amber-700 border-amber-200/70",
-          dot: "bg-amber-500",
-        };
+  const dotClass = tone === "green" ? "bg-primary" : "bg-amber-500";
+  const countVariant: "default" | "outline" = tone === "green" ? "default" : "outline";
 
   return (
-    <div className="rounded-[1.5rem] border border-primary/8 bg-white/76 p-4">
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <span className={`h-2.5 w-2.5 rounded-full ${toneClass.dot}`} />
-          <p className="text-sm font-bold text-foreground">{title}</p>
+    <Card>
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className={`h-2 w-2 rounded-full ${dotClass}`} />
+            <CardTitle>{title}</CardTitle>
+          </div>
+          <Badge variant={countVariant} className="tabular-nums">
+            {loading ? "..." : bookings.length}
+          </Badge>
         </div>
-        <span className={`rounded-full border px-3 py-1 text-xs font-semibold ${toneClass.badge}`}>
-          {bookings.length}
-        </span>
-      </div>
-
-      <div className="mt-4 space-y-2">
-        {bookings.length === 0 ? (
+      </CardHeader>
+      <CardContent>
+        {loading ? (
+          <Skeleton className="h-10 w-full rounded-md" />
+        ) : bookings.length === 0 ? (
           <p className="text-sm text-muted-foreground">{emptyCopy}</p>
         ) : (
-          bookings.map((booking) => {
-            const nights = differenceInCalendarDays(
-              new Date(booking.checkOut),
-              new Date(booking.checkIn)
-            );
-
-            return (
-              <div
-                key={booking.id}
-                className="rounded-[1.1rem] border border-primary/8 bg-primary/4 px-3 py-2.5"
-              >
-                <p className="text-sm font-semibold text-foreground">{booking.name}</p>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  {getCabinName(booking.cabinSlug)} ·{" "}
-                  {booking.stayType === "day_use"
-                    ? "Day use"
-                    : `${nights} night${nights === 1 ? "" : "s"}`}
-                </p>
-              </div>
-            );
-          })
+          <div className="space-y-1.5">
+            {bookings.map((booking) => {
+              const nights = differenceInCalendarDays(
+                new Date(booking.checkOut),
+                new Date(booking.checkIn)
+              );
+              return (
+                <div
+                  key={booking.id}
+                  className="rounded-lg border border-border bg-muted/30 px-3 py-2"
+                >
+                  <p className="text-sm font-medium text-foreground">{booking.name}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {getCabinName(booking.cabinSlug)} ·{" "}
+                    {booking.stayType === "day_use"
+                      ? "Day use"
+                      : `${nights} night${nights === 1 ? "" : "s"}`}
+                  </p>
+                </div>
+              );
+            })}
+          </div>
         )}
+      </CardContent>
+    </Card>
+  );
+}
+
+function AlertRow({ alert }: { alert: InventoryAlert }) {
+  return (
+    <div className="flex items-center justify-between rounded-lg border border-border bg-background px-3 py-2">
+      <div className="min-w-0">
+        <p className="truncate text-sm font-medium text-foreground">{alert.name}</p>
+        <p className="text-xs text-muted-foreground">
+          {alert.categoryName ?? "Uncategorized"} · threshold {alert.lowStockThreshold}
+        </p>
       </div>
+      <Badge
+        variant={alert.stockQty === 0 ? "destructive" : "outline"}
+        className="ml-2 shrink-0 tabular-nums"
+      >
+        {alert.stockQty} left
+      </Badge>
     </div>
   );
 }
 
-function QuickLinkCard({
-  to,
-  title,
-  description,
-  accent,
-}: {
-  to: "/pos" | "/products" | "/inventory" | "/reports";
-  title: string;
-  description: string;
-  accent: "green" | "amber" | "slate";
-}) {
-  const accentClass = {
-    green: "from-primary/14 to-primary/2",
-    amber: "from-amber-200/30 to-amber-50/10",
-    slate: "from-slate-200/40 to-slate-50/10",
-  }[accent];
-
-  return (
-    <Link
-      to={to}
-      className={`admin-surface block rounded-[1.7rem] bg-gradient-to-br ${accentClass} p-5 transition-all hover:-translate-y-0.5 hover:shadow-[0_20px_34px_rgb(23_48_13_/10%)]`}
-    >
-      <p className="admin-kicker">Quick launch</p>
-      <h3 className="mt-3 text-xl font-black tracking-tight text-foreground">{title}</h3>
-      <p className="mt-2 text-sm leading-6 text-muted-foreground">{description}</p>
-      <p className="mt-5 text-sm font-bold text-primary">Open view</p>
-    </Link>
-  );
-}
-
 function getCabinName(slug: string) {
-  return cabins.find((cabin) => cabin.slug === slug)?.name ?? slug;
+  return cabins.find((c) => c.slug === slug)?.name ?? slug;
 }

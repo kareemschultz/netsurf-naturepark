@@ -1,5 +1,6 @@
 import { type Table } from "@tanstack/react-table";
 import { cn } from "@workspace/ui/lib/utils";
+import { buttonVariants } from "@workspace/ui/components/button";
 
 interface DataTableToolbarProps<TData> {
   table: Table<TData>;
@@ -39,7 +40,7 @@ export function DataTableToolbar<TData>({
           value={searchValue}
           onChange={(e) => handleSearchChange(e.target.value)}
           placeholder={searchPlaceholder}
-          className="admin-input h-9 w-[200px] rounded-[1rem] px-3 py-2 text-sm outline-none lg:w-[280px]"
+          className="h-9 w-[200px] rounded-lg border border-input bg-background px-3 py-1 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring lg:w-[280px]"
         />
         {isFiltered && (
           <button
@@ -75,7 +76,7 @@ function ColumnVisibilityDropdown<TData>({ table }: { table: Table<TData> }) {
   return (
     <div className="relative">
       <details className="group">
-        <summary className="admin-button-secondary flex cursor-pointer list-none items-center gap-1.5 rounded-[1rem] px-3 py-2 text-xs font-semibold select-none">
+        <summary className={cn(buttonVariants({ variant: "outline", size: "sm" }), "flex cursor-pointer list-none items-center gap-1.5 select-none")}>
           <svg
             className="h-3.5 w-3.5"
             fill="none"
@@ -91,11 +92,11 @@ function ColumnVisibilityDropdown<TData>({ table }: { table: Table<TData> }) {
           </svg>
           Columns
         </summary>
-        <div className="absolute right-0 z-50 mt-1 min-w-[160px] rounded-[1.25rem] border border-primary/10 bg-white p-2 shadow-lg dark:bg-black/90">
+        <div className="absolute right-0 z-50 mt-1 min-w-[160px] rounded-lg border border-border bg-popover p-2 shadow-lg">
           {hidableColumns.map((column) => (
             <label
               key={column.id}
-              className="flex cursor-pointer items-center gap-2 rounded-[0.75rem] px-3 py-2 text-sm hover:bg-primary/4"
+              className="flex cursor-pointer items-center gap-2 rounded-md px-3 py-2 text-sm hover:bg-muted"
             >
               <input
                 type="checkbox"

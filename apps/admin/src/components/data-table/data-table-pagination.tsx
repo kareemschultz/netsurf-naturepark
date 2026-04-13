@@ -27,7 +27,6 @@ export function DataTablePagination<TData>({
         className
       )}
     >
-      {/* Left: rows info + page size */}
       <div className="flex items-center gap-3">
         <span className="text-xs text-muted-foreground">
           {totalRows === 0
@@ -46,7 +45,7 @@ export function DataTablePagination<TData>({
             id="dt-page-size"
             value={pageSize}
             onChange={(e) => table.setPageSize(Number(e.target.value))}
-            className="admin-input h-7 rounded-[0.75rem] px-2 py-0.5 text-xs outline-none"
+            className="h-7 rounded-md border border-input bg-background px-2 py-0.5 text-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
           >
             {pageSizeOptions.map((size) => (
               <option key={size} value={size}>
@@ -57,49 +56,35 @@ export function DataTablePagination<TData>({
         </div>
       </div>
 
-      {/* Right: page navigation */}
       <div className="flex items-center gap-1.5">
         <span className="text-xs text-muted-foreground">
           Page {currentPage} of {Math.max(pageCount, 1)}
         </span>
 
-        <button
-          type="button"
-          onClick={() => table.setPageIndex(0)}
-          disabled={!table.getCanPreviousPage()}
-          className="flex h-7 w-7 items-center justify-center rounded-[0.75rem] border border-primary/10 bg-white/72 text-xs font-semibold text-foreground transition-colors hover:bg-primary/4 disabled:cursor-not-allowed disabled:opacity-40 dark:bg-black/20"
-          aria-label="First page"
-        >
-          «
-        </button>
-        <button
-          type="button"
-          onClick={() => table.previousPage()}
-          disabled={!table.getCanPreviousPage()}
-          className="flex h-7 w-7 items-center justify-center rounded-[0.75rem] border border-primary/10 bg-white/72 text-xs font-semibold text-foreground transition-colors hover:bg-primary/4 disabled:cursor-not-allowed disabled:opacity-40 dark:bg-black/20"
-          aria-label="Previous page"
-        >
-          ‹
-        </button>
+        {(["«", "‹", "›", "»"] as const).map((symbol, i) => {
+          const disabled =
+            i < 2 ? !table.getCanPreviousPage() : !table.getCanNextPage();
+          const onClick = [
+            () => table.setPageIndex(0),
+            () => table.previousPage(),
+            () => table.nextPage(),
+            () => table.setPageIndex(pageCount - 1),
+          ][i];
+          const label = ["First page", "Previous page", "Next page", "Last page"][i];
 
-        <button
-          type="button"
-          onClick={() => table.nextPage()}
-          disabled={!table.getCanNextPage()}
-          className="flex h-7 w-7 items-center justify-center rounded-[0.75rem] border border-primary/10 bg-white/72 text-xs font-semibold text-foreground transition-colors hover:bg-primary/4 disabled:cursor-not-allowed disabled:opacity-40 dark:bg-black/20"
-          aria-label="Next page"
-        >
-          ›
-        </button>
-        <button
-          type="button"
-          onClick={() => table.setPageIndex(pageCount - 1)}
-          disabled={!table.getCanNextPage()}
-          className="flex h-7 w-7 items-center justify-center rounded-[0.75rem] border border-primary/10 bg-white/72 text-xs font-semibold text-foreground transition-colors hover:bg-primary/4 disabled:cursor-not-allowed disabled:opacity-40 dark:bg-black/20"
-          aria-label="Last page"
-        >
-          »
-        </button>
+          return (
+            <button
+              key={symbol}
+              type="button"
+              onClick={onClick}
+              disabled={disabled}
+              aria-label={label}
+              className="flex h-7 w-7 items-center justify-center rounded-md border border-border bg-background text-xs font-semibold text-foreground transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              {symbol}
+            </button>
+          );
+        })}
       </div>
     </div>
   );

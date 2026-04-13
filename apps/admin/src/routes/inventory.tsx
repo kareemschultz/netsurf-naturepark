@@ -26,6 +26,11 @@ import {
 import { DataTable } from "@/components/data-table";
 import { downloadCsv, exportPrintableReport } from "@/lib/export";
 import { formatGYD } from "@workspace/shared";
+import { buttonVariants } from "@workspace/ui/components/button";
+import { Badge } from "@workspace/ui/components/badge";
+import { Input } from "@workspace/ui/components/input";
+import { Label } from "@workspace/ui/components/label";
+import { cn } from "@workspace/ui/lib/utils";
 
 export const Route = createFileRoute("/inventory")({
   component: InventoryPage,
@@ -47,7 +52,6 @@ function InventoryPage() {
 
   async function loadData() {
     setLoading(true);
-
     try {
       const [inventoryResponse, alertRows, movementResponse] = await Promise.all([
         getInventory(),
@@ -68,14 +72,12 @@ function InventoryPage() {
 
   const filteredItems = useMemo(() => {
     const query = search.trim().toLowerCase();
-
     return items.filter((item) => {
       const matchesSearch =
         !query ||
         item.name.toLowerCase().includes(query) ||
         (item.categoryName ?? "").toLowerCase().includes(query) ||
         (item.sku ?? "").toLowerCase().includes(query);
-
       if (!matchesSearch) return false;
       if (stockView === "low") return item.stockQty <= item.lowStockThreshold;
       if (stockView === "out") return item.stockQty === 0;
@@ -102,7 +104,6 @@ function InventoryPage() {
 
   async function handleRestock() {
     if (!activeProduct || restockQty <= 0) return;
-
     setSaving(true);
     try {
       await restockInventory({
@@ -121,7 +122,6 @@ function InventoryPage() {
 
   async function handleAdjust() {
     if (!activeProduct || adjustNotes.trim().length < 2) return;
-
     setSaving(true);
     try {
       await adjustInventory({
@@ -220,14 +220,14 @@ function InventoryPage() {
             <button
               type="button"
               onClick={handleExportInventory}
-              className="admin-button-secondary rounded-full px-5 py-3 text-sm font-bold"
+              className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
             >
               Export CSV
             </button>
             <button
               type="button"
               onClick={handleExportInventoryPdf}
-              className="admin-button-secondary rounded-full px-5 py-3 text-sm font-bold"
+              className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
             >
               Export PDF
             </button>
@@ -235,29 +235,31 @@ function InventoryPage() {
         }
         meta={
           <>
-            <InfoPill tone={alerts.length > 0 ? "amber" : "green"}>
+            <Badge variant={alerts.length > 0 ? "default" : "secondary"}>
               {alerts.length > 0 ? `${alerts.length} active alerts` : "No urgent alerts"}
-            </InfoPill>
-            <InfoPill>{filteredItems.length} items in view</InfoPill>
-            <InfoPill tone="green">{formatGYD(inventoryValue)} shelf value</InfoPill>
+            </Badge>
+            <Badge variant="outline">{filteredItems.length} items in view</Badge>
+            <Badge variant="secondary">{formatGYD(inventoryValue)} shelf value</Badge>
           </>
         }
       />
 
       {alerts.length > 0 ? (
-        <PageSection className="border-amber-200/70 bg-[linear-gradient(180deg,rgba(255,251,235,0.96),rgba(255,247,220,0.9))] p-5 sm:p-6">
+        <div className="rounded-xl border border-amber-200 bg-amber-50 px-5 py-4 dark:border-amber-400/20 dark:bg-amber-400/10">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <p className="text-xs font-bold tracking-[0.2em] text-amber-800 uppercase">
+              <p className="text-xs font-bold tracking-[0.2em] text-amber-800 uppercase dark:text-amber-300">
                 Low-Stock Watch
               </p>
-              <p className="mt-2 text-sm text-amber-900">
+              <p className="mt-1 text-sm text-amber-900 dark:text-amber-200">
                 {alerts.map((alert) => `${alert.name} (${alert.stockQty})`).join(", ")}
               </p>
             </div>
-            <InfoPill tone="amber">Restock soon</InfoPill>
+            <Badge variant="outline" className="border-amber-300 text-amber-800 shrink-0">
+              Restock soon
+            </Badge>
           </div>
-        </PageSection>
+        </div>
       ) : null}
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
@@ -299,7 +301,7 @@ function InventoryPage() {
                     setSearch("");
                     setStockView("all");
                   }}
-                  className="admin-button-secondary rounded-full px-4 py-2 text-sm font-semibold"
+                  className={cn(buttonVariants({ variant: "ghost", size: "sm" }))}
                 >
                   Reset Filters
                 </button>
@@ -360,11 +362,9 @@ function InventoryPage() {
 
             {activeProduct ? (
               <>
-                <div className="rounded-[1.5rem] border border-primary/10 bg-primary/4 p-4">
-                  <p className="text-lg font-black tracking-tight text-foreground">
-                    {activeProduct.name}
-                  </p>
-                  <div className="mt-3 flex flex-wrap gap-2">
+                <div className="rounded-lg border border-border bg-muted/30 p-4">
+                  <p className="font-bold text-foreground">{activeProduct.name}</p>
+                  <div className="mt-2 flex flex-wrap gap-2">
                     <InfoPill>{activeProduct.categoryName ?? "Uncategorized"}</InfoPill>
                     <InfoPill tone="green">{activeProduct.stockQty} on hand</InfoPill>
                     <InfoPill tone="amber">
@@ -374,18 +374,17 @@ function InventoryPage() {
                 </div>
 
                 <div className="mt-5 space-y-5">
-                  <div className="rounded-[1.5rem] border border-primary/10 bg-white/70 p-4">
-                    <p className="text-sm font-bold text-foreground">Restock</p>
+                  <div className="rounded-lg border border-border bg-background p-4">
+                    <p className="text-sm font-semibold text-foreground">Restock</p>
                     <div className="mt-3 space-y-3">
                       <FieldLabel label="Quantity to Add">
-                        <input
+                        <Input
                           type="number"
                           min={1}
                           name="restock_quantity"
                           inputMode="numeric"
                           value={restockQty}
                           onChange={(event) => setRestockQty(Number(event.target.value))}
-                          className="admin-input w-full rounded-[1.2rem] px-4 py-3 text-sm outline-none"
                           placeholder="0"
                         />
                       </FieldLabel>
@@ -395,7 +394,7 @@ function InventoryPage() {
                           rows={3}
                           value={restockNotes}
                           onChange={(event) => setRestockNotes(event.target.value)}
-                          className="admin-input w-full rounded-[1.4rem] px-4 py-3 text-sm outline-none"
+                          className="flex w-full rounded-lg border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
                           placeholder="Optional receiving note…"
                         />
                       </FieldLabel>
@@ -403,25 +402,24 @@ function InventoryPage() {
                         type="button"
                         onClick={handleRestock}
                         disabled={saving || restockQty <= 0}
-                        className="admin-button-primary w-full rounded-full px-4 py-3 text-sm font-bold disabled:cursor-not-allowed disabled:opacity-50"
+                        className={cn(buttonVariants(), "w-full disabled:cursor-not-allowed disabled:opacity-50")}
                       >
                         {saving ? "Saving…" : "Restock Item"}
                       </button>
                     </div>
                   </div>
 
-                  <div className="rounded-[1.5rem] border border-primary/10 bg-white/70 p-4">
-                    <p className="text-sm font-bold text-foreground">Adjust to Count</p>
+                  <div className="rounded-lg border border-border bg-background p-4">
+                    <p className="text-sm font-semibold text-foreground">Adjust to Count</p>
                     <div className="mt-3 space-y-3">
                       <FieldLabel label="New Counted Quantity">
-                        <input
+                        <Input
                           type="number"
                           min={0}
                           name="adjust_quantity"
                           inputMode="numeric"
                           value={adjustQty}
                           onChange={(event) => setAdjustQty(Number(event.target.value))}
-                          className="admin-input w-full rounded-[1.2rem] px-4 py-3 text-sm outline-none"
                           placeholder="0"
                         />
                       </FieldLabel>
@@ -431,7 +429,7 @@ function InventoryPage() {
                           rows={3}
                           value={adjustNotes}
                           onChange={(event) => setAdjustNotes(event.target.value)}
-                          className="admin-input w-full rounded-[1.4rem] px-4 py-3 text-sm outline-none"
+                          className="flex w-full rounded-lg border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
                           placeholder="Explain the recount or variance…"
                         />
                       </FieldLabel>
@@ -439,7 +437,7 @@ function InventoryPage() {
                         type="button"
                         onClick={handleAdjust}
                         disabled={saving || adjustNotes.trim().length < 2}
-                        className="admin-button-secondary w-full rounded-full px-4 py-3 text-sm font-bold disabled:cursor-not-allowed disabled:opacity-50"
+                        className={cn(buttonVariants({ variant: "outline" }), "w-full disabled:cursor-not-allowed disabled:opacity-50")}
                       >
                         {saving ? "Saving…" : "Adjust Stock"}
                       </button>
@@ -471,27 +469,30 @@ function InventoryPage() {
                 movements.map((movement) => (
                   <div
                     key={movement.id}
-                    className="rounded-[1.35rem] border border-primary/10 bg-white/78 p-4"
+                    className="rounded-lg border border-border bg-background p-4"
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
-                        <p className="truncate font-semibold text-foreground">
+                        <p className="truncate font-medium text-foreground">
                           {movement.productName}
                         </p>
                         <p className="mt-1 text-xs text-muted-foreground">
                           {new Date(movement.createdAt).toLocaleString()}
                         </p>
                       </div>
-                      <InfoPill
-                        tone={movement.quantityChange >= 0 ? "green" : "amber"}
+                      <Badge
+                        variant={movement.quantityChange >= 0 ? "default" : "destructive"}
+                        className="shrink-0 tabular-nums"
                       >
                         {movement.quantityChange > 0 ? "+" : ""}
                         {movement.quantityChange}
-                      </InfoPill>
+                      </Badge>
                     </div>
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      <InfoPill>{movement.type.replaceAll("_", " ")}</InfoPill>
-                      {movement.notes ? <InfoPill>{movement.notes}</InfoPill> : null}
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      <Badge variant="secondary">{movement.type.replaceAll("_", " ")}</Badge>
+                      {movement.notes ? (
+                        <Badge variant="outline">{movement.notes}</Badge>
+                      ) : null}
                     </div>
                   </div>
                 ))
@@ -521,7 +522,7 @@ function InventoryTable({
         header: "Product",
         cell: ({ row }) => (
           <div>
-            <p className="font-semibold text-foreground">{row.original.name}</p>
+            <p className="font-medium text-foreground">{row.original.name}</p>
             <p className="mt-0.5 text-xs text-muted-foreground">
               {row.original.sku ?? row.original.slug}
             </p>
@@ -533,9 +534,9 @@ function InventoryTable({
         accessorKey: "categoryName",
         header: "Category",
         cell: ({ row }) => (
-          <span className="rounded-full bg-primary/6 px-2.5 py-1 text-xs font-semibold text-foreground">
+          <Badge variant="secondary">
             {row.original.categoryName ?? "Uncategorized"}
-          </span>
+          </Badge>
         ),
       },
       {
@@ -544,16 +545,16 @@ function InventoryTable({
         header: "Stock",
         cell: ({ row }) => {
           const { stockQty, lowStockThreshold } = row.original;
-          const toneClass =
+          const variant =
             stockQty === 0
-              ? "bg-red-50 text-red-700"
+              ? "destructive"
               : stockQty <= lowStockThreshold
-                ? "bg-amber-50 text-amber-800"
-                : "bg-emerald-50 text-emerald-700";
+                ? "outline"
+                : "default";
           return (
-            <span className={`rounded-full px-3 py-1 text-xs font-bold ${toneClass}`}>
+            <Badge variant={variant} className="tabular-nums">
               {stockQty}
-            </span>
+            </Badge>
           );
         },
       },
@@ -562,7 +563,7 @@ function InventoryTable({
         accessorKey: "lowStockThreshold",
         header: "Threshold",
         cell: ({ row }) => (
-          <span className="text-muted-foreground">
+          <span className="text-muted-foreground tabular-nums">
             {row.original.lowStockThreshold}
           </span>
         ),
@@ -577,25 +578,9 @@ function InventoryTable({
         header: "Status",
         cell: ({ row }) => {
           const { stockQty, lowStockThreshold } = row.original;
-          if (stockQty === 0) {
-            return (
-              <span className="rounded-full bg-red-100 px-2.5 py-1 text-xs font-bold text-red-700">
-                Out
-              </span>
-            );
-          }
-          if (stockQty <= lowStockThreshold) {
-            return (
-              <span className="rounded-full bg-amber-100 px-2.5 py-1 text-xs font-bold text-amber-800">
-                Low
-              </span>
-            );
-          }
-          return (
-            <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-bold text-emerald-700">
-              OK
-            </span>
-          );
+          if (stockQty === 0) return <Badge variant="destructive">Out</Badge>;
+          if (stockQty <= lowStockThreshold) return <Badge variant="outline" className="border-amber-300 text-amber-800">Low</Badge>;
+          return <Badge variant="default">OK</Badge>;
         },
       },
       {
@@ -609,7 +594,7 @@ function InventoryTable({
               e.stopPropagation();
               onManage(row.original);
             }}
-            className="admin-button-secondary rounded-full px-4 py-2 text-sm font-semibold"
+            className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
           >
             Manage
           </button>
@@ -639,11 +624,11 @@ function FieldLabel({
   children: ReactNode;
 }) {
   return (
-    <label className="block">
-      <span className="mb-2 block text-xs font-bold tracking-[0.18em] text-muted-foreground uppercase">
+    <div className="space-y-1.5">
+      <Label className="text-xs font-semibold tracking-[0.15em] text-muted-foreground uppercase">
         {label}
-      </span>
+      </Label>
       {children}
-    </label>
+    </div>
   );
 }

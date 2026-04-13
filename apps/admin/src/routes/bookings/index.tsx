@@ -8,7 +8,6 @@ import {
   AdminPage,
   EmptyState,
   FilterChip,
-  InfoPill,
   MetricCard,
   PageHeader,
   PageSection,
@@ -17,6 +16,9 @@ import {
 import { StatusBadge } from "@/components/StatusBadge";
 import { DataTable } from "@/components/data-table";
 import { cabins, formatGYD } from "@workspace/shared";
+import { buttonVariants } from "@workspace/ui/components/button";
+import { Badge } from "@workspace/ui/components/badge";
+import { cn } from "@workspace/ui/lib/utils";
 
 const searchSchema = z.object({
   status: z.enum(["all", "pending", "confirmed", "declined", "cancelled"]).catch("all"),
@@ -87,7 +89,7 @@ function BookingsPage() {
           const booking = row.original;
           return (
             <div className="min-w-0">
-              <p className="truncate font-semibold text-foreground">
+              <p className="truncate font-medium text-foreground">
                 #{booking.id} · {booking.name}
               </p>
               <p className="mt-0.5 truncate text-xs text-muted-foreground">
@@ -102,9 +104,9 @@ function BookingsPage() {
         accessorKey: "stayType",
         header: "Stay Type",
         cell: ({ row }) => (
-          <InfoPill tone={row.original.stayType === "overnight" ? "green" : "amber"}>
+          <Badge variant={row.original.stayType === "overnight" ? "default" : "outline"}>
             {row.original.stayType === "overnight" ? "Overnight" : "Day Use"}
-          </InfoPill>
+          </Badge>
         ),
       },
       {
@@ -135,7 +137,7 @@ function BookingsPage() {
         accessorKey: "estimatedTotalGyd",
         header: "Value",
         cell: ({ row }) => (
-          <span className="font-semibold tabular-nums text-foreground">
+          <span className="font-medium tabular-nums text-foreground">
             {formatGYD(row.original.estimatedTotalGyd)}
           </span>
         ),
@@ -151,15 +153,13 @@ function BookingsPage() {
         header: "Open",
         enableHiding: false,
         cell: ({ row }) => (
-          <div className="text-right">
-            <Link
-              to="/bookings/$id"
-              params={{ id: String(row.original.id) }}
-              className="admin-button-secondary inline-flex rounded-full px-4 py-2 text-sm font-semibold"
-            >
-              View
-            </Link>
-          </div>
+          <Link
+            to="/bookings/$id"
+            params={{ id: String(row.original.id) }}
+            className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
+          >
+            View
+          </Link>
         ),
       },
     ],
@@ -176,13 +176,13 @@ function BookingsPage() {
           <>
             <Link
               to="/calendar"
-              className="admin-button-secondary rounded-full px-5 py-3 text-sm font-bold"
+              className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
             >
               Open Calendar
             </Link>
             <Link
               to="/cabins"
-              className="admin-button-primary rounded-full px-5 py-3 text-sm font-bold"
+              className={cn(buttonVariants({ size: "sm" }))}
             >
               View Cabins
             </Link>
@@ -190,14 +190,15 @@ function BookingsPage() {
         }
         meta={
           <>
-            <InfoPill tone={status === "pending" ? "amber" : "green"}>
+            <Badge variant={status === "pending" ? "default" : "secondary"}>
               {status === "all" ? "All statuses" : `${status} queue`}
-            </InfoPill>
-            <InfoPill>{data.total} total bookings</InfoPill>
-            <InfoPill>
-              Page {page}
-              {totalPages > 0 ? ` of ${totalPages}` : ""}
-            </InfoPill>
+            </Badge>
+            <Badge variant="outline">{data.total} total bookings</Badge>
+            {totalPages > 0 && (
+              <Badge variant="outline">
+                Page {page} of {totalPages}
+              </Badge>
+            )}
           </>
         }
       />
@@ -266,7 +267,7 @@ function BookingsPage() {
         </div>
 
         {totalPages > 1 && !loading ? (
-          <div className="mt-4 flex flex-col gap-3 border-t border-primary/8 pt-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="mt-4 flex flex-col gap-3 border-t border-border pt-4 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-xs text-muted-foreground">
               {data.total} total bookings · page {page} of {totalPages}
             </p>
@@ -275,7 +276,7 @@ function BookingsPage() {
                 type="button"
                 onClick={() => setPage((current) => Math.max(1, current - 1))}
                 disabled={page === 1}
-                className="admin-button-secondary rounded-full px-4 py-2 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-40"
+                className={cn(buttonVariants({ variant: "outline", size: "sm" }), "disabled:cursor-not-allowed disabled:opacity-40")}
               >
                 Previous
               </button>
@@ -283,7 +284,7 @@ function BookingsPage() {
                 type="button"
                 onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
                 disabled={page === totalPages}
-                className="admin-button-secondary rounded-full px-4 py-2 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-40"
+                className={cn(buttonVariants({ variant: "outline", size: "sm" }), "disabled:cursor-not-allowed disabled:opacity-40")}
               >
                 Next
               </button>

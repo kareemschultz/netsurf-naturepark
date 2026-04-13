@@ -46,20 +46,20 @@ function AdminBootScreen({
   tone?: "neutral" | "error";
 }) {
   return (
-    <div className="admin-shell flex min-h-screen items-center justify-center px-4 py-6">
-      <div className="admin-surface max-w-lg rounded-[2.2rem] px-8 py-10 text-center shadow-[0_24px_60px_rgb(21_36_12_/14%)]">
+    <div className="flex min-h-screen items-center justify-center bg-background px-4 py-6">
+      <div className="max-w-lg rounded-2xl border border-border bg-card px-8 py-10 text-center shadow-sm">
         <div
           className={[
-            "mx-auto flex h-16 w-16 items-center justify-center rounded-[1.6rem] border",
+            "mx-auto flex h-14 w-14 items-center justify-center rounded-xl border",
             tone === "error"
-              ? "border-red-200 bg-red-50 text-red-700"
-              : "border-primary/12 bg-primary/8 text-primary",
+              ? "border-red-200 bg-red-50 text-red-600"
+              : "border-primary/20 bg-primary/10 text-primary",
           ].join(" ")}
         >
           {tone === "error" ? (
             <svg
-              width="24"
-              height="24"
+              width="22"
+              height="22"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
@@ -72,15 +72,17 @@ function AdminBootScreen({
               <path d="M12 16h.01" />
             </svg>
           ) : (
-            <div className="h-6 w-6 animate-spin rounded-full border-2 border-current border-t-transparent" />
+            <div className="h-5 w-5 animate-spin rounded-full border-2 border-current border-t-transparent" />
           )}
         </div>
 
-        <p className="admin-kicker mt-5">Netsurf Admin</p>
-        <h1 className="mt-3 text-2xl font-black tracking-tight text-foreground">
+        <p className="mt-4 text-xs font-bold tracking-[0.2em] text-muted-foreground uppercase">
+          Netsurf Admin
+        </p>
+        <h1 className="mt-2 text-xl font-bold tracking-tight text-foreground">
           {title}
         </h1>
-        <p className="mt-3 text-sm leading-6 text-muted-foreground">{body}</p>
+        <p className="mt-2 text-sm leading-6 text-muted-foreground">{body}</p>
       </div>
     </div>
   );
