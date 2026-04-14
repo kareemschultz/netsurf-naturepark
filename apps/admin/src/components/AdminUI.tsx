@@ -56,30 +56,28 @@ export function PageHeader({
   meta?: ReactNode;
 }) {
   return (
-    <div className="flex flex-col gap-1 rounded-2xl border border-border bg-card px-6 py-5 sm:px-8">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-        <div className="min-w-0">
-          {eyebrow && (
-            <p className="mb-1.5 text-xs font-bold tracking-[0.2em] text-muted-foreground uppercase">
-              {eyebrow}
-            </p>
-          )}
-          <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
-            {title}
-          </h1>
-          <p className="mt-1.5 max-w-2xl text-sm leading-relaxed text-muted-foreground">
-            {description}
+    <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+      <div className="min-w-0">
+        {eyebrow && (
+          <p className="mb-1 text-xs font-bold tracking-[0.2em] text-muted-foreground uppercase">
+            {eyebrow}
           </p>
-          {meta && (
-            <div className="mt-3 flex flex-wrap gap-2">{meta}</div>
-          )}
-        </div>
-        {actions && (
-          <div className="flex shrink-0 flex-wrap items-center gap-2">
-            {actions}
-          </div>
+        )}
+        <h1 className="text-2xl font-bold tracking-tight text-foreground">
+          {title}
+        </h1>
+        <p className="mt-1 max-w-2xl text-sm leading-relaxed text-muted-foreground">
+          {description}
+        </p>
+        {meta && (
+          <div className="mt-2 flex flex-wrap gap-2">{meta}</div>
         )}
       </div>
+      {actions && (
+        <div className="flex shrink-0 flex-wrap items-center gap-2">
+          {actions}
+        </div>
+      )}
     </div>
   );
 }
