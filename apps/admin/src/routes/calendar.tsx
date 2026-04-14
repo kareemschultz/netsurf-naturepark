@@ -3,12 +3,13 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { getCalendar, type BlockedDate, type Booking, type CalendarResponse } from "@/lib/api";
 import {
   AdminPage,
-  InfoPill,
   MetricCard,
   PageHeader,
   PageSection,
   SectionTitle,
 } from "@/components/AdminUI";
+import { Button } from "@workspace/ui/components/button";
+import { Badge } from "@workspace/ui/components/badge";
 
 export const Route = createFileRoute("/calendar")({
   component: CalendarPage,
@@ -73,41 +74,29 @@ function CalendarPage() {
         description="Track confirmed stays, pending demand, and blocked ranges across the month. The calendar stays operationally useful without becoming a flat spreadsheet."
         actions={
           <>
-            <button
-              type="button"
-              onClick={() => moveMonth(-1)}
-              aria-label="Previous month"
-              className="admin-button-secondary rounded-full px-4 py-3 text-sm font-bold"
-            >
+            <Button variant="outline" onClick={() => moveMonth(-1)} aria-label="Previous month">
               Previous
-            </button>
-            <button
-              type="button"
-              onClick={() => moveMonth(1)}
-              aria-label="Next month"
-              className="admin-button-secondary rounded-full px-4 py-3 text-sm font-bold"
-            >
+            </Button>
+            <Button variant="outline" onClick={() => moveMonth(1)} aria-label="Next month">
               Next
-            </button>
+            </Button>
             {!isCurrentMonth ? (
-              <button
-                type="button"
+              <Button
                 onClick={() => {
                   setYear(now.getFullYear());
                   setMonth(now.getMonth() + 1);
                 }}
-                className="admin-button-primary rounded-full px-5 py-3 text-sm font-bold"
               >
                 Jump to Today
-              </button>
+              </Button>
             ) : null}
           </>
         }
         meta={
           <>
-            <InfoPill tone="green">{monthLabel.format(monthDate)}</InfoPill>
-            <InfoPill>{calendar?.cabins.length ?? 0} cabins</InfoPill>
-            <InfoPill tone="amber">{blockedRows.length} blocked ranges</InfoPill>
+            <Badge variant="secondary">{monthLabel.format(monthDate)}</Badge>
+            <Badge variant="outline">{calendar?.cabins.length ?? 0} cabins</Badge>
+            <Badge variant="outline">{blockedRows.length} blocked ranges</Badge>
           </>
         }
       />
@@ -166,20 +155,20 @@ function CalendarPage() {
         />
 
         {loading || !calendar ? (
-          <div className="rounded-[1.7rem] border border-dashed border-primary/14 bg-primary/4 px-6 py-12 text-center text-sm text-muted-foreground">
+          <div className="rounded-xl border border-dashed border-border bg-muted/30 px-6 py-12 text-center text-sm text-muted-foreground">
             Loading calendar…
           </div>
         ) : (
-          <div className="overflow-hidden rounded-[1.7rem] border border-primary/10 bg-white/76">
-            <div className="admin-scrollbar overflow-x-auto">
+          <div className="overflow-hidden rounded-xl border border-border bg-card">
+            <div className="overflow-x-auto">
               <div className="min-w-[1100px]">
                 <div
-                  className="grid border-b border-primary/8 bg-primary/4"
+                  className="grid border-b border-border bg-muted/40"
                   style={{
                     gridTemplateColumns: `16rem repeat(${days.length}, minmax(2.35rem, 1fr))`,
                   }}
                 >
-                  <div className="border-r border-primary/8 px-5 py-4 text-[11px] font-bold tracking-[0.18em] text-muted-foreground uppercase">
+                  <div className="border-r border-border px-5 py-4 text-[11px] font-bold tracking-[0.18em] uppercase text-muted-foreground">
                     Cabin
                   </div>
                   {days.map((day) => {
@@ -188,7 +177,7 @@ function CalendarPage() {
                     return (
                       <div
                         key={day}
-                        className={`flex items-center justify-center border-r border-primary/8 px-1 py-3.5 text-xs font-bold last:border-r-0 text-muted-foreground`}
+                        className="flex items-center justify-center border-r border-border px-1 py-3.5 text-xs font-bold last:border-r-0 text-muted-foreground"
                       >
                         {isToday ? (
                           <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-white text-xs font-bold">
@@ -239,9 +228,9 @@ function CalendarPage() {
               <PageSection key={cabin.slug} className="p-5 sm:p-6">
                 <p className="text-lg font-black tracking-tight text-foreground">{cabin.name}</p>
                 <div className="mt-4 flex flex-wrap gap-2">
-                  <InfoPill tone="green">{cabinConfirmed} confirmed</InfoPill>
-                  <InfoPill tone="amber">{cabinPending} pending</InfoPill>
-                  <InfoPill tone="red">{cabinBlocked} blocked</InfoPill>
+                  <Badge variant="secondary">{cabinConfirmed} confirmed</Badge>
+                  <Badge variant="outline">{cabinPending} pending</Badge>
+                  <Badge variant="outline">{cabinBlocked} blocked</Badge>
                 </div>
               </PageSection>
             );
@@ -275,12 +264,12 @@ function CalendarRow({
 }) {
   return (
     <div
-      className="grid border-b border-primary/8 last:border-b-0"
+      className="grid border-b border-border last:border-b-0"
       style={{ gridTemplateColumns: columnTemplate }}
     >
-      <div className="border-r border-primary/8 bg-primary/4 px-5 py-4">
+      <div className="border-r border-border bg-muted/40 px-5 py-4">
         <p className="text-sm font-bold text-foreground">{cabin.name}</p>
-        <p className="mt-0.5 text-[10px] font-medium tracking-wide text-muted-foreground uppercase">Occupancy</p>
+        <p className="mt-0.5 text-[10px] font-medium tracking-wide uppercase text-muted-foreground">Occupancy</p>
       </div>
 
       {days.map((day) => {
@@ -305,7 +294,7 @@ function CalendarRow({
             <div
               key={dateStr}
               title={`Blocked: ${blocked.reason || "No reason provided"}`}
-              className={`flex items-center justify-center border-r border-primary/8 px-1 py-2 last:border-r-0`}
+              className="flex items-center justify-center border-r border-border px-1 py-2 last:border-r-0"
             >
               <span
                 className={`block h-7 w-full rounded-md bg-red-400/75 ${isToday ? "ring-2 ring-red-500 ring-offset-1" : ""}`}
@@ -324,7 +313,7 @@ function CalendarRow({
           return (
             <div
               key={dateStr}
-              className="flex items-center justify-center border-r border-primary/8 px-1 py-2 last:border-r-0"
+              className="flex items-center justify-center border-r border-border px-1 py-2 last:border-r-0"
             >
               <Link
                 to="/bookings/$id"
@@ -346,7 +335,7 @@ function CalendarRow({
         return (
           <div
             key={dateStr}
-            className={`flex items-center justify-center border-r border-primary/8 px-1 py-2 last:border-r-0`}
+            className="flex items-center justify-center border-r border-border px-1 py-2 last:border-r-0"
           >
             {isToday ? (
               <span className="block h-7 w-full rounded-md bg-primary/10 ring-2 ring-primary/40 ring-offset-1" />

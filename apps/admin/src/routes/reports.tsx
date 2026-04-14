@@ -26,7 +26,6 @@ import {
 } from "@/lib/api";
 import {
   AdminPage,
-  InfoPill,
   MetricCard,
   PageHeader,
   PageSection,
@@ -34,6 +33,10 @@ import {
 } from "@/components/AdminUI";
 import { downloadSectionedCsv, exportPrintableReport } from "@/lib/export";
 import { formatGYD } from "@workspace/shared";
+import { Button } from "@workspace/ui/components/button";
+import { Badge } from "@workspace/ui/components/badge";
+import { Input } from "@workspace/ui/components/input";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@workspace/ui/components/card";
 
 export const Route = createFileRoute("/reports")({
   component: ReportsPage,
@@ -257,43 +260,42 @@ function ReportsPage() {
         description="Responsive operational reporting for revenue, payment mix, booking pressure, and inventory health. Use the date range to refocus the reporting window, then export the current view as CSV or PDF."
         meta={
           <>
-            <InfoPill tone="green">Interactive charts</InfoPill>
-            <InfoPill>{inventory.length} tracked products</InfoPill>
-            <InfoPill tone={alertCount > 0 ? "amber" : "neutral"}>
+            <Badge variant="secondary">Interactive charts</Badge>
+            <Badge variant="outline">{inventory.length} tracked products</Badge>
+            <Badge variant={alertCount > 0 ? "destructive" : "outline"}>
               {alertCount} low-stock alerts
-            </InfoPill>
+            </Badge>
           </>
         }
         actions={
           <>
             <div className="flex flex-wrap gap-2">
-              <input
+              <Input
                 type="date"
                 value={from}
                 onChange={(event) => setFrom(event.target.value)}
-                className="admin-input rounded-2xl px-4 py-3 text-sm outline-none"
+                className="w-auto"
               />
-              <input
+              <Input
                 type="date"
                 value={to}
                 onChange={(event) => setTo(event.target.value)}
-                className="admin-input rounded-2xl px-4 py-3 text-sm outline-none"
+                className="w-auto"
               />
             </div>
-            <button
+            <Button
+              variant="outline"
               onClick={handleExportCsv}
               disabled={!summary}
-              className="admin-button-secondary rounded-2xl px-4 py-3 text-sm font-bold disabled:cursor-not-allowed disabled:opacity-50"
             >
               Export CSV
-            </button>
-            <button
+            </Button>
+            <Button
               onClick={handleExportPdf}
               disabled={!summary || !stats}
-              className="admin-button-primary rounded-2xl px-4 py-3 text-sm font-bold disabled:cursor-not-allowed disabled:opacity-50"
             >
               Export PDF
-            </button>
+            </Button>
           </>
         }
       />
@@ -439,14 +441,14 @@ function ReportsPage() {
           />
           <div className="space-y-3">
             {lowStockRows.length === 0 ? (
-              <div className="rounded-[1.4rem] border border-dashed border-primary/16 bg-primary/4 px-4 py-8 text-center text-sm text-muted-foreground">
+              <div className="rounded-xl border border-dashed border-border bg-muted/30 px-4 py-8 text-center text-sm text-muted-foreground">
                 No low-stock items in the current inventory snapshot.
               </div>
             ) : (
               lowStockRows.map((item) => (
                 <div
                   key={item.id}
-                  className="rounded-[1.25rem] border border-primary/8 bg-white/70 px-4 py-3"
+                  className="rounded-xl border border-border bg-card px-4 py-3"
                 >
                   <div className="flex items-center justify-between gap-3">
                     <div className="min-w-0">
@@ -455,9 +457,9 @@ function ReportsPage() {
                         {item.categoryName ?? "Uncategorized"} · threshold {item.lowStockThreshold}
                       </p>
                     </div>
-                    <InfoPill tone={item.stockQty === 0 ? "red" : "amber"}>
+                    <Badge variant={item.stockQty === 0 ? "destructive" : "outline"}>
                       {item.stockQty} left
-                    </InfoPill>
+                    </Badge>
                   </div>
                 </div>
               ))
@@ -479,10 +481,13 @@ function ChartCard({
   children: ReactNode;
 }) {
   return (
-    <PageSection className="p-6">
-      <SectionTitle title={title} description={description} />
-      {children}
-    </PageSection>
+    <Card>
+      <CardHeader className="pb-3">
+        <CardTitle className="text-base">{title}</CardTitle>
+        <p className="text-sm text-muted-foreground">{description}</p>
+      </CardHeader>
+      <CardContent>{children}</CardContent>
+    </Card>
   );
 }
 

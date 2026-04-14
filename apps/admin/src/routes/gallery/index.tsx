@@ -4,13 +4,15 @@ import { createFileRoute } from "@tanstack/react-router";
 import {
   AdminPage,
   EmptyState,
-  FilterChip,
-  InfoPill,
   PageHeader,
   PageSection,
   SectionTitle,
 } from "@/components/AdminUI";
 import { API_BASE } from "@/lib/auth";
+import { Button } from "@workspace/ui/components/button";
+import { Badge } from "@workspace/ui/components/badge";
+import { Input } from "@workspace/ui/components/input";
+import { Label } from "@workspace/ui/components/label";
 
 export const Route = createFileRoute("/gallery/")({
   component: GalleryPage,
@@ -89,21 +91,13 @@ async function uploadPromo(fd: FormData): Promise<PromoItem> {
 
 function FieldLabel({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <label className="block">
-      <span className="mb-2 block text-xs font-bold tracking-[0.18em] text-muted-foreground uppercase">
+    <div className="space-y-2">
+      <Label className="text-xs font-bold tracking-[0.18em] uppercase text-muted-foreground">
         {label}
-      </span>
+      </Label>
       {children}
-    </label>
+    </div>
   );
-}
-
-// ── Category badge helper ─────────────────────────────────────────────────────
-
-function categoryTone(cat: string): "neutral" | "green" | "amber" {
-  if (cat === "staff") return "green";
-  if (cat === "promo") return "amber";
-  return "neutral";
 }
 
 // ── Main page ─────────────────────────────────────────────────────────────────
@@ -119,18 +113,26 @@ function GalleryPage() {
         description="Manage the gallery that appears on the public Netsurf website. Upload visitor and staff photos, create promotional banners, and control what is shown or hidden."
         meta={
           <>
-            <InfoPill tone="green">Gallery management</InfoPill>
+            <Badge variant="secondary">Gallery management</Badge>
           </>
         }
       />
 
       <div className="flex gap-2">
-        <FilterChip type="button" active={activeTab === "photos"} onClick={() => setActiveTab("photos")}>
+        <Button
+          variant={activeTab === "photos" ? "default" : "outline"}
+          size="sm"
+          onClick={() => setActiveTab("photos")}
+        >
           Photos
-        </FilterChip>
-        <FilterChip type="button" active={activeTab === "promos"} onClick={() => setActiveTab("promos")}>
+        </Button>
+        <Button
+          variant={activeTab === "promos" ? "default" : "outline"}
+          size="sm"
+          onClick={() => setActiveTab("promos")}
+        >
           Promotions
-        </FilterChip>
+        </Button>
       </div>
 
       {activeTab === "photos" ? <PhotosTab /> : <PromosTab />}
@@ -155,7 +157,6 @@ function PhotosTab() {
   const [showUploadForm, setShowUploadForm] = useState(false);
   const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
 
-  // Upload form state
   const [uploadFiles, setUploadFiles] = useState<FileList | null>(null);
   const [uploadAltText, setUploadAltText] = useState("");
   const [uploadCategory, setUploadCategory] = useState("visitor");
@@ -216,18 +217,18 @@ function PhotosTab() {
           title="Photos"
           description="Upload and manage gallery images shown on the public website."
           action={
-            <button
-              type="button"
+            <Button
+              variant={showUploadForm ? "outline" : "default"}
+              size="sm"
               onClick={() => setShowUploadForm((v) => !v)}
-              className="admin-button-primary rounded-full px-5 py-2.5 text-sm font-bold"
             >
               {showUploadForm ? "Cancel" : "Upload Photos"}
-            </button>
+            </Button>
           }
         />
 
         {showUploadForm ? (
-          <div className="mb-6 rounded-[1.6rem] border border-primary/10 bg-primary/4 p-5 space-y-4">
+          <div className="mb-6 rounded-xl border border-border bg-muted/30 p-5 space-y-4">
             <h3 className="text-base font-black tracking-tight text-foreground">Upload New Photos</h3>
 
             <FieldLabel label="Images">
@@ -236,17 +237,16 @@ function PhotosTab() {
                 accept="image/*"
                 multiple
                 onChange={(e) => setUploadFiles(e.target.files)}
-                className="admin-input w-full rounded-[1.2rem] px-4 py-3 text-sm outline-none file:mr-3 file:rounded-full file:border-0 file:bg-primary/10 file:px-3 file:py-1 file:text-xs file:font-semibold file:text-primary"
+                className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm outline-none file:mr-3 file:rounded-full file:border-0 file:bg-primary/10 file:px-3 file:py-1 file:text-xs file:font-semibold file:text-primary"
               />
             </FieldLabel>
 
             <FieldLabel label="Alt Text">
-              <input
+              <Input
                 type="text"
                 value={uploadAltText}
                 onChange={(e) => setUploadAltText(e.target.value)}
                 placeholder="Describe the image for accessibility…"
-                className="admin-input w-full rounded-[1.2rem] px-4 py-3 text-sm outline-none"
               />
             </FieldLabel>
 
@@ -254,7 +254,7 @@ function PhotosTab() {
               <select
                 value={uploadCategory}
                 onChange={(e) => setUploadCategory(e.target.value)}
-                className="admin-input w-full rounded-[1.2rem] px-4 py-3 text-sm outline-none"
+                className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-ring"
               >
                 <option value="visitor">Visitor</option>
                 <option value="staff">Staff</option>
@@ -263,47 +263,48 @@ function PhotosTab() {
             </FieldLabel>
 
             <FieldLabel label="Uploader Name (optional)">
-              <input
+              <Input
                 type="text"
                 value={uploadUploaderName}
                 onChange={(e) => setUploadUploaderName(e.target.value)}
                 placeholder="Staff member name…"
-                className="admin-input w-full rounded-[1.2rem] px-4 py-3 text-sm outline-none"
               />
             </FieldLabel>
 
             {uploadError ? (
-              <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700">
+              <div className="rounded-xl border border-destructive/50 bg-destructive/10 px-4 py-2 text-sm text-destructive">
                 {uploadError}
-              </p>
+              </div>
             ) : null}
 
-            <button
+            <Button
               type="button"
+              className="w-full"
               onClick={handleUpload}
               disabled={uploading || !uploadFiles || uploadFiles.length === 0}
-              className="admin-button-primary w-full rounded-full px-4 py-3 text-sm font-bold disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {uploading ? "Uploading…" : `Upload ${uploadFiles ? uploadFiles.length : 0} Photo${uploadFiles && uploadFiles.length !== 1 ? "s" : ""}`}
-            </button>
+              {uploading
+                ? "Uploading…"
+                : `Upload ${uploadFiles ? uploadFiles.length : 0} Photo${uploadFiles && uploadFiles.length !== 1 ? "s" : ""}`}
+            </Button>
           </div>
         ) : null}
 
         <div className="flex flex-wrap gap-2 mb-5">
           {CATEGORIES.map((cat) => (
-            <FilterChip
+            <Button
               key={cat.value}
-              type="button"
-              active={activeCategory === cat.value}
+              variant={activeCategory === cat.value ? "default" : "outline"}
+              size="sm"
               onClick={() => setActiveCategory(cat.value)}
             >
               {cat.label}
-            </FilterChip>
+            </Button>
           ))}
         </div>
 
         {loading ? (
-          <div className="rounded-[1.7rem] border border-dashed border-primary/14 bg-primary/4 px-6 py-12 text-center text-sm text-muted-foreground">
+          <div className="rounded-xl border border-dashed border-border bg-muted/30 px-6 py-12 text-center text-sm text-muted-foreground">
             Loading photos…
           </div>
         ) : photos.length === 0 ? (
@@ -311,13 +312,7 @@ function PhotosTab() {
             title="No photos yet"
             description="Upload the first one to get the gallery started."
             action={
-              <button
-                type="button"
-                onClick={() => setShowUploadForm(true)}
-                className="admin-button-primary rounded-full px-4 py-2.5 text-sm font-bold"
-              >
-                Upload Photos
-              </button>
+              <Button onClick={() => setShowUploadForm(true)}>Upload Photos</Button>
             }
           />
         ) : (
@@ -325,9 +320,9 @@ function PhotosTab() {
             {photos.map((photo) => (
               <div
                 key={photo.id}
-                className="rounded-[1.7rem] border border-primary/10 bg-white/72 overflow-hidden shadow-[0_18px_40px_rgb(22_36_12_/6%)]"
+                className="rounded-xl border border-border bg-card overflow-hidden shadow-sm"
               >
-                <div className="aspect-square overflow-hidden bg-primary/4">
+                <div className="aspect-square overflow-hidden bg-muted">
                   <img
                     src={`/uploads/gallery/${photo.filename}`}
                     alt={photo.altText || photo.originalName}
@@ -342,12 +337,10 @@ function PhotosTab() {
                   </p>
 
                   <div className="flex flex-wrap gap-1">
-                    <InfoPill tone={categoryTone(photo.category)}>
-                      {photo.category}
-                    </InfoPill>
-                    <InfoPill tone={photo.isActive ? "green" : "neutral"}>
+                    <Badge variant="secondary">{photo.category}</Badge>
+                    <Badge variant={photo.isActive ? "secondary" : "outline"}>
                       {photo.isActive ? "Active" : "Hidden"}
-                    </InfoPill>
+                    </Badge>
                   </div>
 
                   {photo.uploaderName ? (
@@ -357,39 +350,43 @@ function PhotosTab() {
                   ) : null}
 
                   <div className="flex gap-2 pt-1">
-                    <button
-                      type="button"
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex-1"
                       onClick={() => handleToggleActive(photo)}
-                      className="flex-1 rounded-full border border-primary/10 bg-primary/6 px-2 py-1.5 text-xs font-semibold text-primary transition-colors hover:bg-primary/12"
                     >
                       {photo.isActive ? "Hide" : "Show"}
-                    </button>
+                    </Button>
 
                     {confirmDeleteId === photo.id ? (
                       <div className="flex gap-1 flex-1">
-                        <button
-                          type="button"
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          className="flex-1"
                           onClick={() => handleDelete(photo)}
-                          className="flex-1 rounded-full bg-red-600 px-2 py-1.5 text-xs font-bold text-white"
                         >
                           Confirm
-                        </button>
-                        <button
-                          type="button"
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="flex-1"
                           onClick={() => setConfirmDeleteId(null)}
-                          className="flex-1 rounded-full border border-border px-2 py-1.5 text-xs font-semibold"
                         >
                           Cancel
-                        </button>
+                        </Button>
                       </div>
                     ) : (
-                      <button
-                        type="button"
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex-1 text-destructive hover:text-destructive"
                         onClick={() => setConfirmDeleteId(photo.id)}
-                        className="flex-1 rounded-full border border-red-200 bg-red-50 px-2 py-1.5 text-xs font-semibold text-red-700 transition-colors hover:bg-red-100"
                       >
                         Delete
-                      </button>
+                      </Button>
                     )}
                   </div>
                 </div>
@@ -411,7 +408,6 @@ function PromosTab() {
   const [showAddForm, setShowAddForm] = useState(false);
   const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
 
-  // Form state
   const [formTitle, setFormTitle] = useState("");
   const [formSubtitle, setFormSubtitle] = useState("");
   const [formCtaText, setFormCtaText] = useState("");
@@ -472,37 +468,35 @@ function PromosTab() {
           title="Promotions"
           description="Promotional banners shown on the public website with optional call-to-action links."
           action={
-            <button
-              type="button"
+            <Button
+              variant={showAddForm ? "outline" : "default"}
+              size="sm"
               onClick={() => setShowAddForm((v) => !v)}
-              className="admin-button-primary rounded-full px-5 py-2.5 text-sm font-bold"
             >
               {showAddForm ? "Cancel" : "Add Promotion"}
-            </button>
+            </Button>
           }
         />
 
         {showAddForm ? (
-          <div className="mb-6 rounded-[1.6rem] border border-primary/10 bg-primary/4 p-5 space-y-4">
+          <div className="mb-6 rounded-xl border border-border bg-muted/30 p-5 space-y-4">
             <h3 className="text-base font-black tracking-tight text-foreground">New Promotion</h3>
 
             <FieldLabel label="Title *">
-              <input
+              <Input
                 type="text"
                 value={formTitle}
                 onChange={(e) => setFormTitle(e.target.value)}
                 placeholder="Weekend Special…"
-                className="admin-input w-full rounded-[1.2rem] px-4 py-3 text-sm outline-none"
               />
             </FieldLabel>
 
             <FieldLabel label="Subtitle">
-              <input
+              <Input
                 type="text"
                 value={formSubtitle}
                 onChange={(e) => setFormSubtitle(e.target.value)}
                 placeholder="Book before Friday for 20% off…"
-                className="admin-input w-full rounded-[1.2rem] px-4 py-3 text-sm outline-none"
               />
             </FieldLabel>
 
@@ -511,51 +505,49 @@ function PromosTab() {
                 type="file"
                 accept="image/jpeg,image/png,image/webp"
                 onChange={(e) => setFormFile(e.target.files?.[0] ?? null)}
-                className="admin-input w-full rounded-[1.2rem] px-4 py-3 text-sm outline-none file:mr-3 file:rounded-full file:border-0 file:bg-primary/10 file:px-3 file:py-1 file:text-xs file:font-semibold file:text-primary"
+                className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm outline-none file:mr-3 file:rounded-full file:border-0 file:bg-primary/10 file:px-3 file:py-1 file:text-xs file:font-semibold file:text-primary"
               />
             </FieldLabel>
 
             <div className="grid gap-4 sm:grid-cols-2">
               <FieldLabel label="CTA Button Text">
-                <input
+                <Input
                   type="text"
                   value={formCtaText}
                   onChange={(e) => setFormCtaText(e.target.value)}
                   placeholder="Book Now…"
-                  className="admin-input w-full rounded-[1.2rem] px-4 py-3 text-sm outline-none"
                 />
               </FieldLabel>
 
               <FieldLabel label="CTA URL">
-                <input
+                <Input
                   type="url"
                   value={formCtaUrl}
                   onChange={(e) => setFormCtaUrl(e.target.value)}
                   placeholder="https://…"
-                  className="admin-input w-full rounded-[1.2rem] px-4 py-3 text-sm outline-none"
                 />
               </FieldLabel>
             </div>
 
             {formError ? (
-              <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700">
+              <div className="rounded-xl border border-destructive/50 bg-destructive/10 px-4 py-2 text-sm text-destructive">
                 {formError}
-              </p>
+              </div>
             ) : null}
 
-            <button
+            <Button
               type="button"
+              className="w-full"
               onClick={handleAddPromo}
               disabled={saving || !formTitle.trim()}
-              className="admin-button-primary w-full rounded-full px-4 py-3 text-sm font-bold disabled:cursor-not-allowed disabled:opacity-50"
             >
               {saving ? "Saving…" : "Create Promotion"}
-            </button>
+            </Button>
           </div>
         ) : null}
 
         {loading ? (
-          <div className="rounded-[1.7rem] border border-dashed border-primary/14 bg-primary/4 px-6 py-12 text-center text-sm text-muted-foreground">
+          <div className="rounded-xl border border-dashed border-border bg-muted/30 px-6 py-12 text-center text-sm text-muted-foreground">
             Loading promotions…
           </div>
         ) : promos.length === 0 ? (
@@ -563,13 +555,7 @@ function PromosTab() {
             title="No promotions yet"
             description="Create a promotional banner to highlight special offers on the public website."
             action={
-              <button
-                type="button"
-                onClick={() => setShowAddForm(true)}
-                className="admin-button-primary rounded-full px-4 py-2.5 text-sm font-bold"
-              >
-                Add Promotion
-              </button>
+              <Button onClick={() => setShowAddForm(true)}>Add Promotion</Button>
             }
           />
         ) : (
@@ -577,19 +563,29 @@ function PromosTab() {
             {promos.map((promo) => (
               <div
                 key={promo.id}
-                className="rounded-[1.7rem] border border-primary/10 bg-white/72 p-5 shadow-[0_18px_40px_rgb(22_36_12_/6%)]"
+                className="rounded-xl border border-border bg-card p-5 shadow-sm"
               >
                 <div className="flex items-start gap-4">
                   {promo.imageFilename ? (
                     <img
                       src={`/uploads/promos/${promo.imageFilename}`}
                       alt={promo.title}
-                      className="h-16 w-16 rounded-[1.1rem] object-cover shrink-0 border border-primary/10"
+                      className="h-16 w-16 rounded-xl object-cover shrink-0 border border-border"
                       loading="lazy"
                     />
                   ) : (
-                    <div className="h-16 w-16 rounded-[1.1rem] bg-primary/6 shrink-0 border border-primary/10 flex items-center justify-center">
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-primary/40">
+                    <div className="h-16 w-16 rounded-xl bg-muted shrink-0 border border-border flex items-center justify-center">
+                      <svg
+                        width="20"
+                        height="20"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="text-muted-foreground"
+                      >
                         <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" />
                         <circle cx="12" cy="13" r="3" />
                       </svg>
@@ -604,9 +600,9 @@ function PromosTab() {
                           <p className="mt-0.5 text-sm text-muted-foreground">{promo.subtitle}</p>
                         ) : null}
                       </div>
-                      <InfoPill tone={promo.isActive ? "green" : "neutral"}>
+                      <Badge variant={promo.isActive ? "secondary" : "outline"}>
                         {promo.isActive ? "Active" : "Hidden"}
-                      </InfoPill>
+                      </Badge>
                     </div>
 
                     {promo.ctaText && promo.ctaUrl ? (
@@ -617,39 +613,40 @@ function PromosTab() {
                     ) : null}
 
                     <div className="mt-3 flex gap-2">
-                      <button
-                        type="button"
+                      <Button
+                        variant="outline"
+                        size="sm"
                         onClick={() => handleToggleActive(promo)}
-                        className="rounded-full border border-primary/10 bg-primary/6 px-3 py-1.5 text-xs font-semibold text-primary transition-colors hover:bg-primary/12"
                       >
                         {promo.isActive ? "Hide" : "Show"}
-                      </button>
+                      </Button>
 
                       {confirmDeleteId === promo.id ? (
                         <div className="flex gap-1">
-                          <button
-                            type="button"
+                          <Button
+                            variant="destructive"
+                            size="sm"
                             onClick={() => handleDelete(promo)}
-                            className="rounded-full bg-red-600 px-3 py-1.5 text-xs font-bold text-white"
                           >
                             Confirm Delete
-                          </button>
-                          <button
-                            type="button"
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
                             onClick={() => setConfirmDeleteId(null)}
-                            className="rounded-full border border-border px-3 py-1.5 text-xs font-semibold"
                           >
                             Cancel
-                          </button>
+                          </Button>
                         </div>
                       ) : (
-                        <button
-                          type="button"
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="text-destructive hover:text-destructive"
                           onClick={() => setConfirmDeleteId(promo.id)}
-                          className="rounded-full border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-700 transition-colors hover:bg-red-100"
                         >
                           Delete
-                        </button>
+                        </Button>
                       )}
                     </div>
                   </div>

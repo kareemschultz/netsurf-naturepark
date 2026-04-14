@@ -11,12 +11,14 @@ import {
 } from "@workspace/shared";
 import {
   AdminPage,
-  InfoPill,
   MetricCard,
   PageHeader,
   PageSection,
   SectionTitle,
 } from "@/components/AdminUI";
+import { Button } from "@workspace/ui/components/button";
+import { Badge } from "@workspace/ui/components/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@workspace/ui/components/card";
 
 export const Route = createFileRoute("/access")({
   component: AccessPage,
@@ -108,17 +110,14 @@ function AccessPage() {
         description="The admin console now runs on Better Auth with named staff accounts, cookie-backed sessions, and route-level RBAC. This page is the operational map for who can get into what, what is already enforced, and which hardening layers still make sense next."
         meta={
           <>
-            <InfoPill tone="green">Better Auth live</InfoPill>
-            <InfoPill tone="green">RBAC enforced in routes</InfoPill>
-            <InfoPill tone="amber">2FA and passkeys not enabled yet</InfoPill>
+            <Badge variant="secondary">Better Auth live</Badge>
+            <Badge variant="secondary">RBAC enforced in routes</Badge>
+            <Badge variant="outline">2FA and passkeys not enabled yet</Badge>
           </>
         }
         actions={
-          <Link
-            to="/users"
-            className="admin-button-primary rounded-2xl px-4 py-3 text-sm font-bold"
-          >
-            Open Users & Access
+          <Link to="/users">
+            <Button>Open Users & Access</Button>
           </Link>
         }
       />
@@ -164,64 +163,58 @@ function AccessPage() {
             );
 
             return (
-              <div
-                key={role}
-                className="rounded-[1.7rem] border border-primary/10 bg-white/74 p-5 shadow-[0_18px_40px_rgb(24_45_12_/7%)]"
-              >
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div>
-                    <p className="admin-kicker">Role</p>
-                    <h2 className="mt-2 text-xl font-black tracking-tight text-foreground">
-                      {meta.label}
-                    </h2>
+              <Card key={role}>
+                <CardHeader className="pb-3">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                        Role
+                      </p>
+                      <CardTitle className="mt-2 text-xl">{meta.label}</CardTitle>
+                    </div>
+                    <Badge variant={role === "owner" ? "secondary" : "outline"}>
+                      {countPermissions(definition)} permission checks
+                    </Badge>
                   </div>
-                  <InfoPill tone={role === "owner" ? "green" : "neutral"}>
-                    {countPermissions(definition)} permission checks
-                  </InfoPill>
-                </div>
-
-                <p className="mt-4 text-sm leading-6 text-muted-foreground">
-                  {meta.description}
-                </p>
-
-                <div className="mt-5 flex flex-wrap gap-2">
-                  {getTopCapabilities(definition).map((capability) => (
-                    <span
-                      key={capability}
-                      className="rounded-full border border-primary/10 bg-primary/5 px-3 py-1 text-xs font-semibold text-primary"
-                    >
-                      {capability}
-                    </span>
-                  ))}
-                </div>
-
-                <div className="mt-5 grid gap-3 sm:grid-cols-2">
-                  <AccessStat
-                    label="Landing route"
-                    value={routeLabels[landingPath] ?? landingPath}
-                  />
-                  <AccessStat
-                    label="Visible modules"
-                    value={String(accessibleRoutes.length)}
-                  />
-                </div>
-
-                <div className="mt-5 border-t border-primary/8 pt-4">
-                  <p className="text-xs font-bold tracking-[0.2em] text-muted-foreground uppercase">
-                    Route coverage
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <p className="text-sm leading-6 text-muted-foreground">
+                    {meta.description}
                   </p>
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    {accessibleRoutes.map((rule) => (
-                      <span
-                        key={rule.path}
-                        className="rounded-full border border-border bg-white px-3 py-1 text-xs font-semibold text-foreground"
-                      >
-                        {routeLabels[rule.path] ?? rule.path}
-                      </span>
+
+                  <div className="flex flex-wrap gap-2">
+                    {getTopCapabilities(definition).map((capability) => (
+                      <Badge key={capability} variant="outline">
+                        {capability}
+                      </Badge>
                     ))}
                   </div>
-                </div>
-              </div>
+
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <AccessStat
+                      label="Landing route"
+                      value={routeLabels[landingPath] ?? landingPath}
+                    />
+                    <AccessStat
+                      label="Visible modules"
+                      value={String(accessibleRoutes.length)}
+                    />
+                  </div>
+
+                  <div className="border-t border-border pt-4">
+                    <p className="text-xs font-bold tracking-[0.2em] uppercase text-muted-foreground">
+                      Route coverage
+                    </p>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {accessibleRoutes.map((rule) => (
+                        <Badge key={rule.path} variant="outline">
+                          {routeLabels[rule.path] ?? rule.path}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             );
           })}
         </div>
@@ -238,7 +231,7 @@ function AccessPage() {
             {adminRouteAccessRules.map((rule) => (
               <div
                 key={rule.path}
-                className="flex flex-col gap-3 rounded-[1.45rem] border border-primary/10 bg-white/76 p-4 sm:flex-row sm:items-center sm:justify-between"
+                className="flex flex-col gap-3 rounded-xl border border-border bg-card p-4 sm:flex-row sm:items-center sm:justify-between"
               >
                 <div>
                   <p className="text-base font-bold text-foreground">
@@ -252,12 +245,13 @@ function AccessPage() {
                 <div className="flex flex-wrap gap-2">
                   {Object.entries(rule.permissions).map(([resource, actions]) =>
                     (actions ?? []).map((action) => (
-                      <span
+                      <Badge
                         key={`${rule.path}-${resource}-${action}`}
-                        className="rounded-full border border-amber-200/80 bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-800"
+                        variant="outline"
+                        className="border-amber-200/80 bg-amber-50 text-amber-800"
                       >
                         {resourceLabels[resource as AdminPermissionResource]}: {action}
-                      </span>
+                      </Badge>
                     ))
                   )}
                 </div>
@@ -276,18 +270,20 @@ function AccessPage() {
             {authEnhancements.map((item, index) => (
               <div
                 key={item.title}
-                className="rounded-[1.55rem] border border-primary/10 bg-white/74 p-5"
+                className="rounded-xl border border-border bg-card p-5"
               >
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
-                    <p className="admin-kicker">Enhancement {index + 1}</p>
+                    <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                      Enhancement {index + 1}
+                    </p>
                     <p className="mt-2 text-lg font-black tracking-tight text-foreground">
                       {item.title}
                     </p>
                   </div>
-                  <InfoPill tone={index === 0 ? "amber" : "neutral"}>
+                  <Badge variant={index === 0 ? "outline" : "secondary"}>
                     {item.badge}
-                  </InfoPill>
+                  </Badge>
                 </div>
 
                 <p className="mt-3 text-sm leading-6 text-muted-foreground">
@@ -310,8 +306,8 @@ function AccessStat({
   value: string;
 }) {
   return (
-    <div className="rounded-[1.25rem] border border-primary/10 bg-primary/4 px-4 py-3">
-      <p className="text-xs font-bold tracking-[0.18em] text-muted-foreground uppercase">
+    <div className="rounded-xl border border-border bg-muted/30 px-4 py-3">
+      <p className="text-xs font-bold tracking-[0.18em] uppercase text-muted-foreground">
         {label}
       </p>
       <p className="mt-2 text-base font-bold text-foreground">{value}</p>

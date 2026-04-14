@@ -10,13 +10,16 @@ import {
 import {
   AdminPage,
   EmptyState,
-  InfoPill,
   MetricCard,
   PageHeader,
   PageSection,
   SectionTitle,
 } from "@/components/AdminUI";
 import { cabins } from "@workspace/shared";
+import { Button } from "@workspace/ui/components/button";
+import { Badge } from "@workspace/ui/components/badge";
+import { Input } from "@workspace/ui/components/input";
+import { Label } from "@workspace/ui/components/label";
 
 export const Route = createFileRoute("/blocked")({
   component: BlockedDatesPage,
@@ -92,9 +95,9 @@ function BlockedDatesPage() {
         description="Protect cabin inventory from accidental bookings by applying parkwide or cabin-specific hold ranges for maintenance, private events, or operational overrides."
         meta={
           <>
-            <InfoPill tone="amber">{rows.length} active blocks</InfoPill>
-            <InfoPill>{parkwideCount} parkwide</InfoPill>
-            <InfoPill>{cabinSpecificCount} cabin specific</InfoPill>
+            <Badge variant="destructive">{rows.length} active blocks</Badge>
+            <Badge variant="outline">{parkwideCount} parkwide</Badge>
+            <Badge variant="outline">{cabinSpecificCount} cabin specific</Badge>
           </>
         }
       />
@@ -144,7 +147,7 @@ function BlockedDatesPage() {
                     cabinSlug: event.target.value || null,
                   }))
                 }
-                className="admin-input w-full rounded-[1.2rem] px-4 py-3 text-sm outline-none"
+                className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-ring"
               >
                 <option value="">All Cabins</option>
                 {cabins.map((cabin) => (
@@ -156,7 +159,7 @@ function BlockedDatesPage() {
             </FieldLabel>
 
             <FieldLabel label="Reason">
-              <input
+              <Input
                 type="text"
                 name="reason"
                 autoComplete="off"
@@ -165,13 +168,12 @@ function BlockedDatesPage() {
                   setForm((current) => ({ ...current, reason: event.target.value }))
                 }
                 placeholder="Maintenance, private event, cleaning…"
-                className="admin-input w-full rounded-[1.2rem] px-4 py-3 text-sm outline-none"
               />
             </FieldLabel>
 
             <div className="grid gap-4 sm:grid-cols-2">
               <FieldLabel label="Start Date">
-                <input
+                <Input
                   type="date"
                   required
                   name="start_date"
@@ -179,12 +181,11 @@ function BlockedDatesPage() {
                   onChange={(event) =>
                     setForm((current) => ({ ...current, startDate: event.target.value }))
                   }
-                  className="admin-input w-full rounded-[1.2rem] px-4 py-3 text-sm outline-none"
                 />
               </FieldLabel>
 
               <FieldLabel label="End Date">
-                <input
+                <Input
                   type="date"
                   required
                   name="end_date"
@@ -192,18 +193,13 @@ function BlockedDatesPage() {
                   onChange={(event) =>
                     setForm((current) => ({ ...current, endDate: event.target.value }))
                   }
-                  className="admin-input w-full rounded-[1.2rem] px-4 py-3 text-sm outline-none"
                 />
               </FieldLabel>
             </div>
 
-            <button
-              type="submit"
-              disabled={saving}
-              className="admin-button-primary w-full rounded-full px-5 py-3 text-sm font-bold disabled:cursor-not-allowed disabled:opacity-50"
-            >
+            <Button type="submit" className="w-full" disabled={saving}>
               {saving ? "Saving…" : "Block Dates"}
-            </button>
+            </Button>
           </form>
         </PageSection>
 
@@ -214,7 +210,7 @@ function BlockedDatesPage() {
           />
 
           {loading ? (
-            <div className="rounded-[1.7rem] border border-dashed border-primary/14 bg-primary/4 px-6 py-12 text-center text-sm text-muted-foreground">
+            <div className="rounded-xl border border-dashed border-border bg-muted/30 px-6 py-12 text-center text-sm text-muted-foreground">
               Loading blocked dates…
             </div>
           ) : rows.length === 0 ? (
@@ -227,7 +223,7 @@ function BlockedDatesPage() {
               {rows.map((row) => (
                 <div
                   key={row.id}
-                  className="rounded-[1.5rem] border border-primary/10 bg-white/78 p-4"
+                  className="rounded-xl border border-border bg-card p-4"
                 >
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                     <div className="min-w-0">
@@ -244,17 +240,17 @@ function BlockedDatesPage() {
                       ) : null}
                     </div>
 
-                    <div className="flex flex-wrap gap-2">
-                      <InfoPill tone={row.cabinSlug ? "amber" : "red"}>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Badge variant={row.cabinSlug ? "outline" : "destructive"}>
                         {row.cabinSlug ? "Cabin Hold" : "Parkwide Hold"}
-                      </InfoPill>
-                      <button
-                        type="button"
+                      </Badge>
+                      <Button
+                        variant="destructive"
+                        size="sm"
                         onClick={() => handleDelete(row.id)}
-                        className="rounded-full border border-red-200 bg-red-50 px-4 py-2 text-sm font-semibold text-red-700 transition-[background-color,border-color,color] hover:border-red-300 hover:bg-red-100"
                       >
                         Remove
-                      </button>
+                      </Button>
                     </div>
                   </div>
                 </div>
@@ -275,12 +271,12 @@ function FieldLabel({
   children: ReactNode;
 }) {
   return (
-    <label className="block">
-      <span className="mb-2 block text-xs font-bold tracking-[0.18em] text-muted-foreground uppercase">
+    <div className="space-y-2">
+      <Label className="text-xs font-bold tracking-[0.18em] uppercase text-muted-foreground">
         {label}
-      </span>
+      </Label>
       {children}
-    </label>
+    </div>
   );
 }
 

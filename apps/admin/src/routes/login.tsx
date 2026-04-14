@@ -4,6 +4,7 @@ import { motion, useReducedMotion } from "framer-motion";
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { login } from "@/lib/api";
 import { fetchAdminSession, getSessionLandingPath } from "@/lib/auth";
+import { Button } from "@workspace/ui/components/button";
 
 const workspaceModules = [
   {
@@ -189,7 +190,7 @@ function LoginPage() {
           <div className="relative mt-8 flex flex-1 flex-col justify-between gap-8">
             <div className="grid gap-8 xl:grid-cols-[minmax(0,1.12fr)_minmax(320px,0.88fr)] xl:items-start">
               <div className="max-w-2xl">
-                <p className="admin-kicker text-white/58">
+                <p className="text-xs font-semibold uppercase tracking-wider text-white/58">
                   Designed for daily park operations
                 </p>
                 <h1 className="mt-4 max-w-[14ch] text-6xl leading-[0.94] font-black tracking-[-0.04em] text-white">
@@ -330,7 +331,7 @@ function LoginPage() {
             <div className="relative z-10 mx-auto flex w-full max-w-md flex-col justify-center">
               <div className="xl:hidden">
                 <div className="rounded-[1.7rem] border border-primary/10 bg-white/62 px-5 py-5 shadow-[0_18px_40px_rgb(21_36_12_/8%)] backdrop-blur-xl">
-                  <p className="admin-kicker">Operations workspace</p>
+                  <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Operations workspace</p>
                   <p className="mt-3 text-2xl font-black tracking-tight text-foreground">
                     Sign in to open bookings, POS, and inventory controls.
                   </p>
@@ -372,7 +373,7 @@ function LoginPage() {
                   >
                     Username
                   </label>
-                  <div className="admin-input flex items-center gap-3 rounded-2xl px-4 py-3.5">
+                  <div className="flex items-center gap-3 rounded-2xl border border-input bg-background px-4 py-3.5">
                     <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-primary/10 bg-primary/6 text-primary" aria-hidden="true">
                       <svg
                         width="16"
@@ -408,7 +409,7 @@ function LoginPage() {
                   >
                     Password
                   </label>
-                  <div className="admin-input flex items-center gap-3 rounded-2xl px-4 py-3.5">
+                  <div className="flex items-center gap-3 rounded-2xl border border-input bg-background px-4 py-3.5">
                     <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-primary/10 bg-primary/6 text-primary" aria-hidden="true">
                       <svg
                         width="16"
@@ -455,13 +456,13 @@ function LoginPage() {
                   </div>
                 ) : null}
 
-                <button
+                <Button
                   type="submit"
                   disabled={loading || !username || !password}
-                  className="admin-button-primary w-full rounded-[1.35rem] px-5 py-4 text-sm font-bold disabled:cursor-not-allowed disabled:opacity-50"
+                  className="w-full rounded-[1.35rem] px-5 py-4 text-sm font-bold disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {loading ? "Signing in..." : "Enter Admin Workspace"}
-                </button>
+                </Button>
               </form>
 
               <div className="mt-5 grid gap-3 sm:grid-cols-3">
@@ -500,7 +501,7 @@ function LoginPage() {
             transition={{ duration: 0.48, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
             className="admin-surface rounded-[2rem] p-5 xl:hidden"
           >
-            <p className="admin-kicker">Live in this release</p>
+            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Live in this release</p>
             <div className="mt-4 space-y-3">
               {controlSteps.map((step, index) => (
                 <div

@@ -3,7 +3,6 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { getBooking, updateBooking, type Booking } from "@/lib/api";
 import {
   AdminPage,
-  InfoPill,
   MetricCard,
   PageHeader,
   PageSection,
@@ -12,6 +11,8 @@ import {
 import { StatusBadge } from "@/components/StatusBadge";
 import { addOns, cabins, formatGYD } from "@workspace/shared";
 import { differenceInCalendarDays } from "date-fns";
+import { Button } from "@workspace/ui/components/button";
+import { Badge } from "@workspace/ui/components/badge";
 
 export const Route = createFileRoute("/bookings/$id")({
   component: BookingDetailPage,
@@ -68,7 +69,7 @@ function BookingDetailPage() {
   if (loading) {
     return (
       <AdminPage>
-        <div className="rounded-[1.7rem] border border-dashed border-primary/14 bg-primary/4 px-6 py-12 text-center text-sm text-muted-foreground">
+        <div className="rounded-xl border border-dashed border-border bg-muted/30 px-6 py-12 text-center text-sm text-muted-foreground">
           Loading booking…
         </div>
       </AdminPage>
@@ -100,20 +101,16 @@ function BookingDetailPage() {
         title={`Booking #${booking.id}`}
         description={`Submitted ${fullDateTime.format(new Date(booking.createdAt))}. Review the guest details, booking composition, and internal notes before confirming or changing status.`}
         actions={
-          <Link
-            to="/bookings"
-            search={{ status: "all" }}
-            className="admin-button-secondary rounded-full px-5 py-3 text-sm font-bold"
-          >
-            Back to Bookings
+          <Link to="/bookings" search={{ status: "all" }}>
+            <Button variant="outline">Back to Bookings</Button>
           </Link>
         }
         meta={
           <>
             <StatusBadge status={booking.status} />
-            <InfoPill tone={booking.stayType === "overnight" ? "green" : "amber"}>
+            <Badge variant="secondary">
               {booking.stayType === "overnight" ? "Overnight" : "Day Use"}
-            </InfoPill>
+            </Badge>
           </>
         }
       />
@@ -153,10 +150,7 @@ function BookingDetailPage() {
             />
             <div className="grid gap-5 md:grid-cols-2">
               <DetailCard label="Cabin" value={cabin?.name ?? booking.cabinSlug} />
-              <DetailCard
-                label="Dates"
-                value={`${booking.checkIn} → ${booking.checkOut}`}
-              />
+              <DetailCard label="Dates" value={`${booking.checkIn} → ${booking.checkOut}`} />
               <DetailCard label="Guests" value={String(booking.guests)} />
               <DetailCard
                 label="Add-Ons"
@@ -180,8 +174,8 @@ function BookingDetailPage() {
             </div>
 
             {booking.notes ? (
-              <div className="mt-5 rounded-[1.5rem] border border-primary/10 bg-primary/4 p-4">
-                <p className="text-xs font-bold tracking-[0.18em] text-muted-foreground uppercase">
+              <div className="mt-5 rounded-xl border border-border bg-muted/30 p-4">
+                <p className="text-xs font-bold tracking-[0.18em] uppercase text-muted-foreground">
                   Guest Note
                 </p>
                 <p className="mt-2 text-sm leading-6 text-muted-foreground">{booking.notes}</p>
@@ -206,26 +200,28 @@ function BookingDetailPage() {
               title="Admin Notes"
               description="Internal notes stay private to staff and can be updated without changing the booking status."
             />
-            <label className="block">
-              <span className="sr-only">Admin notes</span>
-              <textarea
-                id="admin-notes"
-                name="admin_notes"
-                value={adminNotes}
-                onChange={(event) => setAdminNotes(event.target.value)}
-                placeholder="Internal notes, follow-up reminders, or booking context…"
-                rows={4}
-                className="admin-input w-full resize-none rounded-[1.4rem] px-4 py-3 text-sm outline-none"
-              />
-            </label>
-            <button
-              type="button"
-              onClick={handleSaveNotes}
-              disabled={saving || adminNotes === booking.adminNotes}
-              className="admin-button-secondary mt-4 rounded-full px-5 py-3 text-sm font-bold disabled:cursor-not-allowed disabled:opacity-40"
-            >
-              Save Notes
-            </button>
+            <div className="space-y-4">
+              <label className="block">
+                <span className="sr-only">Admin notes</span>
+                <textarea
+                  id="admin-notes"
+                  name="admin_notes"
+                  value={adminNotes}
+                  onChange={(event) => setAdminNotes(event.target.value)}
+                  placeholder="Internal notes, follow-up reminders, or booking context…"
+                  rows={4}
+                  className="w-full resize-none rounded-xl border border-input bg-background px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-ring"
+                />
+              </label>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleSaveNotes}
+                disabled={saving || adminNotes === booking.adminNotes}
+              >
+                Save Notes
+              </Button>
+            </div>
           </PageSection>
         </div>
 
@@ -237,11 +233,11 @@ function BookingDetailPage() {
 
           <div className="space-y-3">
             {booking.status !== "confirmed" ? (
-              <button
+              <Button
                 type="button"
+                className="w-full"
                 onClick={() => handleStatus("confirmed")}
                 disabled={saving}
-                className="group admin-button-primary flex w-full items-center justify-center gap-2 rounded-2xl px-5 py-4 text-sm font-bold disabled:cursor-not-allowed disabled:opacity-40"
               >
                 <svg
                   width="16"
@@ -252,26 +248,28 @@ function BookingDetailPage() {
                   strokeWidth="2.5"
                   strokeLinecap="round"
                   strokeLinejoin="round"
+                  className="mr-2"
                 >
                   <path d="M20 6 9 17l-5-5" />
                 </svg>
                 Confirm Booking
-              </button>
+              </Button>
             ) : null}
 
             {booking.status === "confirmed" ? (
-              <div className="flex items-center gap-2 rounded-2xl border border-primary/12 bg-primary/8 px-4 py-3">
+              <div className="flex items-center gap-2 rounded-xl border border-primary/20 bg-primary/8 px-4 py-3">
                 <span className="h-2 w-2 rounded-full bg-primary" />
                 <span className="text-sm font-semibold text-primary">Booking confirmed</span>
               </div>
             ) : null}
 
             {booking.status !== "declined" ? (
-              <button
+              <Button
                 type="button"
+                variant="destructive"
+                className="w-full"
                 onClick={() => handleStatus("declined")}
                 disabled={saving}
-                className="flex w-full items-center justify-center gap-2 rounded-2xl bg-red-600 px-5 py-3.5 text-sm font-bold text-white transition-[opacity,transform] hover:-translate-y-0.5 hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-40"
               >
                 <svg
                   width="14"
@@ -282,20 +280,22 @@ function BookingDetailPage() {
                   strokeWidth="2.5"
                   strokeLinecap="round"
                   strokeLinejoin="round"
+                  className="mr-2"
                 >
                   <path d="M18 6 6 18" />
                   <path d="m6 6 12 12" />
                 </svg>
                 Mark Declined
-              </button>
+              </Button>
             ) : null}
 
             {booking.status !== "cancelled" ? (
-              <button
+              <Button
                 type="button"
+                variant="outline"
+                className="w-full"
                 onClick={() => handleStatus("cancelled")}
                 disabled={saving}
-                className="admin-button-secondary flex w-full items-center justify-center gap-2 rounded-2xl px-5 py-3.5 text-sm font-bold disabled:cursor-not-allowed disabled:opacity-40"
               >
                 <svg
                   width="14"
@@ -306,12 +306,13 @@ function BookingDetailPage() {
                   strokeWidth="2"
                   strokeLinecap="round"
                   strokeLinejoin="round"
+                  className="mr-2"
                 >
                   <circle cx="12" cy="12" r="9" />
                   <path d="M9 12h6" />
                 </svg>
                 Cancel Booking
-              </button>
+              </Button>
             ) : null}
           </div>
 
@@ -332,8 +333,8 @@ function DetailCard({
   value: string;
 }) {
   return (
-    <div className="rounded-2xl border border-primary/10 bg-white/78 p-4 dark:bg-white/4">
-      <p className="text-[10px] font-bold tracking-[0.2em] text-muted-foreground uppercase">
+    <div className="rounded-xl border border-border bg-muted/20 p-4">
+      <p className="text-[10px] font-bold tracking-[0.2em] uppercase text-muted-foreground">
         {label}
       </p>
       <p className="mt-2 text-sm font-medium leading-6 text-foreground">{value}</p>

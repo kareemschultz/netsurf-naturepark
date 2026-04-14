@@ -3,6 +3,9 @@ import { useDeferredValue, useEffect, useMemo, useState, useTransition } from "r
 import { format } from "date-fns";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { type ColumnDef } from "@tanstack/react-table";
+import { Button } from "@workspace/ui/components/button";
+import { Badge } from "@workspace/ui/components/badge";
+import { Input } from "@workspace/ui/components/input";
 import {
   banStaffUser,
   createStaffUser,
@@ -557,11 +560,8 @@ function UsersPage() {
           </>
         }
         actions={
-          <Link
-            to="/access"
-            className="admin-button-secondary rounded-2xl px-4 py-3 text-sm font-bold"
-          >
-            Open Access Matrix
+          <Link to="/access">
+            <Button variant="outline">Open Access Matrix</Button>
           </Link>
         }
       />
@@ -670,8 +670,9 @@ function UsersPage() {
                   ))}
                 </SelectField>
 
-                <button
+                <Button
                   type="submit"
+                  className="mt-2 w-full"
                   disabled={
                     busyAction === "create" ||
                     !createDraft.name ||
@@ -679,10 +680,9 @@ function UsersPage() {
                     !createDraft.username ||
                     !createDraft.password
                   }
-                  className="admin-button-primary mt-2 rounded-[1.2rem] px-5 py-3.5 text-sm font-bold disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {busyAction === "create" ? "Creating account..." : "Create Staff Account"}
-                </button>
+                </Button>
               </form>
             ) : (
               <div className="rounded-[1.6rem] border border-amber-200/80 bg-amber-50/90 p-5">
@@ -699,7 +699,7 @@ function UsersPage() {
               description="Search by name or email, then narrow the list by role to find the right account quickly."
             />
 
-            <div className="admin-scrollbar flex flex-wrap gap-2 overflow-x-auto pb-1">
+            <div className="flex flex-wrap gap-2 overflow-x-auto pb-1">
               <FilterChip
                 active={roleFilter === "all"}
                 onClick={() => setRoleFilter("all")}
@@ -842,13 +842,14 @@ function UsersPage() {
                           }
                           placeholder="staff username"
                         />
-                        <button
+                        <Button
                           type="submit"
+                          variant="outline"
+                          className="mt-2 w-full"
                           disabled={busyAction === "profile"}
-                          className="admin-button-secondary mt-2 rounded-[1.2rem] px-5 py-3 text-sm font-bold disabled:cursor-not-allowed disabled:opacity-50"
                         >
                           {busyAction === "profile" ? "Saving profile..." : "Save Profile"}
-                        </button>
+                        </Button>
                       </form>
                     ) : (
                       <div className="space-y-3">
@@ -891,14 +892,15 @@ function UsersPage() {
                     </p>
 
                     {canSetRole ? (
-                      <button
+                      <Button
                         type="button"
+                        variant="outline"
+                        className="mt-4 w-full"
                         onClick={handleSaveRole}
                         disabled={busyAction === "role" || profileDraft.role === selectedUser.role}
-                        className="admin-button-secondary mt-4 rounded-[1.2rem] px-5 py-3 text-sm font-bold disabled:cursor-not-allowed disabled:opacity-50"
                       >
                         {busyAction === "role" ? "Updating role..." : "Save Role"}
-                      </button>
+                      </Button>
                     ) : (
                       <div className="mt-4 rounded-[1.2rem] border border-amber-200/70 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-900">
                         Your current role cannot change role assignments.
@@ -923,16 +925,17 @@ function UsersPage() {
                           onChange={setPasswordDraft}
                           placeholder="Enter a new temporary password"
                         />
-                        <button
+                        <Button
                           type="button"
+                          variant="outline"
+                          className="w-full"
                           onClick={handleResetPassword}
                           disabled={busyAction === "password" || passwordDraft.length < 8}
-                          className="admin-button-secondary rounded-[1.2rem] px-5 py-3 text-sm font-bold disabled:cursor-not-allowed disabled:opacity-50"
                         >
                           {busyAction === "password"
                             ? "Resetting password..."
                             : "Set Temporary Password"}
-                        </button>
+                        </Button>
                       </div>
                     ) : (
                       <div className="rounded-[1.2rem] border border-amber-200/70 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-900">
@@ -968,16 +971,11 @@ function UsersPage() {
                       ) : null}
 
                       <div className="flex flex-wrap gap-3">
-                        <button
+                        <Button
                           type="button"
+                          variant={selectedUser.banned ? "outline" : "destructive"}
                           onClick={handleToggleBan}
                           disabled={busyAction === "ban" || !canBanUsers || isCurrentUser}
-                          className={cn(
-                            "rounded-[1.2rem] px-5 py-3 text-sm font-bold disabled:cursor-not-allowed disabled:opacity-50",
-                            selectedUser.banned
-                              ? "admin-button-secondary"
-                              : "border border-red-200 bg-red-50 text-red-700 shadow-[0_12px_24px_rgb(185_28_28_/10%)]"
-                          )}
                         >
                           {busyAction === "ban"
                             ? selectedUser.banned
@@ -986,16 +984,17 @@ function UsersPage() {
                             : selectedUser.banned
                               ? "Restore Access"
                               : "Suspend Account"}
-                        </button>
+                        </Button>
 
-                        <button
+                        <Button
                           type="button"
+                          variant="outline"
+                          className="text-destructive hover:text-destructive"
                           onClick={handleDeleteUser}
                           disabled={busyAction === "delete" || !canDeleteUsers || isCurrentUser}
-                          className="rounded-[1.2rem] border border-red-200/80 bg-white px-5 py-3 text-sm font-bold text-red-700 shadow-[0_12px_24px_rgb(185_28_28_/8%)] disabled:cursor-not-allowed disabled:opacity-50"
                         >
                           {busyAction === "delete" ? "Deleting..." : "Delete User"}
-                        </button>
+                        </Button>
                       </div>
 
                       {isCurrentUser ? (
@@ -1067,16 +1066,17 @@ function UsersPage() {
                               </div>
 
                               {canRevokeSessions ? (
-                                <button
+                                <Button
                                   type="button"
+                                  variant="outline"
+                                  size="sm"
                                   onClick={() => handleRevokeSession(userSession.token)}
                                   disabled={busyAction === `revoke-${userSession.token}`}
-                                  className="rounded-[1rem] border border-primary/10 bg-primary/5 px-4 py-2 text-sm font-bold text-primary disabled:cursor-not-allowed disabled:opacity-50"
                                 >
                                   {busyAction === `revoke-${userSession.token}`
                                     ? "Revoking..."
                                     : "Revoke"}
-                                </button>
+                                </Button>
                               ) : null}
                             </div>
                           </div>
@@ -1226,8 +1226,8 @@ function UsersTable({
                 className={cn(
                   "rounded-full px-3 py-1.5 text-xs font-bold transition-colors",
                   isSelected
-                    ? "bg-primary text-white"
-                    : "admin-button-secondary"
+                    ? "bg-primary text-primary-foreground"
+                    : "border border-border bg-card text-foreground hover:bg-accent"
                 )}
               >
                 {isSelected ? "Selected" : "Edit"}
@@ -1368,7 +1368,7 @@ function InputField({
         onChange={(event: ChangeEvent<HTMLInputElement>) => onChange(event.target.value)}
         placeholder={placeholder}
         disabled={disabled}
-        className="admin-input w-full rounded-[1.2rem] px-4 py-3.5 text-sm outline-none disabled:cursor-not-allowed disabled:opacity-60"
+        className="w-full rounded-xl border border-input bg-background px-4 py-3.5 text-sm outline-none focus:ring-2 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-60"
       />
     </label>
   );
@@ -1394,7 +1394,7 @@ function SelectField({
         value={value}
         onChange={(event: ChangeEvent<HTMLSelectElement>) => onChange(event.target.value)}
         disabled={disabled}
-        className="admin-input w-full rounded-[1.2rem] px-4 py-3.5 text-sm outline-none disabled:cursor-not-allowed disabled:opacity-60"
+        className="w-full rounded-xl border border-input bg-background px-4 py-3.5 text-sm outline-none focus:ring-2 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-60"
       >
         {children}
       </select>

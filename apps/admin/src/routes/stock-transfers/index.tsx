@@ -6,14 +6,14 @@ import { getStockTransfers, type StockTransferListItem } from "@/lib/api";
 import {
   AdminPage,
   EmptyState,
-  FilterChip,
-  InfoPill,
   MetricCard,
   PageHeader,
   PageSection,
   SectionTitle,
 } from "@/components/AdminUI";
 import { DataTable } from "@/components/data-table";
+import { Button } from "@workspace/ui/components/button";
+import { Badge } from "@workspace/ui/components/badge";
 
 export const Route = createFileRoute("/stock-transfers/")({
   component: StockTransfersPage,
@@ -58,17 +58,16 @@ function StockTransfersPage() {
         title="Dispatches between Georgetown and the park"
         description="Track stock leaving the city, verify what actually arrived on site, and keep transfer records tidy enough for follow-up and reconciliation."
         actions={
-          <Link
-            to="/stock-transfers/new"
-            className="admin-button-primary rounded-full px-5 py-3 text-sm font-bold"
-          >
-            New Transfer
+          <Link to="/stock-transfers/new">
+            <Button>New Transfer</Button>
           </Link>
         }
         meta={
           <>
-            <InfoPill tone="green">{filteredTransfers.length} in current view</InfoPill>
-            <InfoPill>{tab === "incoming" ? "Incoming verification" : "Outgoing dispatches"}</InfoPill>
+            <Badge variant="secondary">{filteredTransfers.length} in current view</Badge>
+            <Badge variant="outline">
+              {tab === "incoming" ? "Incoming verification" : "Outgoing dispatches"}
+            </Badge>
           </>
         }
       />
@@ -111,14 +110,14 @@ function StockTransfersPage() {
             { value: "outgoing", label: "Outgoing" },
             { value: "incoming", label: "Incoming" },
           ].map((option) => (
-            <FilterChip
+            <Button
               key={option.value}
-              type="button"
-              active={tab === option.value}
+              variant={tab === option.value ? "default" : "outline"}
+              size="sm"
               onClick={() => setTab(option.value as typeof tab)}
             >
               {option.label}
-            </FilterChip>
+            </Button>
           ))}
         </div>
 
@@ -192,10 +191,11 @@ function TransfersTable({
           <Link
             to="/stock-transfers/$id"
             params={{ id: String(row.original.id) }}
-            className="admin-button-secondary inline-flex rounded-full px-4 py-2 text-sm font-semibold"
             onClick={(e) => e.stopPropagation()}
           >
-            View
+            <Button variant="outline" size="sm">
+              View
+            </Button>
           </Link>
         ),
       },
@@ -220,17 +220,17 @@ function StatusPill({
 }: {
   status: StockTransferListItem["status"];
 }) {
-  const tone = {
-    draft: "bg-slate-100 text-slate-700",
-    dispatched: "bg-amber-100 text-amber-700",
-    received: "bg-emerald-100 text-emerald-700",
-    partial: "bg-orange-100 text-orange-700",
-    cancelled: "bg-red-100 text-red-700",
-  }[status];
+  const variantMap: Record<string, "secondary" | "outline" | "destructive"> = {
+    draft: "outline",
+    dispatched: "secondary",
+    received: "secondary",
+    partial: "secondary",
+    cancelled: "destructive",
+  };
 
   return (
-    <span className={`rounded-full px-3 py-1 text-xs font-bold capitalize ${tone}`}>
+    <Badge variant={variantMap[status] ?? "outline"} className="capitalize">
       {status}
-    </span>
+    </Badge>
   );
 }

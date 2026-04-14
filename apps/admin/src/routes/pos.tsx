@@ -20,6 +20,7 @@ import {
 } from "@/components/AdminUI";
 import { formatGYD, paymentMethods, type PaymentMethod } from "@workspace/shared";
 import { cn } from "@workspace/ui/lib/utils";
+import { Button } from "@workspace/ui/components/button";
 
 const terminalHighlights = [
   "Search-forward catalog browsing",
@@ -423,17 +424,11 @@ function PosPage() {
             actions={
               <div className="flex flex-wrap items-center gap-3">
                 <PosViewModeToggle viewMode={viewMode} onChange={setViewMode} />
-                <Link
-                  to="/products"
-                  className="admin-button-secondary rounded-2xl px-4 py-3 text-sm font-bold"
-                >
-                  Manage Catalog
+                <Link to="/products">
+                  <Button variant="outline" size="sm">Manage Catalog</Button>
                 </Link>
-                <Link
-                  to="/sales"
-                  className="admin-button-primary rounded-2xl px-4 py-3 text-sm font-bold"
-                >
-                  View Sales
+                <Link to="/sales">
+                  <Button size="sm">View Sales</Button>
                 </Link>
               </div>
             }
@@ -524,7 +519,7 @@ function PosPage() {
                   inputProps={{ name: "pos_search" }}
                   className={isTerminalView ? terminalSearchClass : undefined}
                 />
-                <div className="admin-scrollbar flex flex-wrap gap-2 overflow-x-auto">
+                <div className="flex flex-wrap gap-2 overflow-x-auto">
                   {categories.map((category) => (
                     <FilterChip
                       key={category.slug}
@@ -600,7 +595,7 @@ function PosPage() {
                       "rounded-full px-4 py-2 text-sm font-semibold transition-[background-color,color,transform]",
                       isTerminalView
                         ? "border border-white/12 bg-white/8 text-white/76 hover:bg-white/12 hover:text-white"
-                        : "admin-button-secondary text-muted-foreground hover:text-foreground"
+                        : "border border-border bg-card text-muted-foreground hover:text-foreground hover:bg-accent"
                     )}
                   >
                     Clear Filters
@@ -671,7 +666,7 @@ function PosPage() {
                             <span className="pointer-events-none absolute right-3 top-3 h-20 w-20 rounded-full bg-amber-300/10 blur-2xl transition-opacity duration-300 group-hover:opacity-100" />
                           ) : null}
 
-                          <p className={cn("admin-kicker", isTerminalView ? "text-white/40" : undefined)}>
+                          <p className={cn("text-xs font-semibold uppercase tracking-wider text-muted-foreground", isTerminalView ? "text-white/40" : undefined)}>
                             {product.categoryName ?? "Uncategorized"}
                           </p>
                           <h2
@@ -802,8 +797,11 @@ function PosPage() {
 
                       <div className="mt-4 flex items-center justify-between gap-3">
                         <div className="flex items-center gap-2">
-                          <button
+                          <Button
                             type="button"
+                            variant="outline"
+                            size="icon"
+                            className="h-9 w-9 rounded-full text-base font-bold"
                             onClick={() =>
                               dispatch({
                                 type: "UPDATE_QTY",
@@ -811,15 +809,17 @@ function PosPage() {
                                 quantity: item.quantity - 1,
                               })
                             }
-                            className="admin-button-secondary flex h-9 w-9 items-center justify-center rounded-full text-base font-bold"
                           >
                             -
-                          </button>
+                          </Button>
                           <span className="w-8 text-center text-sm font-bold text-foreground">
                             {item.quantity}
                           </span>
-                          <button
+                          <Button
                             type="button"
+                            variant="outline"
+                            size="icon"
+                            className="h-9 w-9 rounded-full text-base font-bold"
                             onClick={() =>
                               dispatch({
                                 type: "UPDATE_QTY",
@@ -828,10 +828,9 @@ function PosPage() {
                               })
                             }
                             disabled={item.product.trackStock && item.quantity >= item.product.stockQty}
-                            className="admin-button-secondary flex h-9 w-9 items-center justify-center rounded-full text-base font-bold disabled:cursor-not-allowed disabled:opacity-40"
                           >
                             +
-                          </button>
+                          </Button>
                         </div>
                         <p className="font-black text-primary">
                           {formatGYD(item.product.priceGyd * item.quantity)}
@@ -860,7 +859,7 @@ function PosPage() {
                           discountGyd: Number(event.target.value),
                         })
                       }
-                      className="admin-input w-full rounded-[1.2rem] px-4 py-3 text-sm outline-none"
+                      className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-ring"
                     />
                   </label>
 
@@ -880,7 +879,7 @@ function PosPage() {
                           taxGyd: Number(event.target.value),
                         })
                       }
-                      className="admin-input w-full rounded-[1.2rem] px-4 py-3 text-sm outline-none"
+                      className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-ring"
                     />
                   </label>
                 </div>
@@ -913,7 +912,7 @@ function PosPage() {
                       autoComplete="off"
                       value={paymentReference}
                       onChange={(event) => setPaymentReference(event.target.value)}
-                      className="admin-input w-full rounded-[1.2rem] px-4 py-3 text-sm outline-none"
+                      className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-ring"
                       placeholder="Card auth or transfer reference…"
                     />
                   </label>
@@ -928,7 +927,7 @@ function PosPage() {
                     rows={3}
                     value={notes}
                     onChange={(event) => setNotes(event.target.value)}
-                    className="admin-input w-full rounded-[1.2rem] px-4 py-3 text-sm outline-none"
+                    className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-ring"
                     placeholder="Optional shift or transaction note…"
                   />
                 </label>
@@ -962,7 +961,7 @@ function PosPage() {
                     "relative w-full overflow-hidden rounded-2xl px-5 py-4 text-sm font-bold disabled:cursor-not-allowed disabled:opacity-50",
                     isTerminalView
                       ? "border border-amber-300/28 bg-[linear-gradient(135deg,#c4941a,#a87c15)] text-white shadow-[0_18px_30px_rgb(196_148_26_/22%)] hover:shadow-[0_22px_36px_rgb(196_148_26_/28%)]"
-                      : "admin-button-primary"
+                      : "bg-primary text-primary-foreground hover:bg-primary/90"
                   )}
                 >
                   {isTerminalView ? (
@@ -989,11 +988,11 @@ function PosPage() {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 24, scale: 0.98 }}
               transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-              className="admin-surface w-full max-w-2xl rounded-3xl p-6 sm:p-8"
+              className="bg-card text-card-foreground w-full max-w-2xl rounded-3xl border border-border p-6 shadow-xl sm:p-8"
             >
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <p className="admin-kicker">Sale complete</p>
+                  <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Sale complete</p>
                   <h2 className="mt-2 text-3xl font-black tracking-tight text-foreground">
                     {receipt.sale.saleNumber}
                   </h2>
@@ -1046,7 +1045,7 @@ function PosPage() {
               <div className="mt-5 flex flex-wrap gap-3">
                 <button
                   onClick={printReceipt}
-                  className="admin-button-secondary rounded-2xl px-4 py-3 text-sm font-bold"
+                  className="rounded-2xl border border-border bg-card px-4 py-3 text-sm font-bold text-foreground transition-colors hover:bg-accent"
                 >
                   Print Receipt
                 </button>
@@ -1102,7 +1101,7 @@ function PosViewModeToggle({
                   ? "bg-white text-[#16310c] shadow-[0_12px_24px_rgb(0_0_0_/16%)]"
                   : "text-white/72 hover:bg-white/10 hover:text-white"
                 : active
-                  ? "admin-button-primary"
+                  ? "bg-primary text-primary-foreground"
                   : "text-muted-foreground hover:text-foreground"
             )}
           >

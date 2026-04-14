@@ -12,16 +12,17 @@ import {
 import {
   AdminPage,
   EmptyState,
-  FilterChip,
-  InfoPill,
   MetricCard,
   PageHeader,
   PageSection,
-  SearchField,
   SectionTitle,
 } from "@/components/AdminUI";
 import { downloadCsv, exportPrintableReport } from "@/lib/export";
 import { formatGYD } from "@workspace/shared";
+import { Button } from "@workspace/ui/components/button";
+import { Badge } from "@workspace/ui/components/badge";
+import { Input } from "@workspace/ui/components/input";
+import { Label } from "@workspace/ui/components/label";
 
 export const Route = createFileRoute("/products/")({
   component: ProductsPage,
@@ -193,36 +194,25 @@ function ProductsPage() {
         description="Shape the front-of-house catalog with clear categories, pricing, and stock-aware status. This view is tuned for quick staff scanning, seeded beverage products, and export-ready menu snapshots."
         actions={
           <>
-            <button
-              type="button"
-              onClick={handleExportCatalog}
-              className="admin-button-secondary rounded-full px-5 py-3 text-sm font-bold"
-            >
+            <Button variant="outline" onClick={handleExportCatalog}>
               Export CSV
-            </button>
-            <button
-              type="button"
-              onClick={handleExportCatalogPdf}
-              className="admin-button-secondary rounded-full px-5 py-3 text-sm font-bold"
-            >
+            </Button>
+            <Button variant="outline" onClick={handleExportCatalogPdf}>
               Export PDF
-            </button>
-            <Link
-              to="/products/new"
-              className="admin-button-primary rounded-full px-5 py-3 text-sm font-bold"
-            >
-              New Product
+            </Button>
+            <Link to="/products/new">
+              <Button>New Product</Button>
             </Link>
           </>
         }
         meta={
           <>
-            <InfoPill tone="green">{products.length} products in view</InfoPill>
-            <InfoPill>{activeCategoryName}</InfoPill>
+            <Badge variant="secondary">{products.length} products in view</Badge>
+            <Badge variant="outline">{activeCategoryName}</Badge>
             {lowStockProducts > 0 ? (
-              <InfoPill tone="amber">{lowStockProducts} low-stock items</InfoPill>
+              <Badge variant="destructive">{lowStockProducts} low-stock items</Badge>
             ) : (
-              <InfoPill tone="green">Inventory levels stable</InfoPill>
+              <Badge variant="secondary">Inventory levels stable</Badge>
             )}
           </>
         }
@@ -261,52 +251,51 @@ function ProductsPage() {
             description="Filter by category, refine the menu search, and open any product for detailed edits."
             action={
               activeCategory !== "all" || search ? (
-                <button
-                  type="button"
+                <Button
+                  variant="outline"
+                  size="sm"
                   onClick={() => {
                     setActiveCategory("all");
                     setSearch("");
                   }}
-                  className="admin-button-secondary rounded-full px-4 py-2 text-sm font-semibold"
                 >
                   Reset Filters
-                </button>
+                </Button>
               ) : null
             }
           />
 
           <div className="flex flex-wrap gap-2">
-            <FilterChip
-              type="button"
-              active={activeCategory === "all"}
+            <Button
+              variant={activeCategory === "all" ? "default" : "outline"}
+              size="sm"
               onClick={() => setActiveCategory("all")}
             >
               All
-            </FilterChip>
+            </Button>
             {categories.map((category) => (
-              <FilterChip
+              <Button
                 key={category.id}
-                type="button"
-                active={activeCategory === category.id}
+                variant={activeCategory === category.id ? "default" : "outline"}
+                size="sm"
                 onClick={() => setActiveCategory(category.id)}
               >
                 {category.name}
-              </FilterChip>
+              </Button>
             ))}
           </div>
 
           <div className="mt-4">
-            <SearchField
+            <Input
               value={search}
               onChange={(event) => setSearch(event.target.value)}
-              label="Search products"
               placeholder="Search by name, description, or SKU…"
-              inputProps={{ name: "product_search" }}
+              aria-label="Search products"
             />
           </div>
 
           {loading ? (
-            <div className="mt-6 rounded-[1.7rem] border border-dashed border-primary/14 bg-primary/4 px-6 py-12 text-center text-sm text-muted-foreground">
+            <div className="mt-6 rounded-xl border border-dashed border-border bg-muted/30 px-6 py-12 text-center text-sm text-muted-foreground">
               Loading products…
             </div>
           ) : products.length === 0 ? (
@@ -315,16 +304,14 @@ function ProductsPage() {
                 title="No products matched this view"
                 description="Try another category or search term. Seeded beverage products remain available once the filters are cleared."
                 action={
-                  <button
-                    type="button"
+                  <Button
                     onClick={() => {
                       setActiveCategory("all");
                       setSearch("");
                     }}
-                    className="admin-button-primary rounded-full px-4 py-2.5 text-sm font-bold"
                   >
                     Clear Filters
-                  </button>
+                  </Button>
                 }
               />
             </div>
@@ -345,7 +332,7 @@ function ProductsPage() {
                     key={product.id}
                     to="/products/$id"
                     params={{ id: String(product.id) }}
-                    className="group rounded-[1.7rem] border border-primary/10 bg-white/72 p-5 shadow-[0_18px_40px_rgb(22_36_12_/6%)] transition-[border-color,box-shadow,transform] hover:-translate-y-0.5 hover:border-primary/18 hover:shadow-[0_24px_50px_rgb(22_36_12_/10%)]"
+                    className="group rounded-xl border border-border bg-card p-5 shadow-sm transition-[border-color,box-shadow,transform] hover:-translate-y-0.5 hover:border-border/80 hover:shadow-md"
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
@@ -356,25 +343,31 @@ function ProductsPage() {
                           {product.categoryName ?? "Uncategorized"}
                         </p>
                       </div>
-                      <span className="rounded-full border border-primary/10 bg-primary/6 px-3 py-1 text-xs font-semibold text-primary">
+                      <Badge variant="outline" className="shrink-0">
                         {formatGYD(product.priceGyd)}
-                      </span>
+                      </Badge>
                     </div>
 
                     <div className="mt-4 flex flex-wrap gap-2">
-                      <InfoPill tone={stockTone}>
-                        {product.trackStock
-                          ? `${product.stockQty} in stock`
-                          : "Service item"}
-                      </InfoPill>
-                      <InfoPill tone={product.isActive ? "green" : "neutral"}>
+                      <Badge
+                        variant={
+                          stockTone === "red"
+                            ? "destructive"
+                            : stockTone === "amber"
+                              ? "outline"
+                              : "secondary"
+                        }
+                      >
+                        {product.trackStock ? `${product.stockQty} in stock` : "Service item"}
+                      </Badge>
+                      <Badge variant={product.isActive ? "secondary" : "outline"}>
                         {product.isActive ? "Active" : "Inactive"}
-                      </InfoPill>
+                      </Badge>
                     </div>
 
-                    <div className="mt-5 grid grid-cols-2 gap-3 rounded-[1.3rem] border border-primary/8 bg-primary/4 p-4 text-sm">
+                    <div className="mt-5 grid grid-cols-2 gap-3 rounded-lg border border-border bg-muted/30 p-4 text-sm">
                       <div>
-                        <p className="text-[11px] font-bold tracking-[0.18em] text-muted-foreground uppercase">
+                        <p className="text-[11px] font-bold tracking-[0.18em] uppercase text-muted-foreground">
                           SKU
                         </p>
                         <p className="mt-1 truncate font-semibold text-foreground">
@@ -382,7 +375,7 @@ function ProductsPage() {
                         </p>
                       </div>
                       <div>
-                        <p className="text-[11px] font-bold tracking-[0.18em] text-muted-foreground uppercase">
+                        <p className="text-[11px] font-bold tracking-[0.18em] uppercase text-muted-foreground">
                           Threshold
                         </p>
                         <p className="mt-1 font-semibold text-foreground">
@@ -423,7 +416,7 @@ function ProductsPage() {
               categories.map((category) => (
                 <div
                   key={category.id}
-                  className="rounded-[1.4rem] border border-primary/10 bg-white/78 p-4"
+                  className="rounded-xl border border-border bg-card p-4"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
@@ -432,13 +425,13 @@ function ProductsPage() {
                         {category.productCount ?? 0} products
                       </p>
                     </div>
-                    <button
-                      type="button"
+                    <Button
+                      variant="destructive"
+                      size="sm"
                       onClick={() => handleDeleteCategory(category)}
-                      className="rounded-full border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-700 transition-[background-color,border-color,color] hover:border-red-300 hover:bg-red-100"
                     >
                       Delete
-                    </button>
+                    </Button>
                   </div>
 
                   {category.description ? (
@@ -451,7 +444,7 @@ function ProductsPage() {
             )}
           </div>
 
-          <div className="mt-5 rounded-[1.6rem] border border-primary/10 bg-primary/4 p-5">
+          <div className="mt-5 rounded-xl border border-border bg-muted/30 p-5">
             <h3 className="text-base font-black tracking-tight text-foreground">
               Add Category
             </h3>
@@ -461,7 +454,7 @@ function ProductsPage() {
 
             <div className="mt-4 space-y-3">
               <FieldLabel label="Category Name">
-                <input
+                <Input
                   name="category_name"
                   autoComplete="off"
                   value={newCategory.name}
@@ -472,7 +465,6 @@ function ProductsPage() {
                     }))
                   }
                   placeholder="Soft Drinks…"
-                  className="admin-input w-full rounded-[1.2rem] px-4 py-3 text-sm outline-none"
                 />
               </FieldLabel>
 
@@ -489,12 +481,12 @@ function ProductsPage() {
                     }))
                   }
                   placeholder="Optional internal description…"
-                  className="admin-input w-full rounded-[1.4rem] px-4 py-3 text-sm outline-none"
+                  className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-ring"
                 />
               </FieldLabel>
 
               <FieldLabel label="Sort Order">
-                <input
+                <Input
                   type="number"
                   min={0}
                   name="category_sort_order"
@@ -507,18 +499,17 @@ function ProductsPage() {
                     }))
                   }
                   placeholder="0"
-                  className="admin-input w-full rounded-[1.2rem] px-4 py-3 text-sm outline-none"
                 />
               </FieldLabel>
 
-              <button
+              <Button
                 type="button"
+                className="w-full"
                 onClick={handleCreateCategory}
                 disabled={savingCategory || !newCategory.name.trim()}
-                className="admin-button-primary w-full rounded-full px-4 py-3 text-sm font-bold disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {savingCategory ? "Saving…" : "Create Category"}
-              </button>
+              </Button>
             </div>
           </div>
         </PageSection>
@@ -535,11 +526,11 @@ function FieldLabel({
   children: ReactNode;
 }) {
   return (
-    <label className="block">
-      <span className="mb-2 block text-xs font-bold tracking-[0.18em] text-muted-foreground uppercase">
+    <div className="space-y-2">
+      <Label className="text-xs font-bold tracking-[0.18em] uppercase text-muted-foreground">
         {label}
-      </span>
+      </Label>
       {children}
-    </label>
+    </div>
   );
 }
