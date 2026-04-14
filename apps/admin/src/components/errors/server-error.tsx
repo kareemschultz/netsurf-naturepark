@@ -1,4 +1,6 @@
 import { Link } from "@tanstack/react-router";
+import { Button, buttonVariants } from "@workspace/ui/components/button";
+import { cn } from "@workspace/ui/lib/utils";
 
 export function ServerError({
   error,
@@ -8,8 +10,8 @@ export function ServerError({
   onRetry?: () => void;
 }) {
   return (
-    <div className="admin-shell flex min-h-screen items-center justify-center px-4">
-      <div className="admin-surface max-w-md rounded-3xl p-10 text-center shadow-[0_32px_80px_rgb(21_36_12_/12%)]">
+    <div className="flex min-h-screen items-center justify-center bg-background px-4">
+      <div className="max-w-md rounded-3xl border border-border bg-card p-10 text-center shadow-lg">
         <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl border border-red-200/80 bg-red-50">
           <svg
             width="28"
@@ -28,7 +30,9 @@ export function ServerError({
           </svg>
         </div>
 
-        <p className="admin-kicker mb-2">500 — Something went wrong</p>
+        <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          500 — Something went wrong
+        </p>
         <h1 className="text-2xl font-black tracking-tight text-foreground">
           An unexpected error occurred
         </h1>
@@ -40,11 +44,7 @@ export function ServerError({
 
         <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
           {onRetry ? (
-            <button
-              type="button"
-              onClick={onRetry}
-              className="admin-button-primary inline-flex items-center gap-2 rounded-2xl px-6 py-3 text-sm font-bold"
-            >
+            <Button onClick={onRetry} size="lg" className="gap-2">
               <svg
                 width="14"
                 height="14"
@@ -61,12 +61,9 @@ export function ServerError({
                 <path d="M8 16H3v5" />
               </svg>
               Retry
-            </button>
+            </Button>
           ) : null}
-          <Link
-            to="/"
-            className="admin-button-secondary inline-flex items-center gap-2 rounded-2xl px-6 py-3 text-sm font-bold"
-          >
+          <Link to="/" className={cn(buttonVariants({ variant: "outline", size: "lg" }), "gap-2")}>
             <svg
               width="14"
               height="14"

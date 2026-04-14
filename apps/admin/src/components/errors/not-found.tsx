@@ -1,9 +1,11 @@
 import { Link } from "@tanstack/react-router";
+import { buttonVariants } from "@workspace/ui/components/button";
+import { cn } from "@workspace/ui/lib/utils";
 
 export function NotFound() {
   return (
-    <div className="admin-shell flex min-h-screen items-center justify-center px-4">
-      <div className="admin-surface max-w-md rounded-3xl p-10 text-center shadow-[0_32px_80px_rgb(21_36_12_/12%)]">
+    <div className="flex min-h-screen items-center justify-center bg-background px-4">
+      <div className="max-w-md rounded-3xl border border-border bg-card p-10 text-center shadow-lg">
         <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl border border-primary/10 bg-primary/6">
           <svg
             width="28"
@@ -21,7 +23,9 @@ export function NotFound() {
           </svg>
         </div>
 
-        <p className="admin-kicker mb-2">404 — Page not found</p>
+        <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          404 — Page not found
+        </p>
         <h1 className="text-2xl font-black tracking-tight text-foreground">
           This path leads into the forest
         </h1>
@@ -31,10 +35,7 @@ export function NotFound() {
         </p>
 
         <div className="mt-7">
-          <Link
-            to="/"
-            className="admin-button-primary inline-flex items-center gap-2 rounded-2xl px-6 py-3 text-sm font-bold"
-          >
+          <Link to="/" className={cn(buttonVariants({ size: "lg" }), "gap-2")}>
             <svg
               width="14"
               height="14"
