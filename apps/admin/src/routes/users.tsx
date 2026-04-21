@@ -755,10 +755,10 @@ function UsersPage() {
                       {getInitials(selectedUser)}
                     </div>
                     <div className="min-w-0">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <h2 className="text-2xl font-black tracking-tight text-foreground">
-                          {selectedUser.name}
-                        </h2>
+                      <h2 className="text-2xl font-black tracking-tight text-foreground">
+                        {selectedUser.name}
+                      </h2>
+                      <div className="mt-2 flex flex-wrap items-center gap-2">
                         <InfoPill tone="neutral">
                           {adminRoleMeta[toRoleSlug(selectedUser.role)].label}
                         </InfoPill>
@@ -772,7 +772,7 @@ function UsersPage() {
                       <p className="mt-2 text-sm leading-6 text-muted-foreground">
                         @{selectedUser.username || "username pending"} · {selectedUser.email}
                       </p>
-                      <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                      <p className="mt-2 text-sm leading-6 text-muted-foreground">
                         Created {formatTimestamp(selectedUser.createdAt)} · Last updated{" "}
                         {formatTimestamp(selectedUser.updatedAt)}
                       </p>
@@ -780,10 +780,6 @@ function UsersPage() {
                   </div>
 
                   <div className="grid gap-3 sm:grid-cols-2">
-                    <MiniStat
-                      label="Role"
-                      value={adminRoleMeta[toRoleSlug(selectedUser.role)].label}
-                    />
                     <MiniStat
                       label="Sessions"
                       value={
@@ -794,13 +790,17 @@ function UsersPage() {
                           : "Locked"
                       }
                     />
+                    <MiniStat
+                      label="Member since"
+                      value={selectedUser.createdAt ? format(new Date(selectedUser.createdAt), "d MMM yyyy") : "—"}
+                    />
                   </div>
                 </div>
               </div>
 
               <div className="grid gap-6 2xl:grid-cols-[0.9fr_1.1fr]">
                 <div className="space-y-6">
-                  <div className="rounded-[1.6rem] border border-primary/10 bg-white/72 p-5">
+                  <div className="rounded-[1.6rem] border border-primary/10 bg-white/72 p-6">
                     <SectionTitle
                       title="Profile"
                       description="Staff identity fields used for sign-in and internal labeling."
@@ -863,7 +863,7 @@ function UsersPage() {
                     )}
                   </div>
 
-                  <div className="rounded-[1.6rem] border border-primary/10 bg-white/72 p-5">
+                  <div className="rounded-[1.6rem] border border-primary/10 bg-white/72 p-6">
                     <SectionTitle
                       title="Role assignment"
                       description="Controls which screens and protected actions this staff member can reach."
@@ -910,7 +910,7 @@ function UsersPage() {
                 </div>
 
                 <div className="space-y-6">
-                  <div className="rounded-[1.6rem] border border-primary/10 bg-white/72 p-5">
+                  <div className="rounded-[1.6rem] border border-primary/10 bg-white/72 p-6">
                     <SectionTitle
                       title="Password reset"
                       description="Set a fresh temporary password when a staff member is locked out or rotated into a new device."
@@ -944,7 +944,7 @@ function UsersPage() {
                     )}
                   </div>
 
-                  <div className="rounded-[1.6rem] border border-primary/10 bg-white/72 p-5">
+                  <div className="rounded-[1.6rem] border border-primary/10 bg-white/72 p-6">
                     <SectionTitle
                       title="Account controls"
                       description="Suspend access, restore a suspended account, or remove an account entirely."
@@ -1005,7 +1005,7 @@ function UsersPage() {
                     </div>
                   </div>
 
-                  <div className="rounded-[1.6rem] border border-primary/10 bg-white/72 p-5">
+                  <div className="rounded-[1.6rem] border border-primary/10 bg-white/72 p-6">
                     <SectionTitle
                       title="Live sessions"
                       description="Inspect current sessions for the selected account and revoke them when access needs to be cut immediately."

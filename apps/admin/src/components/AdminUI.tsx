@@ -147,7 +147,7 @@ export function SectionTitle({
       <div>
         <h2 className="text-lg font-bold tracking-tight text-foreground">{title}</h2>
         {description && (
-          <p className="mt-0.5 text-sm text-muted-foreground">{description}</p>
+          <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{description}</p>
         )}
       </div>
       {action && <div className="shrink-0">{action}</div>}
