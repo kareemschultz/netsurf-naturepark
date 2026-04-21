@@ -31,10 +31,10 @@ import {
   EmptyState,
   FilterChip,
   InfoPill,
-  MetricCard,
   PageHeader,
   PageSection,
   SectionTitle,
+  StatStrip,
 } from "@/components/AdminUI";
 import { DataTable } from "@/components/data-table";
 import {
@@ -566,42 +566,16 @@ function UsersPage() {
         }
       />
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <MetricCard
-          label="Visible Staff"
-          value={loadingUsers ? "..." : String(resultTotal)}
-          note={`Filtered by ${activeRoleFilterLabel.toLowerCase()}`}
-          tone="green"
-        />
-        <MetricCard
-          label="Elevated Roles"
-          value={loadingUsers ? "..." : String(elevatedUsers)}
-          note="Owner and manager accounts in current result set"
-          tone="amber"
-        />
-        <MetricCard
-          label="Suspended Accounts"
-          value={loadingUsers ? "..." : String(bannedUsers)}
-          note="Accounts currently blocked from sign-in"
-          tone={bannedUsers > 0 ? "red" : "slate"}
-        />
-        <MetricCard
-          label="Selected Sessions"
-          value={
-            !canListSessions
-              ? "Locked"
-              : loadingSessions
-                ? "..."
-                : String(selectedSessions.length)
-          }
-          note={
-            canListSessions
-              ? "Live sessions for the selected staff account"
-              : "Your role can inspect users but not session history"
-          }
-          tone={canListSessions ? "green" : "amber"}
-        />
-      </div>
+      <StatStrip stats={[
+        { label: "Visible Staff", value: loadingUsers ? "..." : String(resultTotal), tone: "green" },
+        { label: "Elevated Roles", value: loadingUsers ? "..." : String(elevatedUsers), tone: "amber" },
+        { label: "Suspended Accounts", value: loadingUsers ? "..." : String(bannedUsers), tone: bannedUsers > 0 ? "red" : "slate" },
+        {
+          label: "Selected Sessions",
+          value: !canListSessions ? "Locked" : loadingSessions ? "..." : String(selectedSessions.length),
+          tone: canListSessions ? "green" : "amber",
+        },
+      ]} />
 
       {notice ? <NoticeBanner tone={notice.tone}>{notice.message}</NoticeBanner> : null}
 
@@ -693,10 +667,9 @@ function UsersPage() {
             )}
           </PageSection>
 
-          <PageSection className="p-6 sm:p-7">
+          <PageSection className="p-4 sm:p-5">
             <SectionTitle
               title="Staff directory"
-              description="Search by name or email, then narrow the list by role to find the right account quickly."
             />
 
             <div className="flex flex-wrap gap-2 overflow-x-auto pb-1">
@@ -738,7 +711,6 @@ function UsersPage() {
         <PageSection className="min-w-0 p-6 sm:p-7">
           <SectionTitle
             title="Selected account"
-            description="Inspect the chosen account, update profile details, and manage live sessions from one place."
           />
 
           {!selectedUser ? (

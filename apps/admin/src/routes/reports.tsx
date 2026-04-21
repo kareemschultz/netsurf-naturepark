@@ -26,10 +26,10 @@ import {
 } from "@/lib/api";
 import {
   AdminPage,
-  MetricCard,
   PageHeader,
   PageSection,
   SectionTitle,
+  StatStrip,
 } from "@/components/AdminUI";
 import { downloadSectionedCsv, exportPrintableReport } from "@/lib/export";
 import { formatGYD } from "@workspace/shared";
@@ -300,31 +300,12 @@ function ReportsPage() {
         }
       />
 
-      <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
-        <MetricCard
-          label="Sales"
-          value={loading ? "..." : String(summary?.totalSales ?? 0)}
-          note={loading ? "Loading sales window" : `${summary?.itemsSold ?? 0} items sold`}
-        />
-        <MetricCard
-          label="Revenue"
-          value={loading ? "..." : formatGYD(summary?.totalRevenueGyd ?? 0)}
-          note="Current reporting window"
-          tone="amber"
-        />
-        <MetricCard
-          label="Bookings"
-          value={loading ? "..." : String(stats?.total ?? 0)}
-          note={loading ? "Loading booking state" : `${stats?.pending ?? 0} pending requests`}
-          tone="slate"
-        />
-        <MetricCard
-          label="Stock Alerts"
-          value={loading ? "..." : String(alertCount)}
-          note={loading ? "Loading inventory state" : `${inventory.length} tracked items`}
-          tone={alertCount > 0 ? "red" : "green"}
-        />
-      </div>
+      <StatStrip stats={[
+        { label: "Sales", value: loading ? "..." : String(summary?.totalSales ?? 0), tone: "slate" },
+        { label: "Revenue", value: loading ? "..." : formatGYD(summary?.totalRevenueGyd ?? 0), tone: "amber" },
+        { label: "Bookings", value: loading ? "..." : String(stats?.total ?? 0), tone: "slate" },
+        { label: "Stock Alerts", value: loading ? "..." : String(alertCount), tone: alertCount > 0 ? "red" : "green" },
+      ]} />
 
       <div className="grid gap-6 xl:grid-cols-2">
         <ChartCard
@@ -396,7 +377,6 @@ function ReportsPage() {
         <PageSection className="min-w-0 p-6">
           <SectionTitle
             title="Booking status mix"
-            description="Current reservation pipeline across all statuses."
           />
           <ResponsiveChart height={320}>
             <PieChart>
@@ -439,7 +419,6 @@ function ReportsPage() {
         <PageSection className="min-w-0 p-6">
           <SectionTitle
             title="Low-stock watchlist"
-            description="Products already at or below their threshold."
           />
           <div className="space-y-3">
             {lowStockRows.length === 0 ? (

@@ -63,12 +63,14 @@ export function PageHeader({
             {eyebrow}
           </p>
         )}
-        <h1 className="text-2xl font-bold tracking-tight text-foreground">
+        <h1 className="text-xl font-bold tracking-tight text-foreground sm:text-2xl">
           {title}
         </h1>
-        <p className="mt-1 max-w-2xl text-sm leading-relaxed text-muted-foreground">
-          {description}
-        </p>
+        {description && (
+          <p className="mt-1 hidden max-w-2xl text-sm leading-relaxed text-muted-foreground sm:block">
+            {description}
+          </p>
+        )}
         {meta && (
           <div className="mt-2 flex flex-wrap gap-2">{meta}</div>
         )}
@@ -78,6 +80,69 @@ export function PageHeader({
           {actions}
         </div>
       )}
+    </div>
+  );
+}
+
+// ─── Compact stat strip (replaces 4-MetricCard grid above tables) ────────────
+
+type StatItem = {
+  label: string;
+  value: string;
+  tone?: "green" | "amber" | "red" | "slate";
+};
+
+export function StatStrip({ stats }: { stats: StatItem[] }) {
+  const dotClass: Record<string, string> = {
+    green: "bg-primary",
+    amber: "bg-amber-500",
+    red: "bg-red-500",
+    slate: "bg-slate-400",
+  };
+  const valueClass: Record<string, string> = {
+    green: "text-primary",
+    amber: "text-amber-700 dark:text-amber-400",
+    red: "text-red-700 dark:text-red-400",
+    slate: "text-slate-700 dark:text-slate-300",
+  };
+  const cols =
+    stats.length === 3
+      ? "grid-cols-3"
+      : stats.length === 2
+        ? "grid-cols-2"
+        : "grid-cols-2 sm:grid-cols-4";
+
+  return (
+    <div
+      className={cn(
+        "grid divide-x divide-y divide-border overflow-hidden rounded-xl border bg-card",
+        cols,
+        stats.length >= 4 ? "sm:divide-y-0" : "divide-y-0"
+      )}
+    >
+      {stats.map((stat) => (
+        <div key={stat.label} className="flex items-center gap-3 px-5 py-3.5">
+          <span
+            className={cn(
+              "h-2 w-2 shrink-0 rounded-full",
+              dotClass[stat.tone ?? "slate"]
+            )}
+          />
+          <div className="min-w-0">
+            <p className="truncate text-[10px] font-bold tracking-[0.2em] text-muted-foreground uppercase">
+              {stat.label}
+            </p>
+            <p
+              className={cn(
+                "truncate text-lg font-black tracking-tight tabular-nums",
+                valueClass[stat.tone ?? "slate"]
+              )}
+            >
+              {stat.value}
+            </p>
+          </div>
+        </div>
+      ))}
     </div>
   );
 }

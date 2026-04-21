@@ -12,10 +12,10 @@ import {
 import {
   AdminPage,
   EmptyState,
-  MetricCard,
   PageHeader,
   PageSection,
   SectionTitle,
+  StatStrip,
 } from "@/components/AdminUI";
 import { downloadCsv, exportPrintableReport } from "@/lib/export";
 import { formatGYD } from "@workspace/shared";
@@ -218,37 +218,17 @@ function ProductsPage() {
         }
       />
 
-      <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
-        <MetricCard
-          label="Catalog View"
-          value={String(products.length)}
-          note="Products in the active filter set"
-        />
-        <MetricCard
-          label="Active Items"
-          value={String(activeProducts)}
-          note="Visible to the POS terminal"
-          tone="green"
-        />
-        <MetricCard
-          label="Tracked SKUs"
-          value={String(trackedProducts)}
-          note="Stock-controlled products"
-          tone="slate"
-        />
-        <MetricCard
-          label="Low-Stock Risk"
-          value={String(lowStockProducts)}
-          note="Products at or below threshold"
-          tone={lowStockProducts > 0 ? "amber" : "green"}
-        />
-      </div>
+      <StatStrip stats={[
+        { label: "Catalog View", value: String(products.length), tone: "slate" },
+        { label: "Active Items", value: String(activeProducts), tone: "green" },
+        { label: "Tracked SKUs", value: String(trackedProducts), tone: "slate" },
+        { label: "Low-Stock Risk", value: String(lowStockProducts), tone: lowStockProducts > 0 ? "amber" : "green" },
+      ]} />
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.45fr)_24rem]">
         <PageSection className="p-6 sm:p-7">
           <SectionTitle
             title="Catalog Browser"
-            description="Filter by category, refine the menu search, and open any product for detailed edits."
             action={
               activeCategory !== "all" || search ? (
                 <Button

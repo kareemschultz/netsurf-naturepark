@@ -17,11 +17,11 @@ import {
   EmptyState,
   FilterChip,
   InfoPill,
-  MetricCard,
   PageHeader,
   PageSection,
   SearchField,
   SectionTitle,
+  StatStrip,
 } from "@/components/AdminUI";
 import { DataTable } from "@/components/data-table";
 import { downloadCsv, exportPrintableReport } from "@/lib/export";
@@ -262,37 +262,17 @@ function InventoryPage() {
         </div>
       ) : null}
 
-      <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
-        <MetricCard
-          label="Tracked SKUs"
-          value={String(items.length)}
-          note="Products with inventory tracking"
-        />
-        <MetricCard
-          label="On-Hand Units"
-          value={String(totalUnits)}
-          note="Across all tracked stock"
-          tone="green"
-        />
-        <MetricCard
-          label="Low Stock"
-          value={String(lowStockCount)}
-          note="At or below threshold"
-          tone={lowStockCount > 0 ? "amber" : "green"}
-        />
-        <MetricCard
-          label="Out of Stock"
-          value={String(outOfStockCount)}
-          note="Unavailable for sale"
-          tone={outOfStockCount > 0 ? "red" : "slate"}
-        />
-      </div>
+      <StatStrip stats={[
+        { label: "Tracked SKUs", value: String(items.length), tone: "slate" },
+        { label: "On-Hand Units", value: String(totalUnits), tone: "green" },
+        { label: "Low Stock", value: String(lowStockCount), tone: lowStockCount > 0 ? "amber" : "green" },
+        { label: "Out of Stock", value: String(outOfStockCount), tone: outOfStockCount > 0 ? "red" : "slate" },
+      ]} />
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.4fr)_24rem]">
-        <PageSection className="p-6 sm:p-7">
+        <PageSection className="p-4 sm:p-5">
           <SectionTitle
             title="Stock Board"
-            description="Filter the inventory board, inspect threshold pressure, and select any product for a stock action."
             action={
               search || stockView !== "all" ? (
                 <button
@@ -353,11 +333,6 @@ function InventoryPage() {
           <PageSection className="p-6 sm:p-7">
             <SectionTitle
               title="Stock Actions"
-              description={
-                activeProduct
-                  ? "Update the selected product with a restock or a counted adjustment."
-                  : "Select a product from the stock board to start an action."
-              }
             />
 
             {activeProduct ? (
@@ -456,7 +431,6 @@ function InventoryPage() {
           <PageSection className="p-6 sm:p-7">
             <SectionTitle
               title="Recent Movements"
-              description="The latest stock changes across restocks, adjustments, and sales."
             />
 
             <div className="space-y-3">

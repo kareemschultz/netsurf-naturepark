@@ -13,10 +13,10 @@ import {
 import {
   AdminPage,
   EmptyState,
-  MetricCard,
   PageHeader,
   PageSection,
   SectionTitle,
+  StatStrip,
 } from "@/components/AdminUI";
 import { DataTable } from "@/components/data-table";
 import { downloadCsv, exportPrintableReport } from "@/lib/export";
@@ -203,36 +203,16 @@ function SalesPage() {
         }
       />
 
-      <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
-        <MetricCard
-          label="Sales"
-          value={String(summary?.totalSales ?? 0)}
-          note="Transactions in the reporting window"
-        />
-        <MetricCard
-          label="Revenue"
-          value={formatGYD(summary?.totalRevenueGyd ?? 0)}
-          note="Gross collected after discounts"
-          tone="green"
-        />
-        <MetricCard
-          label="Items Sold"
-          value={String(summary?.itemsSold ?? 0)}
-          note="Units sold in the current window"
-          tone="slate"
-        />
-        <MetricCard
-          label="Average Sale"
-          value={formatGYD(averageSaleValue)}
-          note={`${activeSales} active, ${voidedSales} voided`}
-          tone={voidedSales > 0 ? "amber" : "green"}
-        />
-      </div>
+      <StatStrip stats={[
+        { label: "Sales", value: String(summary?.totalSales ?? 0), tone: "slate" },
+        { label: "Revenue", value: formatGYD(summary?.totalRevenueGyd ?? 0), tone: "green" },
+        { label: "Items Sold", value: String(summary?.itemsSold ?? 0), tone: "slate" },
+        { label: "Average Sale", value: formatGYD(averageSaleValue), tone: voidedSales > 0 ? "amber" : "green" },
+      ]} />
 
       <PageSection className="p-6 sm:p-7">
         <SectionTitle
           title="Reporting Window"
-          description="Toggle between a single day and a custom date range, then refine the ledger by sale status."
           action={
             <div className="flex flex-wrap gap-2">
               <Button
@@ -347,10 +327,9 @@ function SalesPage() {
         />
       </div>
 
-      <PageSection className="p-6 sm:p-7">
+      <PageSection className="p-4 sm:p-5">
         <SectionTitle
           title="Sales Ledger"
-          description="Open any transaction for full line-item detail, payment history, or void review."
         />
 
         {!loading && sales.length === 0 ? (

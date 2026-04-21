@@ -11,10 +11,10 @@ import {
 } from "@workspace/shared";
 import {
   AdminPage,
-  MetricCard,
   PageHeader,
   PageSection,
   SectionTitle,
+  StatStrip,
 } from "@/components/AdminUI";
 import { Button } from "@workspace/ui/components/button";
 import { Badge } from "@workspace/ui/components/badge";
@@ -122,31 +122,12 @@ function AccessPage() {
         }
       />
 
-      <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
-        <MetricCard
-          label="Auth Layer"
-          value="Better Auth"
-          note="Session cookies, user records, and server-side checks"
-        />
-        <MetricCard
-          label="Defined Roles"
-          value={String(roleEntries.length)}
-          note="Owner, manager, front desk, POS, inventory, analyst"
-          tone="amber"
-        />
-        <MetricCard
-          label="Protected Routes"
-          value={String(adminRouteAccessRules.length)}
-          note="Menus and route redirects are trimmed by permission"
-          tone="green"
-        />
-        <MetricCard
-          label="Next Security Layers"
-          value={String(authEnhancements.length)}
-          note="Better Auth plugins worth considering next"
-          tone="slate"
-        />
-      </div>
+      <StatStrip stats={[
+        { label: "Auth Layer", value: "Better Auth", tone: "slate" },
+        { label: "Defined Roles", value: String(roleEntries.length), tone: "amber" },
+        { label: "Protected Routes", value: String(adminRouteAccessRules.length), tone: "green" },
+        { label: "Next Security Layers", value: String(authEnhancements.length), tone: "slate" },
+      ]} />
 
       <PageSection className="p-6 sm:p-7">
         <SectionTitle
@@ -224,7 +205,6 @@ function AccessPage() {
         <PageSection className="min-w-0 p-6 sm:p-7">
           <SectionTitle
             title="Route-level gates"
-            description="These are the menu and redirect checkpoints that currently decide whether a user can open a screen."
           />
 
           <div className="space-y-3">

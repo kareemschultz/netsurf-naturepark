@@ -3,10 +3,10 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { getCalendar, type BlockedDate, type Booking, type CalendarResponse } from "@/lib/api";
 import {
   AdminPage,
-  MetricCard,
   PageHeader,
   PageSection,
   SectionTitle,
+  StatStrip,
 } from "@/components/AdminUI";
 import { Button } from "@workspace/ui/components/button";
 import { Badge } from "@workspace/ui/components/badge";
@@ -101,37 +101,16 @@ function CalendarPage() {
         }
       />
 
-      <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
-        <MetricCard
-          label="Confirmed"
-          value={String(confirmedCount)}
-          note="Reservations with approval"
-          tone="green"
-        />
-        <MetricCard
-          label="Pending"
-          value={String(pendingCount)}
-          note="Requests still awaiting action"
-          tone="amber"
-        />
-        <MetricCard
-          label="Blocked"
-          value={String(blockedRows.length)}
-          note="Maintenance or override ranges"
-          tone="red"
-        />
-        <MetricCard
-          label="Month View"
-          value={monthLabel.format(monthDate)}
-          note="Active planning window"
-          tone="slate"
-        />
-      </div>
+      <StatStrip stats={[
+        { label: "Confirmed", value: String(confirmedCount), tone: "green" },
+        { label: "Pending", value: String(pendingCount), tone: "amber" },
+        { label: "Blocked", value: String(blockedRows.length), tone: "red" },
+        { label: "Month View", value: monthLabel.format(monthDate), tone: "slate" },
+      ]} />
 
       <PageSection className="p-6 sm:p-7">
         <SectionTitle
           title="Occupancy Grid"
-          description="Select any confirmed or pending booking from the calendar to open the full reservation record."
           action={
             <div className="flex flex-wrap items-center gap-2.5">
               <span className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">

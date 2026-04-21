@@ -8,10 +8,10 @@ import {
   AdminPage,
   EmptyState,
   FilterChip,
-  MetricCard,
   PageHeader,
   PageSection,
   SectionTitle,
+  StatStrip,
 } from "@/components/AdminUI";
 import { StatusBadge } from "@/components/StatusBadge";
 import { DataTable } from "@/components/data-table";
@@ -203,36 +203,16 @@ function BookingsPage() {
         }
       />
 
-      <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
-        <MetricCard
-          label="Loaded Bookings"
-          value={String(data.rows.length)}
-          note="Entries in the current page view"
-        />
-        <MetricCard
-          label="Estimated Value"
-          value={formatGYD(estimatedRevenue)}
-          note="Current page total"
-          tone="green"
-        />
-        <MetricCard
-          label="Overnight"
-          value={String(overnightCount)}
-          note="Longer-stay reservations"
-          tone="slate"
-        />
-        <MetricCard
-          label="Day Use"
-          value={String(dayUseCount)}
-          note="Single-day cabin use"
-          tone="amber"
-        />
-      </div>
+      <StatStrip stats={[
+        { label: "Loaded Bookings", value: String(data.rows.length), tone: "slate" },
+        { label: "Estimated Value", value: formatGYD(estimatedRevenue), tone: "green" },
+        { label: "Overnight", value: String(overnightCount), tone: "slate" },
+        { label: "Day Use", value: String(dayUseCount), tone: "amber" },
+      ]} />
 
-      <PageSection className="p-6 sm:p-7">
+      <PageSection className="p-4 sm:p-5">
         <SectionTitle
           title="Booking Queue"
-          description="Filter by status and open any reservation for detailed review, notes, or status changes."
         />
 
         <div className="flex flex-wrap gap-2">

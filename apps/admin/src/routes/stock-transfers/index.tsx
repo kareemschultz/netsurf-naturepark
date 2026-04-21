@@ -6,10 +6,10 @@ import { getStockTransfers, type StockTransferListItem } from "@/lib/api";
 import {
   AdminPage,
   EmptyState,
-  MetricCard,
   PageHeader,
   PageSection,
   SectionTitle,
+  StatStrip,
 } from "@/components/AdminUI";
 import { DataTable } from "@/components/data-table";
 import { Button } from "@workspace/ui/components/button";
@@ -72,37 +72,16 @@ function StockTransfersPage() {
         }
       />
 
-      <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
-        <MetricCard
-          label="Drafts"
-          value={String(draftCount)}
-          note="Built but not yet dispatched"
-          tone="slate"
-        />
-        <MetricCard
-          label="In Motion"
-          value={String(dispatchedCount)}
-          note="Awaiting or mid-way through receipt"
-          tone="amber"
-        />
-        <MetricCard
-          label="Received"
-          value={String(receivedCount)}
-          note="Closed transfer records"
-          tone="green"
-        />
-        <MetricCard
-          label="Units in Motion"
-          value={String(unitsInMotion)}
-          note="Across draft and dispatched transfers"
-          tone="red"
-        />
-      </div>
+      <StatStrip stats={[
+        { label: "Drafts", value: String(draftCount), tone: "slate" },
+        { label: "In Motion", value: String(dispatchedCount), tone: "amber" },
+        { label: "Received", value: String(receivedCount), tone: "green" },
+        { label: "Units in Motion", value: String(unitsInMotion), tone: "red" },
+      ]} />
 
-      <PageSection className="p-6 sm:p-7">
+      <PageSection className="p-4 sm:p-5">
         <SectionTitle
           title="Transfer Board"
-          description="Switch between outgoing dispatches and incoming verification work. Open any transfer to edit, dispatch, or receive it."
         />
 
         <div className="flex flex-wrap gap-2">
