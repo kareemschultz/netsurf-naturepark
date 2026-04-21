@@ -101,7 +101,7 @@ function CalendarPage() {
         }
       />
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
         <MetricCard
           label="Confirmed"
           value={String(confirmedCount)}
@@ -212,7 +212,7 @@ function CalendarPage() {
       </PageSection>
 
       {calendar ? (
-        <div className="grid gap-4 lg:grid-cols-3">
+        <div className="grid gap-5 lg:grid-cols-3">
           {calendar.cabins.map((cabin) => {
             const cabinConfirmed = bookings.filter(
               (booking) => booking.cabinSlug === cabin.slug && booking.status === "confirmed"

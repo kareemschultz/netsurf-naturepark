@@ -289,7 +289,7 @@ function PosPage() {
                   {new Date(receipt.sale.createdAt).toLocaleString()}
                 </p>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-5">
                 <div className="rounded-lg border bg-muted/30 p-4">
                   <div className="space-y-2">
                     {receipt.items.map((item) => (
@@ -629,7 +629,7 @@ function PosPage() {
               </div>
             </CardHeader>
 
-            <CardContent className="flex flex-col gap-4 pt-0">
+            <CardContent className="flex flex-col gap-5 pt-0">
               {cart.items.length === 0 ? (
                 <div className="flex flex-col items-center justify-center rounded-lg border border-dashed py-10 text-center">
                   <svg
@@ -670,7 +670,7 @@ function PosPage() {
                               type="button"
                               variant="outline"
                               size="icon"
-                              className="h-6 w-6 rounded-full text-xs"
+                              className="h-8 w-8 rounded-full text-xs"
                               onClick={() =>
                                 dispatch({
                                   type: "UPDATE_QTY",
@@ -688,7 +688,7 @@ function PosPage() {
                               type="button"
                               variant="outline"
                               size="icon"
-                              className="h-6 w-6 rounded-full text-xs"
+                              className="h-8 w-8 rounded-full text-xs"
                               onClick={() =>
                                 dispatch({
                                   type: "UPDATE_QTY",

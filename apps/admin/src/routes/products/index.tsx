@@ -218,7 +218,7 @@ function ProductsPage() {
         }
       />
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
         <MetricCard
           label="Catalog View"
           value={String(products.length)}
@@ -316,7 +316,7 @@ function ProductsPage() {
               />
             </div>
           ) : (
-            <div className="mt-6 grid gap-4 sm:grid-cols-2 2xl:grid-cols-3">
+            <div className="mt-6 grid gap-5 sm:grid-cols-2 2xl:grid-cols-3">
               {products.map((product) => {
                 const stockTone =
                   !product.trackStock

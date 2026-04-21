@@ -300,7 +300,7 @@ function ReportsPage() {
         }
       />
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
         <MetricCard
           label="Sales"
           value={loading ? "..." : String(summary?.totalSales ?? 0)}
@@ -369,6 +369,7 @@ function ReportsPage() {
 
       <div className="grid gap-6 xl:grid-cols-[1.35fr_0.65fr]">
         <ChartCard
+          className="min-w-0"
           title="Top-selling products"
           description="Best performers in the current sales range."
         >
@@ -392,7 +393,7 @@ function ReportsPage() {
           </ResponsiveChart>
         </ChartCard>
 
-        <PageSection className="p-6">
+        <PageSection className="min-w-0 p-6">
           <SectionTitle
             title="Booking status mix"
             description="Current reservation pipeline across all statuses."
@@ -420,6 +421,7 @@ function ReportsPage() {
 
       <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
         <ChartCard
+          className="min-w-0"
           title="Stock by category"
           description="Current on-hand units across tracked inventory."
         >
@@ -434,7 +436,7 @@ function ReportsPage() {
           </ResponsiveChart>
         </ChartCard>
 
-        <PageSection className="p-6">
+        <PageSection className="min-w-0 p-6">
           <SectionTitle
             title="Low-stock watchlist"
             description="Products already at or below their threshold."
@@ -475,13 +477,15 @@ function ChartCard({
   title,
   description,
   children,
+  className,
 }: {
   title: string;
   description: string;
   children: ReactNode;
+  className?: string;
 }) {
   return (
-    <Card>
+    <Card className={className}>
       <CardHeader className="pb-3">
         <CardTitle className="text-base">{title}</CardTitle>
         <p className="text-sm text-muted-foreground">{description}</p>

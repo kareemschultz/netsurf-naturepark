@@ -102,7 +102,7 @@ function DashboardPage() {
       </div>
 
       {/* KPI stat cards */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
         <MetricCard
           label="Pending Requests"
           value={loading ? "..." : String(stats?.pending ?? 0)}
@@ -216,7 +216,7 @@ function DashboardPage() {
         </div>
 
         {/* Right sidebar — today on property + alerts */}
-        <div className="space-y-4">
+        <div className="space-y-5">
           <TodayCard
             title="Arrivals"
             tone="green"

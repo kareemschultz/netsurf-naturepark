@@ -122,7 +122,7 @@ function AccessPage() {
         }
       />
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
         <MetricCard
           label="Auth Layer"
           value="Better Auth"
@@ -154,7 +154,7 @@ function AccessPage() {
           description="Each role below is mapped to real route access and action permissions, not placeholder labels."
         />
 
-        <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-3">
+        <div className="grid gap-5 lg:grid-cols-2 xl:grid-cols-3">
           {roleEntries.map(([role, definition]) => {
             const meta = adminRoleMeta[role];
             const landingPath = getDefaultAdminPath(role);
@@ -221,7 +221,7 @@ function AccessPage() {
       </PageSection>
 
       <div className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
-        <PageSection className="p-6 sm:p-7">
+        <PageSection className="min-w-0 p-6 sm:p-7">
           <SectionTitle
             title="Route-level gates"
             description="These are the menu and redirect checkpoints that currently decide whether a user can open a screen."
@@ -260,13 +260,13 @@ function AccessPage() {
           </div>
         </PageSection>
 
-        <PageSection className="p-6 sm:p-7">
+        <PageSection className="min-w-0 p-6 sm:p-7">
           <SectionTitle
             title="Better Auth enhancement runway"
             description="Useful plugins and controls that fit this admin system if you want to tighten security or smooth staff access next."
           />
 
-          <div className="space-y-4">
+          <div className="space-y-5">
             {authEnhancements.map((item, index) => (
               <div
                 key={item.title}
