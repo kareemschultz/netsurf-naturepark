@@ -143,7 +143,7 @@ export function SectionTitle({
   action?: ReactNode;
 }) {
   return (
-    <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+    <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
       <div>
         <h2 className="text-lg font-bold tracking-tight text-foreground">{title}</h2>
         {description && (

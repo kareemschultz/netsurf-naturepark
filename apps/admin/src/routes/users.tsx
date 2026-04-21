@@ -618,7 +618,7 @@ function UsersPage() {
             />
 
             {canCreateUsers ? (
-              <form onSubmit={handleCreateUser} className="grid gap-4">
+              <form onSubmit={handleCreateUser} className="grid gap-5">
                 <InputField
                   label="Full name"
                   value={createDraft.name}
@@ -798,8 +798,8 @@ function UsersPage() {
                 </div>
               </div>
 
-              <div className="grid gap-6 2xl:grid-cols-[0.9fr_1.1fr]">
-                <div className="space-y-6">
+              <div className="grid gap-8 2xl:grid-cols-[0.9fr_1.1fr]">
+                <div className="space-y-8">
                   <div className="rounded-[1.6rem] border border-primary/10 bg-white/72 p-6">
                     <SectionTitle
                       title="Profile"
@@ -807,7 +807,7 @@ function UsersPage() {
                     />
 
                     {canUpdateUsers ? (
-                      <form onSubmit={handleSaveProfile} className="grid gap-4">
+                      <form onSubmit={handleSaveProfile} className="grid gap-5">
                         <InputField
                           label="Full name"
                           value={profileDraft.name}
@@ -909,7 +909,7 @@ function UsersPage() {
                   </div>
                 </div>
 
-                <div className="space-y-6">
+                <div className="space-y-8">
                   <div className="rounded-[1.6rem] border border-primary/10 bg-white/72 p-6">
                     <SectionTitle
                       title="Password reset"
@@ -917,7 +917,7 @@ function UsersPage() {
                     />
 
                     {canSetPassword ? (
-                      <div className="grid gap-4">
+                      <div className="grid gap-5">
                         <InputField
                           label="Temporary password"
                           type="password"
