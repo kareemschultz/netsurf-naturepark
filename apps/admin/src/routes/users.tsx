@@ -606,7 +606,7 @@ function UsersPage() {
       {notice ? <NoticeBanner tone={notice.tone}>{notice.message}</NoticeBanner> : null}
 
       <div className="grid gap-6 xl:grid-cols-[0.78fr_1.22fr]">
-        <div className="space-y-6">
+        <div className="min-w-0 space-y-6">
           <PageSection className="p-6 sm:p-7">
             <SectionTitle
               title={canCreateUsers ? "Create staff account" : "Management posture"}
@@ -735,7 +735,7 @@ function UsersPage() {
           </PageSection>
         </div>
 
-        <PageSection className="p-6 sm:p-7">
+        <PageSection className="min-w-0 p-6 sm:p-7">
           <SectionTitle
             title="Selected account"
             description="Inspect the chosen account, update profile details, and manage live sessions from one place."
