@@ -749,57 +749,53 @@ function UsersPage() {
           ) : (
             <div className="space-y-6">
               <div className="rounded-[1.8rem] border border-primary/10 bg-[radial-gradient(circle_at_top_left,rgba(196,148,26,0.16),transparent_32%),linear-gradient(135deg,rgba(255,255,255,0.96),rgba(245,240,231,0.86))] p-5 sm:p-6">
-                <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
-                  <div className="flex items-start gap-4">
-                    <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-[1.6rem] border border-primary/12 bg-primary text-xl font-black text-white shadow-[0_16px_30px_rgb(45_80_22_/22%)]">
-                      {getInitials(selectedUser)}
-                    </div>
-                    <div className="min-w-0">
-                      <h2 className="text-2xl font-black tracking-tight text-foreground">
-                        {selectedUser.name}
-                      </h2>
-                      <div className="mt-2 flex flex-wrap items-center gap-2">
-                        <InfoPill tone="neutral">
-                          {adminRoleMeta[toRoleSlug(selectedUser.role)].label}
-                        </InfoPill>
-                        {selectedUser.banned ? (
-                          <InfoPill tone="red">Suspended</InfoPill>
-                        ) : (
-                          <InfoPill tone="green">Active</InfoPill>
-                        )}
-                        {isCurrentUser ? <InfoPill tone="amber">Current session</InfoPill> : null}
-                      </div>
-                      <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                        @{selectedUser.username || "username pending"} · {selectedUser.email}
-                      </p>
-                      <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                        Created {formatTimestamp(selectedUser.createdAt)} · Last updated{" "}
-                        {formatTimestamp(selectedUser.updatedAt)}
-                      </p>
-                    </div>
+                <div className="flex items-start gap-4">
+                  <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-[1.6rem] border border-primary/12 bg-primary text-xl font-black text-white shadow-[0_16px_30px_rgb(45_80_22_/22%)]">
+                    {getInitials(selectedUser)}
                   </div>
-
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    <MiniStat
-                      label="Sessions"
-                      value={
-                        canListSessions
-                          ? loadingSessions
-                            ? "..."
-                            : String(selectedSessions.length)
-                          : "Locked"
-                      }
-                    />
-                    <MiniStat
-                      label="Member since"
-                      value={selectedUser.createdAt ? format(new Date(selectedUser.createdAt), "d MMM yyyy") : "—"}
-                    />
+                  <div className="min-w-0 flex-1">
+                    <h2 className="text-2xl font-black tracking-tight text-foreground">
+                      {selectedUser.name}
+                    </h2>
+                    <div className="mt-2 flex flex-wrap items-center gap-2">
+                      <InfoPill tone="neutral">
+                        {adminRoleMeta[toRoleSlug(selectedUser.role)].label}
+                      </InfoPill>
+                      {selectedUser.banned ? (
+                        <InfoPill tone="red">Suspended</InfoPill>
+                      ) : (
+                        <InfoPill tone="green">Active</InfoPill>
+                      )}
+                      {isCurrentUser ? <InfoPill tone="amber">Current session</InfoPill> : null}
+                    </div>
+                    <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                      @{selectedUser.username || "username pending"} · {selectedUser.email}
+                    </p>
+                    <p className="mt-1.5 text-sm leading-6 text-muted-foreground">
+                      Created {formatTimestamp(selectedUser.createdAt)} · Last updated{" "}
+                      {formatTimestamp(selectedUser.updatedAt)}
+                    </p>
+                    <div className="mt-4 grid grid-cols-2 gap-3">
+                      <MiniStat
+                        label="Sessions"
+                        value={
+                          canListSessions
+                            ? loadingSessions
+                              ? "..."
+                              : String(selectedSessions.length)
+                            : "Locked"
+                        }
+                      />
+                      <MiniStat
+                        label="Member since"
+                        value={selectedUser.createdAt ? format(new Date(selectedUser.createdAt), "d MMM yyyy") : "—"}
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
 
-              <div className="grid gap-8 2xl:grid-cols-[0.9fr_1.1fr]">
-                <div className="space-y-8">
+              <div className="space-y-6">
                   <div className="rounded-[1.6rem] border border-primary/10 bg-white/72 p-6">
                     <SectionTitle
                       title="Profile"
@@ -907,9 +903,7 @@ function UsersPage() {
                       </div>
                     )}
                   </div>
-                </div>
 
-                <div className="space-y-8">
                   <div className="rounded-[1.6rem] border border-primary/10 bg-white/72 p-6">
                     <SectionTitle
                       title="Password reset"
@@ -1084,7 +1078,6 @@ function UsersPage() {
                       </div>
                     )}
                   </div>
-                </div>
               </div>
             </div>
           )}
@@ -1319,10 +1312,10 @@ function MiniStat({
 }) {
   return (
     <div className="rounded-[1.25rem] border border-primary/10 bg-white/70 px-4 py-3">
-      <p className="text-xs font-bold tracking-[0.18em] text-muted-foreground uppercase">
+      <p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
         {label}
       </p>
-      <p className="mt-2 text-lg font-black tracking-tight text-foreground">{value}</p>
+      <p className="mt-1.5 text-lg font-black tracking-tight text-foreground">{value}</p>
     </div>
   );
 }
