@@ -26,8 +26,28 @@ import {
   type NatureArtworkVariant,
 } from "../components/NatureArtwork"
 import { getCabinArtworkVariant } from "../components/natureArtworkData"
+import {
+  fetchManagedPhotos,
+  fetchManagedPromos,
+  promoUploadUrl,
+  toUploadUrl,
+  type ManagedPhoto,
+  type ManagedPromo,
+} from "../lib/content"
 
 export const Route = createFileRoute("/")({
+  loader: async () => {
+    try {
+      const [landingPhotos, galleryPhotos, promos] = await Promise.all([
+        fetchManagedPhotos("landing"),
+        fetchManagedPhotos("gallery"),
+        fetchManagedPromos(),
+      ])
+      return { landingPhotos, galleryPhotos, promos }
+    } catch {
+      return { landingPhotos: [] as ManagedPhoto[], galleryPhotos: [] as ManagedPhoto[], promos: [] as ManagedPromo[] }
+    }
+  },
   component: HomePage,
 })
 
@@ -61,21 +81,23 @@ const socialGalleryPhotoByIndex: Partial<
 }
 
 function HomePage() {
+  const { landingPhotos, galleryPhotos, promos } = Route.useLoaderData()
   return (
     <>
-      <HeroSection />
+      <HeroSection landingPhotos={landingPhotos} />
       <BookingCTABar />
       <CabinsSection />
       <StatsSection />
       <FeaturesSection />
-      <GallerySection />
+      <GallerySection galleryPhotos={galleryPhotos} />
+      <PromotionsSection promos={promos} />
       <TestimonialsSection />
       <GetThereSection />
     </>
   )
 }
 
-function HeroSection() {
+function HeroSection({ landingPhotos }: { landingPhotos: ManagedPhoto[] }) {
   const quickFacts = [
     "100% solar powered",
     "Blackwater creek access",
@@ -193,8 +215,15 @@ function HeroSection() {
           className="mx-auto w-full max-w-md rounded-[2rem] border border-white/12 bg-white/10 p-4 backdrop-blur-md lg:mx-0"
         >
           <SocialPhoto
-            src="/images/social/facebook-creek-deck.jpg"
-            alt="Official Facebook photo of the blackwater creek deck at Netsurf Nature Park"
+            src={
+              landingPhotos[0]?.filename
+                ? toUploadUrl(landingPhotos[0].filename)
+                : "/images/social/facebook-creek-deck.jpg"
+            }
+            alt={
+              landingPhotos[0]?.altText ||
+              "Official Facebook photo of the blackwater creek deck at Netsurf Nature Park"
+            }
             priority
             className="aspect-[5/4] rounded-[1.5rem] border border-white/14 object-cover shadow-[0_24px_60px_rgba(0,0,0,0.25)]"
           />
@@ -443,7 +472,15 @@ function FeaturesSection() {
   )
 }
 
-function GallerySection() {
+function GallerySection({ galleryPhotos }: { galleryPhotos: ManagedPhoto[] }) {
+  const photos =
+    galleryPhotos.length > 0
+      ? galleryPhotos.map((photo) => ({
+          src: toUploadUrl(photo.filename),
+          alt: photo.altText || photo.caption || "Netsurf Nature Park photo",
+        }))
+      : galleryImages
+
   return (
     <section className="px-4 py-20">
       <div className="mx-auto max-w-7xl">
@@ -454,7 +491,7 @@ function GallerySection() {
         />
 
         <StaggerList className="mt-12 grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
-          {galleryImages.map((image, index) => {
+          {photos.map((image, index) => {
             const socialPhoto = socialGalleryPhotoByIndex[index]
 
             return (
@@ -497,6 +534,40 @@ function GallerySection() {
             )
           })}
         </StaggerList>
+      </div>
+    </section>
+  )
+}
+
+function PromotionsSection({ promos }: { promos: ManagedPromo[] }) {
+  if (promos.length === 0) return null
+
+  return (
+    <section className="px-4 pb-20">
+      <div className="mx-auto max-w-6xl">
+        <SectionHeader
+          label="Seasonal Offers"
+          title="Current Promotions"
+          subtitle="Managed directly by the team in admin, so these are always up to date."
+        />
+        <div className="mt-8 grid gap-4 md:grid-cols-2">
+          {promos.map((promo) => (
+            <article key={promo.id} className="overflow-hidden rounded-[1.5rem] border border-border bg-card">
+              {promo.imageFilename ? (
+                <img src={promoUploadUrl(promo.imageFilename)} alt={promo.title} className="aspect-[16/7] w-full object-cover" />
+              ) : null}
+              <div className="space-y-2 p-5">
+                <h3 className="text-lg font-bold">{promo.title}</h3>
+                {promo.subtitle ? <p className="text-sm text-muted-foreground">{promo.subtitle}</p> : null}
+                {promo.ctaText && promo.ctaUrl ? (
+                  <a className="inline-flex pt-1 text-sm font-semibold text-primary underline-offset-4 hover:underline" href={promo.ctaUrl}>
+                    {promo.ctaText}
+                  </a>
+                ) : null}
+              </div>
+            </article>
+          ))}
+        </div>
       </div>
     </section>
   )

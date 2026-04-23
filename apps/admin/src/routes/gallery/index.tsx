@@ -13,6 +13,7 @@ import { Button } from "@workspace/ui/components/button";
 import { Badge } from "@workspace/ui/components/badge";
 import { Input } from "@workspace/ui/components/input";
 import { Label } from "@workspace/ui/components/label";
+import { cabins } from "@workspace/shared";
 
 export const Route = createFileRoute("/gallery/")({
   component: GalleryPage,
@@ -144,9 +145,9 @@ function GalleryPage() {
 
 const CATEGORIES = [
   { value: "all", label: "All" },
-  { value: "visitor", label: "Visitor" },
-  { value: "staff", label: "Staff" },
-  { value: "promo", label: "Promotional" },
+  { value: "landing", label: "Landing Page" },
+  { value: "gallery", label: "Gallery Page" },
+  ...cabins.map((cabin) => ({ value: `cabin:${cabin.slug}`, label: `Cabin · ${cabin.name}` })),
 ] as const;
 
 function PhotosTab() {
@@ -159,7 +160,7 @@ function PhotosTab() {
 
   const [uploadFiles, setUploadFiles] = useState<FileList | null>(null);
   const [uploadAltText, setUploadAltText] = useState("");
-  const [uploadCategory, setUploadCategory] = useState("visitor");
+  const [uploadCategory, setUploadCategory] = useState("landing");
   const [uploadUploaderName, setUploadUploaderName] = useState("");
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState("");
@@ -256,9 +257,13 @@ function PhotosTab() {
                 onChange={(e) => setUploadCategory(e.target.value)}
                 className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-ring"
               >
-                <option value="visitor">Visitor</option>
-                <option value="staff">Staff</option>
-                <option value="promo">Promotional</option>
+                <option value="landing">Landing Page</option>
+                <option value="gallery">Gallery Page</option>
+                {cabins.map((cabin) => (
+                  <option key={cabin.slug} value={`cabin:${cabin.slug}`}>
+                    Cabin · {cabin.name}
+                  </option>
+                ))}
               </select>
             </FieldLabel>
 

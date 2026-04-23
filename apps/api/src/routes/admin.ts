@@ -13,6 +13,7 @@ import { adminCabinsRoute } from "./admin-cabins.js";
 import { adminInventoryRoute } from "./admin-inventory.js";
 import { adminStockTransfersRoute } from "./admin-stock-transfers.js";
 import { adminSalesRoute } from "./admin-sales.js";
+import { adminGalleryRoute } from "./admin-gallery.js";
 
 export const adminRoute = new Hono();
 
@@ -26,6 +27,7 @@ adminRoute.route("/cabins", adminCabinsRoute);
 adminRoute.route("/inventory", adminInventoryRoute);
 adminRoute.route("/stock-transfers", adminStockTransfersRoute);
 adminRoute.route("/sales", adminSalesRoute);
+adminRoute.route("/gallery", adminGalleryRoute);
 
 // ─── Stats ────────────────────────────────────────────────────────────────────
 

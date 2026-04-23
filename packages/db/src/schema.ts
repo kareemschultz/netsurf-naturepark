@@ -250,6 +250,31 @@ export const posAuditLog = pgTable("netsurf_pos_audit_log", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
+export const galleryPhotos = pgTable("netsurf_gallery_photos", {
+  id: serial("id").primaryKey(),
+  filename: text("filename").notNull(),
+  originalName: text("original_name").notNull(),
+  altText: text("alt_text").notNull().default(""),
+  caption: text("caption").notNull().default(""),
+  category: text("category").notNull().default("gallery"),
+  uploaderName: text("uploader_name").notNull().default(""),
+  sortOrder: integer("sort_order").notNull().default(0),
+  isActive: boolean("is_active").notNull().default(true),
+  uploadedAt: timestamp("uploaded_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const promoItems = pgTable("netsurf_promo_items", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  subtitle: text("subtitle").notNull().default(""),
+  imageFilename: text("image_filename").notNull().default(""),
+  ctaText: text("cta_text").notNull().default(""),
+  ctaUrl: text("cta_url").notNull().default(""),
+  isActive: boolean("is_active").notNull().default(true),
+  sortOrder: integer("sort_order").notNull().default(0),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
 export type Booking = typeof bookings.$inferSelect;
 export type NewBooking = typeof bookings.$inferInsert;
 export type BlockedDate = typeof blockedDates.$inferSelect;
@@ -280,3 +305,7 @@ export type StockTransferItem = typeof stockTransferItems.$inferSelect;
 export type NewStockTransferItem = typeof stockTransferItems.$inferInsert;
 export type PosAuditLog = typeof posAuditLog.$inferSelect;
 export type NewPosAuditLog = typeof posAuditLog.$inferInsert;
+export type GalleryPhoto = typeof galleryPhotos.$inferSelect;
+export type NewGalleryPhoto = typeof galleryPhotos.$inferInsert;
+export type PromoItem = typeof promoItems.$inferSelect;
+export type NewPromoItem = typeof promoItems.$inferInsert;
