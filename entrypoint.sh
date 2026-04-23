@@ -1,6 +1,9 @@
 #!/bin/sh
 set -eu
 
+# Ensure upload directories exist
+mkdir -p /srv/uploads/gallery /srv/uploads/promos
+
 # Start Bun API server in background
 cd /app/apps/api
 bun src/index.ts &

@@ -23,6 +23,7 @@ export const adminPermissionStatements = {
   sales: ["view", "void", "export"],
   reports: ["view", "export"],
   cabins: ["view"],
+  gallery: ["view", "manage"],
 } as const;
 
 export type AdminPermissionResource = keyof typeof adminPermissionStatements;
@@ -63,6 +64,7 @@ export const adminRoleDefinitions: Record<AdminRoleSlug, AdminRoleDefinition> = 
     sales: adminPermissionStatements.sales,
     reports: adminPermissionStatements.reports,
     cabins: adminPermissionStatements.cabins,
+    gallery: adminPermissionStatements.gallery,
   },
   manager: {
     user: ["list", "get", "create", "set-password"],
@@ -78,6 +80,7 @@ export const adminRoleDefinitions: Record<AdminRoleSlug, AdminRoleDefinition> = 
     sales: ["view", "void", "export"],
     reports: ["view", "export"],
     cabins: ["view"],
+    gallery: ["view", "manage"],
   },
   front_desk: {
     dashboard: ["view"],
@@ -87,6 +90,7 @@ export const adminRoleDefinitions: Record<AdminRoleSlug, AdminRoleDefinition> = 
     pos: ["view", "checkout"],
     sales: ["view"],
     cabins: ["view"],
+    gallery: ["view", "manage"],
   },
   pos_operator: {
     dashboard: ["view"],
@@ -101,6 +105,7 @@ export const adminRoleDefinitions: Record<AdminRoleSlug, AdminRoleDefinition> = 
     sales: ["view", "export"],
     reports: ["view", "export"],
     cabins: ["view"],
+    gallery: ["view"],
   },
   analyst: {
     dashboard: ["view"],
@@ -166,6 +171,7 @@ export const adminRouteAccessRules: readonly RouteAccessRule[] = [
   { path: "/sales", permissions: { sales: ["view"] } },
   { path: "/reports", permissions: { reports: ["view"] } },
   { path: "/cabins", permissions: { cabins: ["view"] } },
+  { path: "/gallery", permissions: { gallery: ["view"] } },
   { path: "/users", permissions: { user: ["list"] } },
   { path: "/access", permissions: { user: ["list"] } },
 ];

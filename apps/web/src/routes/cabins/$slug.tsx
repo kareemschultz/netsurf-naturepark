@@ -5,6 +5,7 @@ import { createFileRoute, Link, notFound } from "@tanstack/react-router"
 import { cabins, formatGYD, whatsappBookingLink } from "@workspace/shared"
 import { Badge } from "@workspace/ui/components/badge"
 
+import { fetchManagedPhotos, toUploadUrl } from "../../lib/content"
 import { BlurFade } from "../../components/BlurFade"
 import {
   NatureArtwork,
@@ -16,22 +17,29 @@ import { WhatsAppIcon } from "../../components/WhatsAppIcon"
 
 export const Route = createFileRoute("/cabins/$slug")({
   component: CabinDetailPage,
-  loader: ({ params }) => {
+  loader: async ({ params }) => {
     const cabin = cabins.find((item) => item.slug === params.slug)
     if (!cabin) {
       throw notFound()
     }
 
-    return { cabin }
+    const managedPhotos = await fetchManagedPhotos(`cabin:${params.slug}`)
+    return { cabin, managedPhotos }
   },
 })
 
 function CabinDetailPage() {
-  const { cabin } = Route.useLoaderData()
+  const { cabin, managedPhotos } = Route.useLoaderData()
   const baseVariant = getCabinArtworkVariant(cabin)
   const supportingVariants = buildSupportingVariants(baseVariant)
-  const primaryPhoto = getCabinPrimaryPhoto(cabin.slug)
-  const galleryPhotos = getCabinGalleryPhotos(cabin.slug)
+
+  // Use managed photos if available, fall back to static cabin photos
+  const primaryPhoto = managedPhotos.length > 0
+    ? toUploadUrl(managedPhotos[0]!.filename)
+    : getCabinPrimaryPhoto(cabin.slug)
+  const galleryPhotos = managedPhotos.length > 1
+    ? managedPhotos.slice(1).map((p) => toUploadUrl(p.filename))
+    : getCabinGalleryPhotos(cabin.slug)
 
   return (
     <div className="min-h-screen px-4 py-16">

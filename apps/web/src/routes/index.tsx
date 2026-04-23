@@ -15,6 +15,7 @@ import {
 import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar"
 import { Badge } from "@workspace/ui/components/badge"
 
+import { fetchManagedPhotos, fetchManagedPromos, toUploadUrl, type ManagedPhoto, type ManagedPromo } from "../lib/content"
 import { AnimateIn, StaggerItem, StaggerList } from "../components/AnimateIn"
 import { AnimatedCounter } from "../components/AnimatedCounter"
 import { AnimatedHeroBg } from "../components/AnimatedHeroBg"
@@ -29,6 +30,14 @@ import { getCabinArtworkVariant } from "../components/natureArtworkData"
 
 export const Route = createFileRoute("/")({
   component: HomePage,
+  loader: async () => {
+    const [galleryManaged, heroManaged, promos] = await Promise.all([
+      fetchManagedPhotos("gallery"),
+      fetchManagedPhotos("hero"),
+      fetchManagedPromos(),
+    ])
+    return { galleryManaged, heroManaged, promos }
+  },
 })
 
 const transportAddOn = addOns.find((item) => item.slug === "transport")
@@ -61,21 +70,22 @@ const socialGalleryPhotoByIndex: Partial<
 }
 
 function HomePage() {
+  const { galleryManaged, heroManaged } = Route.useLoaderData()
   return (
     <>
-      <HeroSection />
+      <HeroSection heroManaged={heroManaged} />
       <BookingCTABar />
       <CabinsSection />
       <StatsSection />
       <FeaturesSection />
-      <GallerySection />
+      <GallerySection galleryManaged={galleryManaged} />
       <TestimonialsSection />
       <GetThereSection />
     </>
   )
 }
 
-function HeroSection() {
+function HeroSection({ heroManaged }: { heroManaged: ManagedPhoto[] }) {
   const quickFacts = [
     "100% solar powered",
     "Blackwater creek access",
@@ -192,12 +202,21 @@ function HeroSection() {
           transition={{ duration: 0.68, ease: [0.22, 1, 0.36, 1], delay: 0.24 }}
           className="mx-auto w-full max-w-md rounded-[2rem] border border-white/12 bg-white/10 p-4 backdrop-blur-md lg:mx-0"
         >
-          <SocialPhoto
-            src="/images/social/facebook-creek-deck.jpg"
-            alt="Official Facebook photo of the blackwater creek deck at Netsurf Nature Park"
-            priority
-            className="aspect-[5/4] rounded-[1.5rem] border border-white/14 object-cover shadow-[0_24px_60px_rgba(0,0,0,0.25)]"
-          />
+          {heroManaged.length > 0 ? (
+            <SocialPhoto
+              src={toUploadUrl(heroManaged[0]!.filename)}
+              alt={heroManaged[0]!.altText || heroManaged[0]!.originalName}
+              priority
+              className="aspect-[5/4] rounded-[1.5rem] border border-white/14 object-cover shadow-[0_24px_60px_rgba(0,0,0,0.25)]"
+            />
+          ) : (
+            <SocialPhoto
+              src="/images/social/facebook-creek-deck.jpg"
+              alt="Official Facebook photo of the blackwater creek deck at Netsurf Nature Park"
+              priority
+              className="aspect-[5/4] rounded-[1.5rem] border border-white/14 object-cover shadow-[0_24px_60px_rgba(0,0,0,0.25)]"
+            />
+          )}
           <div className="mt-4 grid grid-cols-3 gap-3 text-center text-xs text-white/72">
             <FactTile
               label="From"
@@ -443,7 +462,18 @@ function FeaturesSection() {
   )
 }
 
-function GallerySection() {
+function GallerySection({ galleryManaged }: { galleryManaged: ManagedPhoto[] }) {
+  // Build display list: managed photos first, then static fallbacks for any gap
+  const managedAsGallery = galleryManaged.map((p, i) => ({
+    src: toUploadUrl(p.filename),
+    alt: p.altText || p.originalName,
+    isManaged: true,
+    managedIndex: i,
+  }))
+  const displayImages = managedAsGallery.length > 0
+    ? managedAsGallery
+    : galleryImages.map((img, i) => ({ src: img.src, alt: img.alt, isManaged: false, managedIndex: i }))
+
   return (
     <section className="px-4 py-20">
       <div className="mx-auto max-w-7xl">
@@ -454,12 +484,12 @@ function GallerySection() {
         />
 
         <StaggerList className="mt-12 grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
-          {galleryImages.map((image, index) => {
-            const socialPhoto = socialGalleryPhotoByIndex[index]
+          {displayImages.map((image, index) => {
+            const socialPhoto = !image.isManaged ? socialGalleryPhotoByIndex[index] : undefined
 
             return (
               <StaggerItem
-                key={image.alt}
+                key={image.src + index}
                 className={index === 0 ? "col-span-2 row-span-2" : undefined}
               >
                 <motion.figure

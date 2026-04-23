@@ -324,41 +324,6 @@ export const galleryImages: GalleryImage[] = [
     alt: "The Ranch Building — large group cabin at Netsurf Nature Park",
     category: "cabins",
   },
-  {
-    src: "/images/gallery-6.jpg",
-    alt: "Campfire under the rainforest canopy",
-    category: "experiences",
-  },
-  {
-    src: "/images/gallery-7.jpg",
-    alt: "Tropical birds spotted on a guided nature walk",
-    category: "creek-nature",
-  },
-  {
-    src: "/images/gallery-8.jpg",
-    alt: "Morning mist rising from the creek",
-    category: "creek-nature",
-  },
-  {
-    src: "/images/gallery-9.jpg",
-    alt: "Hansel and Gretel cabin outdoor deck",
-    category: "cabins",
-  },
-  {
-    src: "/images/gallery-10.jpg",
-    alt: "Solar panels powering the eco-retreat",
-    category: "park-life",
-  },
-  {
-    src: "/images/gallery-11.jpg",
-    alt: "BBQ evening at the campfire area",
-    category: "experiences",
-  },
-  {
-    src: "/images/gallery-12.jpg",
-    alt: "Hammocking by the creek at Netsurf",
-    category: "park-life",
-  },
 ]
 
 export const features = [

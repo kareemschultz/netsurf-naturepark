@@ -6,6 +6,7 @@ import { AnimatePresence, motion } from "framer-motion"
 import { galleryImages } from "@workspace/shared"
 import type { GalleryCategory, GalleryImage } from "@workspace/shared"
 
+import { fetchManagedPhotos, toUploadUrl, type ManagedPhoto } from "../lib/content"
 import { AnimatedPageHero } from "../components/AnimatedHeroBg"
 import { BlurFade } from "../components/BlurFade"
 import {
@@ -15,6 +16,10 @@ import {
 
 export const Route = createFileRoute("/gallery")({
   component: GalleryPage,
+  loader: async () => {
+    const managed = await fetchManagedPhotos("gallery")
+    return { managed }
+  },
 })
 
 const categoryLabels: Record<GalleryCategory, string> = {
@@ -50,13 +55,25 @@ const artworkVariants: NatureArtworkVariant[] = [
 ]
 
 function GalleryPage() {
+  const { managed } = Route.useLoaderData()
   const [activeCategory, setActiveCategory] = useState<GalleryCategory>("all")
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
 
+  // Use managed photos if available, converted to GalleryImage shape; fall back to static
+  const effectiveImages: GalleryImage[] = managed.length > 0
+    ? managed.map((p) => ({
+        src: toUploadUrl(p.filename),
+        alt: p.altText || p.originalName,
+        category: "cabins" as Exclude<GalleryCategory, "all">,
+      }))
+    : galleryImages
+
   const filtered =
     activeCategory === "all"
-      ? galleryImages
-      : galleryImages.filter((img) => img.category === activeCategory)
+      ? effectiveImages
+      : managed.length > 0
+        ? effectiveImages
+        : galleryImages.filter((img) => img.category === activeCategory)
 
   const openLightbox = useCallback((index: number) => {
     setLightboxIndex(index)
@@ -129,9 +146,9 @@ function GalleryPage() {
           >
             <AnimatePresence mode="sync">
               {filtered.map((image, i) => {
-                const globalIndex = galleryImages.indexOf(image)
+                const globalIndex = effectiveImages.indexOf(image)
                 const fallbackVariant =
-                  artworkVariants[globalIndex % artworkVariants.length] ??
+                  artworkVariants[Math.max(0, globalIndex) % artworkVariants.length] ??
                   "creek"
 
                 return (

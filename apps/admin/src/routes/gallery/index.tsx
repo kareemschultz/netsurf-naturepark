@@ -144,9 +144,18 @@ function GalleryPage() {
 
 const CATEGORIES = [
   { value: "all", label: "All" },
-  { value: "visitor", label: "Visitor" },
-  { value: "staff", label: "Staff" },
-  { value: "promo", label: "Promotional" },
+  { value: "hero", label: "Hero / Banner" },
+  { value: "gallery", label: "Gallery" },
+  { value: "cabin:camping-site", label: "Camping Site" },
+  { value: "cabin:couples-cabin", label: "Couples Cabin" },
+  { value: "cabin:couples-cabin-1", label: "Couples Cabin No. 1" },
+  { value: "cabin:family-cabin", label: "Family Cabin" },
+  { value: "cabin:family-cabin-full", label: "Family Cabin (Full)" },
+  { value: "cabin:hansel-and-gretel-cabin", label: "Hansel & Gretel Cabin" },
+  { value: "cabin:ranch-building", label: "Ranch Building" },
+  { value: "attraction", label: "Attractions" },
+  { value: "about", label: "About" },
+  { value: "experience", label: "Experiences" },
 ] as const;
 
 function PhotosTab() {
@@ -159,7 +168,7 @@ function PhotosTab() {
 
   const [uploadFiles, setUploadFiles] = useState<FileList | null>(null);
   const [uploadAltText, setUploadAltText] = useState("");
-  const [uploadCategory, setUploadCategory] = useState("visitor");
+  const [uploadCategory, setUploadCategory] = useState("gallery");
   const [uploadUploaderName, setUploadUploaderName] = useState("");
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState("");
@@ -256,9 +265,18 @@ function PhotosTab() {
                 onChange={(e) => setUploadCategory(e.target.value)}
                 className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-ring"
               >
-                <option value="visitor">Visitor</option>
-                <option value="staff">Staff</option>
-                <option value="promo">Promotional</option>
+                <option value="hero">Hero / Banner</option>
+                <option value="gallery">Gallery</option>
+                <option value="cabin:camping-site">Camping Site</option>
+                <option value="cabin:couples-cabin">Couples Cabin</option>
+                <option value="cabin:couples-cabin-1">Couples Cabin No. 1</option>
+                <option value="cabin:family-cabin">Family Cabin</option>
+                <option value="cabin:family-cabin-full">Family Cabin (Full)</option>
+                <option value="cabin:hansel-and-gretel-cabin">Hansel &amp; Gretel Cabin</option>
+                <option value="cabin:ranch-building">Ranch Building</option>
+                <option value="attraction">Attractions</option>
+                <option value="about">About</option>
+                <option value="experience">Experiences</option>
               </select>
             </FieldLabel>
 
@@ -316,7 +334,7 @@ function PhotosTab() {
             }
           />
         ) : (
-          <div className="grid gap-5 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4">
+          <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4">
             {photos.map((photo) => (
               <div
                 key={photo.id}

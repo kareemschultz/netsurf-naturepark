@@ -4,6 +4,7 @@ import { logger } from "hono/logger";
 import { bookingsRoute } from "./routes/bookings.js";
 import { actionRoute } from "./routes/action.js";
 import { adminRoute } from "./routes/admin.js";
+import { contentRoute } from "./routes/content.js";
 import { auth, ensureAuthBootstrap } from "./auth.js";
 
 const app = new Hono();
@@ -34,6 +35,7 @@ app.on(["GET", "POST"], "/auth", (c) => auth.handler(c.req.raw));
 
 app.route("/bookings", bookingsRoute);
 app.route("/bookings", actionRoute);   // /bookings/:id/action
+app.route("/content", contentRoute);
 app.route("/admin", adminRoute);
 
 app.notFound((c) => c.json({ error: "Not found" }, 404));

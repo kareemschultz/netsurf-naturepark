@@ -280,3 +280,35 @@ export type StockTransferItem = typeof stockTransferItems.$inferSelect;
 export type NewStockTransferItem = typeof stockTransferItems.$inferInsert;
 export type PosAuditLog = typeof posAuditLog.$inferSelect;
 export type NewPosAuditLog = typeof posAuditLog.$inferInsert;
+
+// ── Media Management ──────────────────────────────────────────────────────────
+
+export const galleryPhotos = pgTable("netsurf_gallery_photos", {
+  id: serial("id").primaryKey(),
+  filename: text("filename").notNull(),
+  originalName: text("original_name").notNull(),
+  altText: text("alt_text").default(""),
+  caption: text("caption").default(""),
+  category: text("category").notNull().default("gallery"),
+  uploaderName: text("uploader_name"),
+  sortOrder: integer("sort_order").default(0),
+  isActive: boolean("is_active").default(true),
+  uploadedAt: timestamp("uploaded_at", { withTimezone: true }).defaultNow(),
+});
+
+export const promoItems = pgTable("netsurf_promo_items", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  subtitle: text("subtitle"),
+  imageFilename: text("image_filename"),
+  ctaText: text("cta_text").default("Learn More"),
+  ctaUrl: text("cta_url").default("#"),
+  isActive: boolean("is_active").default(true),
+  sortOrder: integer("sort_order").default(0),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+});
+
+export type GalleryPhoto = typeof galleryPhotos.$inferSelect;
+export type NewGalleryPhoto = typeof galleryPhotos.$inferInsert;
+export type PromoItem = typeof promoItems.$inferSelect;
+export type NewPromoItem = typeof promoItems.$inferInsert;
