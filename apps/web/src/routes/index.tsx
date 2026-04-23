@@ -15,7 +15,7 @@ import {
 import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar"
 import { Badge } from "@workspace/ui/components/badge"
 
-import { fetchManagedPhotos, fetchManagedPromos, toUploadUrl, type ManagedPhoto, type ManagedPromo } from "../lib/content"
+import { fetchManagedPhotos, fetchManagedPromos, toUploadUrl, type ManagedPhoto } from "../lib/content"
 import { AnimateIn, StaggerItem, StaggerList } from "../components/AnimateIn"
 import { AnimatedCounter } from "../components/AnimatedCounter"
 import { AnimatedHeroBg } from "../components/AnimatedHeroBg"

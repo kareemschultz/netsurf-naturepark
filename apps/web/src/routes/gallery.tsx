@@ -6,7 +6,7 @@ import { AnimatePresence, motion } from "framer-motion"
 import { galleryImages } from "@workspace/shared"
 import type { GalleryCategory, GalleryImage } from "@workspace/shared"
 
-import { fetchManagedPhotos, toUploadUrl, type ManagedPhoto } from "../lib/content"
+import { fetchManagedPhotos, toUploadUrl } from "../lib/content"
 import { AnimatedPageHero } from "../components/AnimatedHeroBg"
 import { BlurFade } from "../components/BlurFade"
 import {
