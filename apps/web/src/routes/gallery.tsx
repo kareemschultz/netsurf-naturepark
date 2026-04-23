@@ -12,8 +12,23 @@ import {
   NatureArtwork,
   type NatureArtworkVariant,
 } from "../components/NatureArtwork"
+import { fetchManagedPhotos, toUploadUrl } from "../lib/content"
 
 export const Route = createFileRoute("/gallery")({
+  loader: async () => {
+    try {
+      const photos = await fetchManagedPhotos("gallery")
+      return {
+        managedImages: photos.map((photo) => ({
+          src: toUploadUrl(photo.filename),
+          alt: photo.altText || photo.caption || "Netsurf Nature Park photo",
+          category: "experiences" as GalleryCategory,
+        })),
+      }
+    } catch {
+      return { managedImages: [] as GalleryImage[] }
+    }
+  },
   component: GalleryPage,
 })
 
@@ -50,13 +65,15 @@ const artworkVariants: NatureArtworkVariant[] = [
 ]
 
 function GalleryPage() {
+  const { managedImages } = Route.useLoaderData()
   const [activeCategory, setActiveCategory] = useState<GalleryCategory>("all")
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
+  const sourceImages = managedImages.length > 0 ? managedImages : galleryImages
 
   const filtered =
     activeCategory === "all"
-      ? galleryImages
-      : galleryImages.filter((img) => img.category === activeCategory)
+      ? sourceImages
+      : sourceImages.filter((img) => img.category === activeCategory)
 
   const openLightbox = useCallback((index: number) => {
     setLightboxIndex(index)
@@ -129,7 +146,7 @@ function GalleryPage() {
           >
             <AnimatePresence mode="sync">
               {filtered.map((image, i) => {
-                const globalIndex = galleryImages.indexOf(image)
+                const globalIndex = sourceImages.indexOf(image)
                 const fallbackVariant =
                   artworkVariants[globalIndex % artworkVariants.length] ??
                   "creek"

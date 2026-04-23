@@ -13,25 +13,34 @@ import {
 import { getCabinArtworkVariant } from "../../components/natureArtworkData"
 import { getCabinGalleryPhotos, getCabinPrimaryPhoto } from "../../components/cabinPhotos"
 import { WhatsAppIcon } from "../../components/WhatsAppIcon"
+import { fetchManagedPhotos, toUploadUrl } from "../../lib/content"
 
 export const Route = createFileRoute("/cabins/$slug")({
   component: CabinDetailPage,
-  loader: ({ params }) => {
+  loader: async ({ params }) => {
     const cabin = cabins.find((item) => item.slug === params.slug)
     if (!cabin) {
       throw notFound()
     }
 
-    return { cabin }
+    let managedPhotos: string[] = []
+    try {
+      const photos = await fetchManagedPhotos(`cabin:${cabin.slug}`)
+      managedPhotos = photos.map((photo) => toUploadUrl(photo.filename))
+    } catch {}
+
+    return { cabin, managedPhotos }
   },
 })
 
 function CabinDetailPage() {
-  const { cabin } = Route.useLoaderData()
+  const { cabin, managedPhotos } = Route.useLoaderData()
   const baseVariant = getCabinArtworkVariant(cabin)
   const supportingVariants = buildSupportingVariants(baseVariant)
-  const primaryPhoto = getCabinPrimaryPhoto(cabin.slug)
-  const galleryPhotos = getCabinGalleryPhotos(cabin.slug)
+  const fallbackPrimaryPhoto = getCabinPrimaryPhoto(cabin.slug)
+  const fallbackGalleryPhotos = getCabinGalleryPhotos(cabin.slug)
+  const primaryPhoto = managedPhotos[0] ?? fallbackPrimaryPhoto
+  const galleryPhotos = managedPhotos.length > 0 ? managedPhotos : fallbackGalleryPhotos
 
   return (
     <div className="min-h-screen px-4 py-16">
