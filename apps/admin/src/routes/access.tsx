@@ -38,6 +38,7 @@ const resourceLabels: Record<AdminPermissionResource, string> = {
   sales: "Sales",
   reports: "Reports",
   cabins: "Cabins",
+  gallery: "Gallery",
 };
 
 const routeLabels: Record<string, string> = {
@@ -53,6 +54,7 @@ const routeLabels: Record<string, string> = {
   "/reports": "Reports",
   "/cabins": "Cabins",
   "/users": "Users",
+  "/gallery": "Gallery",
   "/access": "Access",
 };
 
