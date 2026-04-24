@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import {
   AdminPage,
@@ -44,6 +44,90 @@ interface PromoItem {
   sortOrder: number;
   createdAt: string;
 }
+
+// ── Section definitions ────────────────────────────────────────────────────────
+
+interface Section {
+  category: string;
+  name: string;
+  description: string;
+  icon: string;
+}
+
+const SECTIONS: Section[] = [
+  {
+    category: "hero",
+    name: "Homepage Banner",
+    description: "The large feature photo shown at the top of the homepage in the glass frame",
+    icon: "🏠",
+  },
+  {
+    category: "gallery",
+    name: "Gallery Page",
+    description: "Photos shown on the Gallery page. Visitors can browse and filter these",
+    icon: "🖼️",
+  },
+  {
+    category: "cabin:couples-cabin",
+    name: "Couples Cabin",
+    description: "Photos for the Couples Cabin detail page",
+    icon: "🛏️",
+  },
+  {
+    category: "cabin:family-cabin",
+    name: "Family Cabin",
+    description: "Photos for the Family Cabin detail page",
+    icon: "👨‍👩‍👧‍👦",
+  },
+  {
+    category: "cabin:hansel-and-gretel-cabin",
+    name: "Hansel & Gretel Cabin",
+    description: "Photos for the Hansel & Gretel Cabin detail page",
+    icon: "🏡",
+  },
+  {
+    category: "cabin:camping-site",
+    name: "Camping Site",
+    description: "Photos for the Camping Site detail page",
+    icon: "⛺",
+  },
+  {
+    category: "cabin:ranch-building",
+    name: "Ranch Building",
+    description: "Photos for the Ranch Building detail page",
+    icon: "🏚️",
+  },
+  {
+    category: "cabin:couples-cabin-1",
+    name: "Couples Cabin (Full)",
+    description: "Additional photos for the second Couples Cabin listing",
+    icon: "💑",
+  },
+  {
+    category: "cabin:family-cabin-full",
+    name: "Family Cabin (Full)",
+    description: "Additional photos for the full Family Cabin listing",
+    icon: "👪",
+  },
+  {
+    category: "attraction",
+    name: "Attractions",
+    description: "Photos for the attractions and features section of the homepage",
+    icon: "🌿",
+  },
+  {
+    category: "about",
+    name: "About Section",
+    description: "Photos used in the About section of the website",
+    icon: "ℹ️",
+  },
+  {
+    category: "experience",
+    name: "Experiences",
+    description: "Photos showcasing activities and experiences at the park",
+    icon: "🔥",
+  },
+];
 
 // ── API helpers ───────────────────────────────────────────────────────────────
 
@@ -142,64 +226,80 @@ function GalleryPage() {
 
 // ── Photos tab ────────────────────────────────────────────────────────────────
 
-const CATEGORIES = [
-  { value: "all", label: "All" },
-  { value: "hero", label: "Hero / Banner" },
-  { value: "gallery", label: "Gallery" },
-  { value: "cabin:camping-site", label: "Camping Site" },
-  { value: "cabin:couples-cabin", label: "Couples Cabin" },
-  { value: "cabin:couples-cabin-1", label: "Couples Cabin No. 1" },
-  { value: "cabin:family-cabin", label: "Family Cabin" },
-  { value: "cabin:family-cabin-full", label: "Family Cabin (Full)" },
-  { value: "cabin:hansel-and-gretel-cabin", label: "Hansel & Gretel Cabin" },
-  { value: "cabin:ranch-building", label: "Ranch Building" },
-  { value: "attraction", label: "Attractions" },
-  { value: "about", label: "About" },
-  { value: "experience", label: "Experiences" },
-] as const;
-
 function PhotosTab() {
+  return (
+    <div className="space-y-6">
+      <PageSection className="p-6 sm:p-7">
+        <SectionTitle
+          title="Photos by Section"
+          description="Each card represents a section of the website. Click Upload on any card to add photos to that section."
+        />
+        <div className="grid gap-5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+          {SECTIONS.map((section) => (
+            <SectionCard key={section.category} section={section} />
+          ))}
+        </div>
+      </PageSection>
+    </div>
+  );
+}
+
+// ── Section card ──────────────────────────────────────────────────────────────
+
+interface UploadModalState {
+  files: FileList;
+  altText: string;
+  uploaderName: string;
+}
+
+function SectionCard({ section }: { section: Section }) {
   const [photos, setPhotos] = useState<GalleryPhoto[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeCategory, setActiveCategory] = useState<string>("all");
   const [refreshKey, setRefreshKey] = useState(0);
-  const [showUploadForm, setShowUploadForm] = useState(false);
-  const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
 
-  const [uploadFiles, setUploadFiles] = useState<FileList | null>(null);
-  const [uploadAltText, setUploadAltText] = useState("");
-  const [uploadCategory, setUploadCategory] = useState("gallery");
-  const [uploadUploaderName, setUploadUploaderName] = useState("");
+  // Upload modal state
+  const [pendingUpload, setPendingUpload] = useState<UploadModalState | null>(null);
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState("");
 
+  // Confirm delete state
+  const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   useEffect(() => {
     setLoading(true);
-    const qs = activeCategory !== "all" ? `?category=${activeCategory}` : "";
-    apiFetch<{ data: GalleryPhoto[] }>("GET", `/admin/gallery/photos${qs}`)
+    apiFetch<{ data: GalleryPhoto[] }>(
+      "GET",
+      `/admin/gallery/photos?category=${encodeURIComponent(section.category)}`
+    )
       .then((res) => setPhotos(res.data))
       .catch(console.error)
       .finally(() => setLoading(false));
-  }, [activeCategory, refreshKey]);
+  }, [section.category, refreshKey]);
+
+  function handleFilePick(e: React.ChangeEvent<HTMLInputElement>) {
+    if (!e.target.files || e.target.files.length === 0) return;
+    setPendingUpload({ files: e.target.files, altText: "", uploaderName: "" });
+    // Reset file input so the same files can be re-picked if modal is closed
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  }
 
   async function handleUpload() {
-    if (!uploadFiles || uploadFiles.length === 0) return;
+    if (!pendingUpload || pendingUpload.files.length === 0) return;
     setUploading(true);
     setUploadError("");
     try {
-      for (const file of Array.from(uploadFiles)) {
+      for (const file of Array.from(pendingUpload.files)) {
         const fd = new FormData();
         fd.append("file", file);
-        fd.append("altText", uploadAltText);
+        fd.append("altText", pendingUpload.altText);
         fd.append("caption", "");
-        fd.append("category", uploadCategory);
-        fd.append("uploaderName", uploadUploaderName);
+        fd.append("category", section.category);
+        fd.append("uploaderName", pendingUpload.uploaderName);
         await uploadPhoto(fd);
       }
-      setUploadFiles(null);
-      setUploadAltText("");
-      setUploadUploaderName("");
-      setShowUploadForm(false);
+      setPendingUpload(null);
       setRefreshKey((k) => k + 1);
     } catch (err) {
       setUploadError(err instanceof Error ? err.message : "Upload failed");
@@ -209,7 +309,9 @@ function PhotosTab() {
   }
 
   async function handleToggleActive(photo: GalleryPhoto) {
-    await apiFetch("PATCH", `/admin/gallery/photos/${photo.id}`, { isActive: !photo.isActive });
+    await apiFetch("PATCH", `/admin/gallery/photos/${photo.id}`, {
+      isActive: !photo.isActive,
+    });
     setRefreshKey((k) => k + 1);
   }
 
@@ -219,200 +321,315 @@ function PhotosTab() {
     setRefreshKey((k) => k + 1);
   }
 
+  // Show up to 4 thumbnails inline; remaining count shown as a badge
+  const visibleThumbs = photos.slice(0, 4);
+  const extraCount = photos.length > 4 ? photos.length - 4 : 0;
+
   return (
-    <div className="space-y-6">
-      <PageSection className="p-6 sm:p-7">
-        <SectionTitle
-          title="Photos"
-          description="Upload and manage gallery images shown on the public website."
-          action={
-            <Button
-              variant={showUploadForm ? "outline" : "default"}
-              size="sm"
-              onClick={() => setShowUploadForm((v) => !v)}
-            >
-              {showUploadForm ? "Cancel" : "Upload Photos"}
-            </Button>
-          }
-        />
-
-        {showUploadForm ? (
-          <div className="mb-6 rounded-xl border border-border bg-muted/30 p-5 space-y-4">
-            <h3 className="text-base font-black tracking-tight text-foreground">Upload New Photos</h3>
-
-            <FieldLabel label="Images">
-              <input
-                type="file"
-                accept="image/*"
-                multiple
-                onChange={(e) => setUploadFiles(e.target.files)}
-                className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm outline-none file:mr-3 file:rounded-full file:border-0 file:bg-primary/10 file:px-3 file:py-1 file:text-xs file:font-semibold file:text-primary"
-              />
-            </FieldLabel>
-
-            <FieldLabel label="Alt Text">
-              <Input
-                type="text"
-                value={uploadAltText}
-                onChange={(e) => setUploadAltText(e.target.value)}
-                placeholder="Describe the image for accessibility…"
-              />
-            </FieldLabel>
-
-            <FieldLabel label="Category">
-              <select
-                value={uploadCategory}
-                onChange={(e) => setUploadCategory(e.target.value)}
-                className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-ring"
-              >
-                <option value="hero">Hero / Banner</option>
-                <option value="gallery">Gallery</option>
-                <option value="cabin:camping-site">Camping Site</option>
-                <option value="cabin:couples-cabin">Couples Cabin</option>
-                <option value="cabin:couples-cabin-1">Couples Cabin No. 1</option>
-                <option value="cabin:family-cabin">Family Cabin</option>
-                <option value="cabin:family-cabin-full">Family Cabin (Full)</option>
-                <option value="cabin:hansel-and-gretel-cabin">Hansel &amp; Gretel Cabin</option>
-                <option value="cabin:ranch-building">Ranch Building</option>
-                <option value="attraction">Attractions</option>
-                <option value="about">About</option>
-                <option value="experience">Experiences</option>
-              </select>
-            </FieldLabel>
-
-            <FieldLabel label="Uploader Name (optional)">
-              <Input
-                type="text"
-                value={uploadUploaderName}
-                onChange={(e) => setUploadUploaderName(e.target.value)}
-                placeholder="Staff member name…"
-              />
-            </FieldLabel>
-
-            {uploadError ? (
-              <div className="rounded-xl border border-destructive/50 bg-destructive/10 px-4 py-2 text-sm text-destructive">
-                {uploadError}
-              </div>
-            ) : null}
-
-            <Button
-              type="button"
-              className="w-full"
-              onClick={handleUpload}
-              disabled={uploading || !uploadFiles || uploadFiles.length === 0}
-            >
-              {uploading
-                ? "Uploading…"
-                : `Upload ${uploadFiles ? uploadFiles.length : 0} Photo${uploadFiles && uploadFiles.length !== 1 ? "s" : ""}`}
-            </Button>
+    <>
+      <div className="rounded-xl border border-border bg-card shadow-sm flex flex-col">
+        {/* Card header */}
+        <div className="p-5 pb-3">
+          <div className="flex items-start gap-3">
+            <span className="text-2xl leading-none mt-0.5" aria-hidden="true">
+              {section.icon}
+            </span>
+            <div className="min-w-0">
+              <h3 className="text-base font-bold tracking-tight text-foreground leading-snug">
+                {section.name}
+              </h3>
+              <p className="mt-1 text-xs text-muted-foreground leading-relaxed">
+                {section.description}
+              </p>
+            </div>
           </div>
-        ) : null}
-
-        <div className="flex flex-wrap gap-2 mb-5">
-          {CATEGORIES.map((cat) => (
-            <Button
-              key={cat.value}
-              variant={activeCategory === cat.value ? "default" : "outline"}
-              size="sm"
-              onClick={() => setActiveCategory(cat.value)}
-            >
-              {cat.label}
-            </Button>
-          ))}
         </div>
 
-        {loading ? (
-          <div className="rounded-xl border border-dashed border-border bg-muted/30 px-6 py-12 text-center text-sm text-muted-foreground">
-            Loading photos…
-          </div>
-        ) : photos.length === 0 ? (
-          <EmptyState
-            title="No photos yet"
-            description="Upload the first one to get the gallery started."
-            action={
-              <Button onClick={() => setShowUploadForm(true)}>Upload Photos</Button>
-            }
-          />
-        ) : (
-          <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4">
-            {photos.map((photo) => (
-              <div
-                key={photo.id}
-                className="rounded-xl border border-border bg-card overflow-hidden shadow-sm"
+        {/* Thumbnail strip */}
+        <div className="px-5 pb-3">
+          {loading ? (
+            <div className="flex gap-2">
+              {[0, 1, 2].map((i) => (
+                <div
+                  key={i}
+                  className="h-16 w-16 rounded-lg bg-muted animate-pulse shrink-0"
+                />
+              ))}
+            </div>
+          ) : photos.length === 0 ? (
+            <div
+              className="h-16 w-full rounded-lg border border-dashed border-border bg-muted/30 flex items-center justify-center cursor-pointer hover:bg-muted/50 transition-colors"
+              onClick={() => fileInputRef.current?.click()}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") fileInputRef.current?.click();
+              }}
+            >
+              <span className="text-xs text-muted-foreground">No photos yet -- click to upload</span>
+            </div>
+          ) : (
+            <div className="flex gap-2 flex-wrap">
+              {visibleThumbs.map((photo) => (
+                <Thumbnail
+                  key={photo.id}
+                  photo={photo}
+                  confirmDeleteId={confirmDeleteId}
+                  onToggleActive={handleToggleActive}
+                  onRequestDelete={(id) => setConfirmDeleteId(id)}
+                  onCancelDelete={() => setConfirmDeleteId(null)}
+                  onConfirmDelete={handleDelete}
+                />
+              ))}
+              {/* "+" upload trigger thumbnail */}
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="h-16 w-16 rounded-lg border border-dashed border-border bg-muted/30 flex items-center justify-center text-muted-foreground hover:bg-muted/60 hover:text-foreground transition-colors shrink-0"
+                title="Upload more photos"
               >
-                <div className="aspect-square overflow-hidden bg-muted">
-                  <img
-                    src={`/uploads/gallery/${photo.filename}`}
-                    alt={photo.altText || photo.originalName}
-                    className="h-full w-full object-cover"
-                    loading="lazy"
-                  />
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M12 5v14" />
+                  <path d="M5 12h14" />
+                </svg>
+              </button>
+              {extraCount > 0 && (
+                <div className="h-16 w-16 rounded-lg bg-muted flex items-center justify-center shrink-0">
+                  <span className="text-xs font-semibold text-muted-foreground">
+                    +{extraCount}
+                  </span>
                 </div>
+              )}
+            </div>
+          )}
+        </div>
 
-                <div className="p-3 space-y-2">
-                  <p className="truncate text-xs font-semibold text-foreground">
-                    {photo.altText || photo.originalName}
+        {/* Card footer */}
+        <div className="mt-auto px-5 pb-5 pt-1 flex items-center justify-between gap-3">
+          <span className="text-xs text-muted-foreground">
+            {loading
+              ? "Loading..."
+              : photos.length === 0
+              ? "No photos yet"
+              : `${photos.length} photo${photos.length !== 1 ? "s" : ""}`}
+          </span>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => fileInputRef.current?.click()}
+          >
+            Upload Photos
+          </Button>
+        </div>
+      </div>
+
+      {/* Hidden file input */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        multiple
+        className="sr-only"
+        onChange={handleFilePick}
+        tabIndex={-1}
+        aria-hidden="true"
+      />
+
+      {/* Upload modal */}
+      {pendingUpload !== null && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+          <div className="w-full max-w-md rounded-2xl border border-border bg-background shadow-2xl">
+            <div className="p-6 space-y-5">
+              <div className="flex items-center gap-3">
+                <span className="text-2xl" aria-hidden="true">
+                  {section.icon}
+                </span>
+                <div>
+                  <h2 className="text-base font-bold tracking-tight text-foreground">
+                    Upload to {section.name}
+                  </h2>
+                  <p className="text-xs text-muted-foreground">
+                    {pendingUpload.files.length} file
+                    {pendingUpload.files.length !== 1 ? "s" : ""} selected
                   </p>
-
-                  <div className="flex flex-wrap gap-1">
-                    <Badge variant="secondary">{photo.category}</Badge>
-                    <Badge variant={photo.isActive ? "secondary" : "outline"}>
-                      {photo.isActive ? "Active" : "Hidden"}
-                    </Badge>
-                  </div>
-
-                  {photo.uploaderName ? (
-                    <p className="text-[11px] text-muted-foreground truncate">
-                      By {photo.uploaderName}
-                    </p>
-                  ) : null}
-
-                  <div className="flex gap-2 pt-1">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="flex-1"
-                      onClick={() => handleToggleActive(photo)}
-                    >
-                      {photo.isActive ? "Hide" : "Show"}
-                    </Button>
-
-                    {confirmDeleteId === photo.id ? (
-                      <div className="flex gap-1 flex-1">
-                        <Button
-                          variant="destructive"
-                          size="sm"
-                          className="flex-1"
-                          onClick={() => handleDelete(photo)}
-                        >
-                          Confirm
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="flex-1"
-                          onClick={() => setConfirmDeleteId(null)}
-                        >
-                          Cancel
-                        </Button>
-                      </div>
-                    ) : (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="flex-1 text-destructive hover:text-destructive"
-                        onClick={() => setConfirmDeleteId(photo.id)}
-                      >
-                        Delete
-                      </Button>
-                    )}
-                  </div>
                 </div>
               </div>
-            ))}
+
+              <FieldLabel label="Describe the photo (alt text)">
+                <Input
+                  type="text"
+                  value={pendingUpload.altText}
+                  onChange={(e) =>
+                    setPendingUpload((p) => p ? { ...p, altText: e.target.value } : p)
+                  }
+                  placeholder="e.g. View from inside the Couples Cabin at sunrise"
+                />
+              </FieldLabel>
+
+              <FieldLabel label="Your name (optional)">
+                <Input
+                  type="text"
+                  value={pendingUpload.uploaderName}
+                  onChange={(e) =>
+                    setPendingUpload((p) => p ? { ...p, uploaderName: e.target.value } : p)
+                  }
+                  placeholder="Staff member name"
+                />
+              </FieldLabel>
+
+              {uploadError ? (
+                <div className="rounded-xl border border-destructive/50 bg-destructive/10 px-4 py-2 text-sm text-destructive">
+                  {uploadError}
+                </div>
+              ) : null}
+
+              <div className="flex gap-2 pt-1">
+                <Button
+                  type="button"
+                  className="flex-1"
+                  onClick={handleUpload}
+                  disabled={uploading}
+                >
+                  {uploading
+                    ? "Uploading..."
+                    : `Upload ${pendingUpload.files.length} Photo${
+                        pendingUpload.files.length !== 1 ? "s" : ""
+                      }`}
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    setPendingUpload(null);
+                    setUploadError("");
+                  }}
+                  disabled={uploading}
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
           </div>
-        )}
-      </PageSection>
+        </div>
+      )}
+    </>
+  );
+}
+
+// ── Thumbnail with hover actions ───────────────────────────────────────────────
+
+function Thumbnail({
+  photo,
+  confirmDeleteId,
+  onToggleActive,
+  onRequestDelete,
+  onCancelDelete,
+  onConfirmDelete,
+}: {
+  photo: GalleryPhoto;
+  confirmDeleteId: number | null;
+  onToggleActive: (photo: GalleryPhoto) => void;
+  onRequestDelete: (id: number) => void;
+  onCancelDelete: () => void;
+  onConfirmDelete: (photo: GalleryPhoto) => void;
+}) {
+  const isConfirming = confirmDeleteId === photo.id;
+
+  return (
+    <div className="relative h-16 w-16 shrink-0 group">
+      <img
+        src={`/uploads/gallery/${photo.filename}`}
+        alt={photo.altText || photo.originalName}
+        className={[
+          "h-full w-full rounded-lg object-cover border border-border",
+          !photo.isActive ? "opacity-40" : "",
+        ].join(" ")}
+        loading="lazy"
+      />
+
+      {/* Hover overlay with actions */}
+      {!isConfirming && (
+        <div className="absolute inset-0 rounded-lg bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1">
+          {/* Toggle visibility */}
+          <button
+            type="button"
+            title={photo.isActive ? "Hide from website" : "Show on website"}
+            onClick={() => onToggleActive(photo)}
+            className="h-6 w-6 flex items-center justify-center rounded bg-white/20 hover:bg-white/40 text-white transition-colors"
+          >
+            {photo.isActive ? (
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" />
+                <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" />
+                <line x1="1" y1="1" x2="23" y2="23" />
+              </svg>
+            ) : (
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                <circle cx="12" cy="12" r="3" />
+              </svg>
+            )}
+          </button>
+          {/* Delete */}
+          <button
+            type="button"
+            title="Delete photo"
+            onClick={() => onRequestDelete(photo.id)}
+            className="h-6 w-6 flex items-center justify-center rounded bg-white/20 hover:bg-destructive text-white transition-colors"
+          >
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="3 6 5 6 21 6" />
+              <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+              <path d="M10 11v6" />
+              <path d="M14 11v6" />
+              <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+            </svg>
+          </button>
+        </div>
+      )}
+
+      {/* Delete confirmation overlay */}
+      {isConfirming && (
+        <div className="absolute inset-0 rounded-lg bg-black/80 flex flex-col items-center justify-center gap-1 p-1">
+          <span className="text-[9px] text-white font-semibold text-center leading-tight">
+            Delete?
+          </span>
+          <div className="flex gap-1">
+            <button
+              type="button"
+              onClick={() => onConfirmDelete(photo)}
+              className="text-[9px] px-1.5 py-0.5 rounded bg-destructive text-white font-semibold hover:bg-destructive/80 transition-colors"
+            >
+              Yes
+            </button>
+            <button
+              type="button"
+              onClick={onCancelDelete}
+              className="text-[9px] px-1.5 py-0.5 rounded bg-white/20 text-white font-semibold hover:bg-white/40 transition-colors"
+            >
+              No
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Hidden badge */}
+      {!photo.isActive && (
+        <div className="absolute top-0.5 left-0.5">
+          <span className="rounded px-1 py-0.5 text-[8px] font-bold bg-black/70 text-white leading-none">
+            HIDDEN
+          </span>
+        </div>
+      )}
     </div>
   );
 }
@@ -505,7 +722,7 @@ function PromosTab() {
                 type="text"
                 value={formTitle}
                 onChange={(e) => setFormTitle(e.target.value)}
-                placeholder="Weekend Special…"
+                placeholder="Weekend Special..."
               />
             </FieldLabel>
 
@@ -514,7 +731,7 @@ function PromosTab() {
                 type="text"
                 value={formSubtitle}
                 onChange={(e) => setFormSubtitle(e.target.value)}
-                placeholder="Book before Friday for 20% off…"
+                placeholder="Book before Friday for 20% off..."
               />
             </FieldLabel>
 
@@ -533,7 +750,7 @@ function PromosTab() {
                   type="text"
                   value={formCtaText}
                   onChange={(e) => setFormCtaText(e.target.value)}
-                  placeholder="Book Now…"
+                  placeholder="Book Now..."
                 />
               </FieldLabel>
 
@@ -542,7 +759,7 @@ function PromosTab() {
                   type="url"
                   value={formCtaUrl}
                   onChange={(e) => setFormCtaUrl(e.target.value)}
-                  placeholder="https://…"
+                  placeholder="https://..."
                 />
               </FieldLabel>
             </div>
@@ -559,14 +776,14 @@ function PromosTab() {
               onClick={handleAddPromo}
               disabled={saving || !formTitle.trim()}
             >
-              {saving ? "Saving…" : "Create Promotion"}
+              {saving ? "Saving..." : "Create Promotion"}
             </Button>
           </div>
         ) : null}
 
         {loading ? (
           <div className="rounded-xl border border-dashed border-border bg-muted/30 px-6 py-12 text-center text-sm text-muted-foreground">
-            Loading promotions…
+            Loading promotions...
           </div>
         ) : promos.length === 0 ? (
           <EmptyState
